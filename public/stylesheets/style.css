@@ -1,0 +1,33 @@
+body {
+  margin-left: auto; margin-right: auto;
+  margin-top:auto; margin-bottom: auto;
+
+  font: 12px "Lucida Grande", Helvetica, Arial, sans-serif;
+  width : 414px;
+  background-color: #00b7ff;
+}
+
+h2 {
+  text-align: center;
+}
+#wrape{
+  width: 80%;
+  padding: 10%;
+}
+.head{
+  /*margin-inside: 5%;*/
+  color: #000066;
+}
+.ipt, .b {
+  height: 25px;
+  width : 100%;
+}
+.btn{
+  alignment: center;
+  margin-left: 10%;
+  width : 80%;
+  height: 50px;
+}
+label{
+  padding-left: 20%;
+}

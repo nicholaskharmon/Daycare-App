@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/style.css' />
+  </head>
+  <script type="text/javascript" >
+      function check(){
+          var email = document.getElementById("email").value;
+          var username = document.getElementById("username").value;
+          var phonenumber = document.getElementById("phonenumber").value;
+          var pwd1 = document.getElementById("pwd1").value;
+          var pwd2 = document.getElementById("pwd2").value;
+//          var gender = document.getElementById("gender").value;
+
+          if(email==''){
+              window.alert("Input Email address.");
+          }else if(username==''){
+              window.alert("Input Name.");
+          }else if(phonenumber==''){
+              window.alert("Input Phonenumber.");
+          }else if(pwd1==''){
+              window.alert("Input Password.");
+          }else if(pwd2==''){
+              window.alert("Confirm Password.");
+          }else if(pwd1!=pwd2){
+              window.alert("Two Password are different.");
+          }else{
+              document.getElementById("getinform").submit();
+          }
+      }
+  </script>
+
+  <body>
+
+  <div id="wrape">
+    <h2>SignUp of New User</h2>
+    <p class="head">E-Mail Address, User name and Phonenumber are necessary.</p>
+    <p class="head">Please remember E-Mail Address and Password for Login in future.</p>
+    <div class="formwrap">
+    <form id="getinform" action="/saveuser" method="post">
+        <div class="a">
+            <p class="inform">E-Mail Address.</p>
+            <input type="text" id="email" name="email" class="ipt" placeholder="address@mail.com">
+        </div>
+        <div class="a">
+            <p class="inform">User name</p>
+            <input type="text" id="username" name="username" class="ipt" placeholder="Susan Macklin">
+        </div>
+        <div class="a">
+            <p class="inform">PhoneNumber</p>
+            <input type="text" id="phonenumber" name="phonenumber" class="ipt" placeholder="123456789">
+        </div>
+        <div class="a">
+            <br>
+            <label><input type="radio" id="gender" name="gender" value="Father" checked>Father</label>
+            <label><input type="radio" id="gender" name="gender" value="Mother" >Mother</label>
+            <br>
+        </div>
+        <div class="a">
+            <p class="inform">Your Password</p>
+            <input type="text" id="pwd1" name="pwd1" class="ipt" placeholder="abc123456">
+        </div>
+        <div class="a">
+            <p class="inform">Confirm Password</p>
+            <input type="text" id="pwd2"  name="pwd2" class="ipt" placeholder="abc123456">
+        </div>
+        <div class="b">
+            </br>
+            <button class="btn" onclick="check();">Register User</button>
+        </div>
+    </form>
+    </div>
+  </div>
+  </body>
+</html>

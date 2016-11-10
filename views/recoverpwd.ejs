@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/style.css' />
+  </head>
+  <script type="text/javascript" >
+      function check(){
+          var email = document.getElementById("email").value;
+          var username = document.getElementById("username").value;
+          var phonenumber = document.getElementById("phonenumber").value;
+          var newpwd = document.getElementById("newpwd").value;
+
+          if(email==''){
+              window.alert("Input Email address.");
+          }else if(username==''){
+              window.alert("Input Name.");
+          }else if(phonenumber==''){
+              window.alert("Input Phonenumber.");
+          }else if(newpwd==''){
+              window.alert("Input Password.");
+          }else{
+//              window.alert("wwwwq");
+              document.getElementById("getinform").submit();
+          }
+      }
+  </script>
+
+  <body>
+
+  <div id="wrape">
+    <h2 >Did you forget your password?</h2>
+    <p class="head">Please Input followings.</p>
+    <p class="head">User name is to equal to the full name when Sign up.</p>
+    <p class="head">If it is correct, we will change your password with new password.</p>
+    <div class="formwrap">
+    <form id="getinform" action="/sendSMS" method="post">
+        <div class="a">
+            <p class="inform">E-Mail.</p>
+            <input type="text" id="email" name="email" class="ipt" placeholder="address@mail.com">
+        </div>
+        <div class="a">
+            <p class="inform">User name</p>
+            <input type="text" id="username" name="username" class="ipt" placeholder="Susan Macklin">
+        </div>
+        <div class="a">
+            <p class="inform">PhoneNumber</p>
+            <input type="text" id="phonenumber" name="phonenumber" class="ipt" placeholder="123456789">
+        </div>
+        <div class="a">
+            <p class="inform">Input Your New Password</p>
+            <input type="text" id="newpwd" name="newpwd" class="ipt" placeholder="abc123456">
+        </div>
+        <div class="b">
+            <br>
+            <button class="btn" onclick="check();">Change Password</button>
+        </div>
+    </form>
+    </div>
+  </div>
+  </body>
+</html>
