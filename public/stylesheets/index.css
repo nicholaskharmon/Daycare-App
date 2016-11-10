@@ -1,9 +1,9 @@
 body {
+  width : 100%;
   background-image: url("/images/back.png");
   background-repeat: no-repeat;
-  margin-left: auto; margin-right: auto;
-  margin-top:auto; margin-bottom: auto;
-
+  /*margin-left: auto; margin-right: auto;*/
+  /*margin-top:auto; margin-bottom: auto;*/
 }
 
 #email{
