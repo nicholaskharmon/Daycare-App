@@ -1,21 +1,23 @@
-body {
-  /*margin: 0px;*/
-  /*margin-left: auto; margin-right: auto;*/
-  /*margin-top:auto; margin-bottom: auto;*/
-  /*padding: 10%;*/
+html,body{ height:100%;}
+body{
+  margin:0px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  /*width : 414px;*/
-  width : 95%;
-  /*alignment: center;*/
+  width : 90%;
+  margin-left: 5%;
+  margin-right: 5%;
   background-color: #00B7FF;
-
 }
+
 h2{
   text-align: center;
 }
 
-#div-head, #div-foot, #div-body{
+#div-head, #div-foot, #div-main{
   color: #000066;
+}
+
+#div-main{
+  padding-bottom:50px;
 }
 
 #div-head{
@@ -23,11 +25,12 @@ h2{
 }
 
 #div-foot{
+  margin-top:-50px;
   height : 50px;
 }
 
 #div-body{
-  height : 350px;
+  min-height:100%;
 }
 
 #btnSetting{
@@ -48,7 +51,7 @@ h2{
 }
 #row1, #row2{
   width: 100%;
-  height:50%;
+  height:40%;
 }
 #btnProfile,#btnReport,#btnPhoneCall {
   width: 32%;

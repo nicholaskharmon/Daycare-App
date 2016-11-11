@@ -14,7 +14,7 @@
           var pwd2 = document.getElementById("pwd2").value;
 //          var gender = document.getElementById("gender").value;
 
-          if(email==''){
+          if(email=='') {
               window.alert("Input Email address.");
           }else if(username==''){
               window.alert("Input Name.");
@@ -27,8 +27,9 @@
           }else if(pwd1!=pwd2){
               window.alert("Two Password are different.");
           }else{
-              document.getElementById("getinform").submit();
+              return true;
           }
+          return false;
       }
   </script>
 
@@ -39,7 +40,7 @@
     <p class="head">E-Mail Address, User name and Phonenumber are necessary.</p>
     <p class="head">Please remember E-Mail Address and Password for Login in future.</p>
     <div class="formwrap">
-    <form id="getinform" action="/saveuser" method="post">
+    <form id="getinform" action="/saveuser" method="post" onsubmit="return check();">
         <div class="a">
             <p class="inform">E-Mail Address.</p>
             <input type="text" id="email" name="email" class="ipt" placeholder="address@mail.com">
@@ -68,7 +69,7 @@
         </div>
         <div class="b">
             </br>
-            <button class="btn" onclick="check();">Register User</button>
+            <input type="submit" class="btn" value="Register User">
         </div>
     </form>
     </div>

@@ -19,11 +19,11 @@
           }else if(phonenumber==''){
               window.alert("Input Phonenumber.");
           }else if(newpwd==''){
-              window.alert("Input Password.");
+              window.alert("Input new Password.");
           }else{
-//              window.alert("wwwwq");
-              document.getElementById("getinform").submit();
+             return true;
           }
+          return false;
       }
   </script>
 
@@ -35,7 +35,7 @@
     <p class="head">User name is to equal to the full name when Sign up.</p>
     <p class="head">If it is correct, we will change your password with new password.</p>
     <div class="formwrap">
-    <form id="getinform" action="/sendSMS" method="post">
+    <form id="getinform" action="/sendSMS" method="post" onsubmit="return check();">
         <div class="a">
             <p class="inform">E-Mail.</p>
             <input type="text" id="email" name="email" class="ipt" placeholder="address@mail.com">
@@ -54,7 +54,7 @@
         </div>
         <div class="b">
             <br>
-            <button class="btn" onclick="check();">Change Password</button>
+            <input type="submit" class="btn" value="Change Password">
         </div>
     </form>
     </div>
