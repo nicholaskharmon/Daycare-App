@@ -5,30 +5,54 @@
     <link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body>
+<script type="text/javascript">
+    function check(){
+//        var uid = document.session.user_id;
+//        if (uid == '-1'){
+//            console.log('uid',uid);
+//            window.alert("try login with correct Email address and password.");
+//            location.href="/";
+//        }else{
+//            window.alert(child_id);
+//            global.mysql.query("select * from childs where child_id='" + child_id + "'", function(err, rows){
+//                if (err) {
+//                    console.error(err);
+//                    throw err;
+//                }
+//
+//            })
+//        }
+    }
+</script>
+<body onload="check()">
+<!--<body >-->
     <div id="div-body">
-        <h2>DashBoard</h2>
-        <div id="div-head">
-            <button id="btnSetting" onclick="location.href='';">Setting</button>
-        </div>
-        <br>
+        <!--<div id="div-settingbtn" class="float:right;">-->
+            <!--&lt;!&ndash;<button id="btnSetting" onclick="location.href='';">Setting</button>&ndash;&gt;-->
+        <!--</div>-->
+        <!--<div id="div-head" class="float:right;">-->
+            <!--&lt;!&ndash;<div><h2 class="align:center;">DashBoard</h2></div>&ndash;&gt;-->
+        <!--</div>-->
+        <!--<br>-->
 
         <div id="div-main">
             <div id="row1">
-                <button id="btnOnMyWay" onclick="location.href='';">On MyWay</button>
-                <button id="btnTimeLine" onclick="location.href='';">TimeLine</button>
+                <button id="btnOnMyWay" onclick="location.href='';"></button>
+                <div style="width: 30px"></div>
+                <button id="btnTimeLine" onclick=""></button>
             </div>
             <div id="row2">
-                <button id="btnMessanger" onclick="location.href='';">Messanger</button>
-                <button id="btnCalender" onclick="location.href='';">Calendar</button>
+                <button id="btnMessenger" onclick="location.href='';"></button>
+                <div style="width: 30px"></div>
+                <button id="btnCalender" onclick="location.href='';"></button>
             </div>
         </div>
         <br>
     </div>
     <div id="div-foot">
-        <button id="btnProfile" onclick="location.href='';">Profile</button>
-        <button id="btnReport" onclick="location.href='';">Report</button>
-        <button id="btnPhoneCall" onclick="location.href='';">PhoneCall</button>
+        <button id="btnProfile" onclick="location.href='/profile';"></button>
+        <button id="btnReport" onclick=""></button>
+        <button id="btnPhoneCall" onclick="location.href='';"></button>
     </div>
 
 </body>
