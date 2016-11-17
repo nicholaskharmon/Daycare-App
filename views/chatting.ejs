@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daycare</title>
+
+    <!--<link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />-->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="margin:0px;background-color: #c6daf0;background-repeat: no-repeat;max-height: 100%">
+    <div id="div-head" style="height:100px; padding:20px 20px 10px 20px;background-color: #eaee9a">
+        <h2 style="text-align:center">Welcome to <%= room %></h2>
+        <div>
+            <img id="homebtn" src="/images/home.png" onclick="location.href='/dashboard'" style="width:30px;height:30px;float:left">
+            <div style="float:right;">
+                <!--<img src="/images/search-b.png" style="width:30px;height:30px">-->
+                <select id="during" style="height: 30px;display: inline-block;">
+                    <option value="">&nbsp; </option>
+                    <option value="1week">~ 7 days ago</option>
+                    <option value="2week">8 days ago ~ 14 days ago</option>
+                    <option value="3week">15 days ago ~ 21 days ago</option>
+                    <option value="4week">22 days ago ~ 30 days ago</option>
+                </select>
+            </div>
+        </div>
+        <!--Name <input type="text" id="nickname" /> <input type="button" id="changename" value="Change name"/><br>-->
+    </div>
+    <div id="div-main" style="margin:10px 5% 30px 5%;width:90%;height:70%; position:fixed; top:130px ">
+        <textarea id="msgs" style="width:100%; border:none; height:100%"></textarea>
+    </div>
+    <div id="div-bottom" style="position: fixed; bottom: 0px; right: 0px;
+    width: 90%; padding:10px 5%;background-color: #f3f39c;">
+
+        <select id="to" style="height:30px; width:30%">
+                <option value="ALL">ALL</option>
+        </select>
+
+        <textarea id="msgbox" rows="3" style="width:65%;float:right;"></textarea>
+    </div>
+
+    <script type="text/javascript">
+        var socket = io.connect("http://localhost:8005");
+
+        socket.emit('joinroom',{room:'<%=room%>', nickname:'<%=nname%>'});
+
+        $(document).ready(function() {
+            $("#during").change(function () {
+                if($('#during').val() != ''){
+                    $('#msgs').empty();
+                    socket.emit('select_during', {during: $('#during').val(),room:'<%=room%>', nickname:'<%=nname%>'});
+                }
+            });
+            $("#msgbox").keyup(function (event) {
+                if (event.which == 13) {
+                    var d = new Date();
+                    var sdate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+                    var stime = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+                    var txt = $('#msgbox').val().slice(0,-1) + "(" + sdate + " " + stime + ")\n";
+                    socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                    $('#msgbox').val('');
+                }
+            });
+            socket.on('new', function (data) {
+                console.log(data.nickname);
+                $('#nickname').val(data.nickname);
+            });
+
+            // when new user enter or user change name, change <To> list
+            socket.on('userlist', function (data) {
+                var users = data.users;
+                console.log(users);
+                console.log(data.users.length);
+                $('#to').empty().append('<option value="ALL">ALL</option>');
+                for (var i = 0; i < data.users.length; i++) {
+                    $('#to').append('<option value="' + users[i] + '">' + users[i] + "</option>");
+                }
+            });
+
+            socket.on('broadcast_msg', function (data) {
+                console.log(data.msg);
+                $('#msgs').append(data.msg );
+            });
+        })
+    </script>
+</body>
+</html>

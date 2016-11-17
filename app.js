@@ -1,4 +1,5 @@
 var express = require('express');
+var http = require('http');
 var path = require('path');
 var mime = require('mime');
 var favicon = require('serve-favicon');
@@ -8,7 +9,7 @@ var bodyParser = require('body-parser');
 var multer = require('multer');
 var fs = require('fs');
 //var fstools = require('fs-tools');
-var formidable = require('formidable')
+var formidable = require('formidable');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -17,6 +18,7 @@ var verifyuser = require('./routes/verifyuser');
 var sendSMS = require('./routes/sendSMS');
 var signup = require('./routes/signup');
 var saveProfile = require('./routes/saveProfile');
+var debug = require('debug')('reveal-server:server');
 
 //for Facebook Login
 var passport          =     require('passport');
@@ -25,7 +27,87 @@ var FacebookStrategy  =     require('passport-facebook').Strategy;
 var session           =     require('express-session');
 //--------------
 
-app = express();
+var app = express();
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+    var port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
+
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    var bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : 'Port ' + port;
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    var addr = server.address();
+    var bind = typeof addr === 'string'
+        ? 'pipe ' + addr
+        : 'port ' + addr.port;
+    debug('Listening on ' + bind);
+}
+
+var port = normalizePort(process.env.PORT || '8005');
+
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+
+var io = require('socket.io').listen(server);
+
 
 // for facebook login
 // Passport session setup.
@@ -102,7 +184,6 @@ function ensureAuthenticated(req, res, next) {
     res.redirect('/login')
 }
 
-//app.listen(3000);
 //-----------------------
 
 app.use('/', index);
@@ -137,26 +218,15 @@ app.post('/uploadPhoto', function(req, res) {
         var file_name = this.openedFiles[0].name;
         var cid = req.session.child_id;
 
-        if(cid) {
+        if(cid) {   // when uploading completed, changed imgsrc of DB according child_id
             var sql = "update childs set imgsrc='" + temp_path + "' where child_id='" + cid + "'";
             global.mysql.query(sql, function (err, rows) {
                 if (err) {
                     console.error(err);
                     throw err;
                 }
-
             })
         }
-        /* Location where we want to copy the uploaded file */
-        //var new_location = 'e:/uploads/';
-
-        //fs.copy(temp_path, new_location + file_name, function(err) {
-        //    if (err) {
-        //        console.error(err);
-        //    } else {
-        //        console.log("success!")
-        //    }
-        //});
     });
     return res.redirect('/profile');
 })
@@ -195,16 +265,13 @@ app.post('/saveProfile', function(req, res) {
             sql += " birthday='" + birthday + "', address='" + address + "',";
             sql += " weight='" + weight + "', height='" + cheight + "',";
             sql += " allergies='" + allergy + "', ";
-            if (medication == 'on') {
-                sql += " medication='1', ";
-            } else {
-                sql += " medication='0', ";
-            }
-            if (sibling == 'on') {
-                sql += " sibling='1' ";
-            } else {
-                sql += " sibling='0' ";
-            }
+
+            if (medication == 'on') {  sql += " medication='1', "; }
+            else                    {  sql += " medication='0', "; }
+
+            if (sibling == 'on') {  sql += " sibling='1' "; }
+            else                 {  sql += " sibling='0' "; }
+
             sql += " where child_id='" + cid + "'";
 
             global.mysql.query(sql, function (err, rows) {
@@ -212,7 +279,6 @@ app.post('/saveProfile', function(req, res) {
                     console.error(err);
                     throw err;
                 }
-
             });
             return res.redirect('/profile');
         }
@@ -316,6 +382,192 @@ app.get('/recoverpwd', function(req, res){
 app.get('/dashboard', function(req, res){
     res.render('dashboard', { title: 'DayCare' });
 });
+
+app.get('/chatting/',function(req,res){
+    var cid = req.session.child_id;
+    var uid = req.session.user_id;
+    var grade = req.session.grade;
+    var nickname = req.session.nickname;
+    var roomname;
+
+    if(grade == '3'){ // parents
+        if(cid == '0'){ // when no profile
+            var smsg = "Please enter profile and register Information of your child.";
+            res.render('errorMsg', { title:'Daycare',hd:"No Child Information", msg:smsg, url:"/dashboard", btnname:"To Dashboard" });
+        }else{          // when exist profile
+            var sql = "select child_name from childs where child_id='" + cid + "'";
+            global.mysql.query(sql, function(err, rows){
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+
+                var childname = rows[0].child_name;
+                console.log('room name is :' + childname + "   nickname="+nickname);
+
+                roomname = childname + ' Family';
+
+                res.render('chatting',{room:roomname, nname : nickname });
+            })
+        }
+    } else {
+        roomname = 'Staffs';
+        console.log('room name is : staff   nickname='+nickname);
+        res.render('chatting',{room: 'Staff', nname: nickname});
+    }
+});
+
+// ---------------- start of group chatting server ----------------------
+
+var count = 0;
+var rooms = [];
+
+io.sockets.on('connection',function(socket){
+    console.log('a user connected');
+
+    socket.on('joinroom',function(data){
+        socket.join(data.room);
+
+        var room = data.room;
+        //var nickname = 'guest-'+count;
+        var nickname = data.nickname;
+        socket.room = room;
+        socket.nickname = nickname;
+
+        socket.emit('changename', {nickname: nickname});
+
+        // Create Room
+        if (rooms[room] == undefined) {
+            console.log('room create :' + room);
+            rooms[room] = new Object();
+            rooms[room].socket_ids = new Object();
+        }
+        // Store current user's nickname and socket.id to MAP
+        rooms[room].socket_ids[nickname] = socket.id;
+
+        // broad cast join message
+        data = {msg: nickname + ' entered in.\n'};
+        io.sockets.in(room).emit('broadcast_msg', data);
+
+        // broadcast changed user list in the room
+        io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+        count++;
+    });
+
+    socket.on('changename',function(data){
+        var room = socket.room;
+        var nickname = data.nickname;
+        var pre_nick = socket.nickname;
+        if (pre_nick != undefined) {
+            delete rooms[room].socket_ids[pre_nick];
+        }
+        rooms[room].socket_ids[nickname] = socket.id;
+
+        socket.nickname = nickname;
+        data = {msg: pre_nick + ' change nickname to ' + nickname};
+        io.sockets.in(room).emit('broadcast_msg', data);
+        io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+    });
+
+    socket.on('disconnect',function(data){
+        var room = data.room;
+
+        if(room != undefined && rooms[room] != undefined){
+
+            var nickname = data.nickname;
+            console.log('nickname ' + nickname + ' has been disconnected\n');
+            // broad cast <out room> message
+            if (nickname != undefined) {
+                if (rooms[room].socket_ids != undefined
+                    && rooms[room].socket_ids[nickname] != undefined)
+                    delete rooms[room].socket_ids[nickname];
+            }// if
+            data = {msg: nickname + 'was out.'};
+
+            io.sockets.in(room).emit('broadcast_msg', data);
+            io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+        }
+    });
+
+    socket.on('select_during', function(data){//{during: $('#during').val()});
+        var during = data.during;
+        var room = data.room;
+        var nickname = data.nickname;
+        var bdate = new Date(), edate = new Date();
+
+        if(during=="1week"){
+            bdate.setDate(bdate.getDate()-7);
+            edate = new Date();
+        }else if(during=="2week"){
+            bdate.setDate(bdate.getDate()-14);
+            edate.setDate(edate.getDate()-8);
+        }else if(during=="3week"){
+            bdate.setDate(bdate.getDate()-21);
+            edate.setDate(edate.getDate()-15);
+        }else{
+            bdate.setDate(bdate.getDate()-30);
+            edate.setDate(edate.getDate()-22);
+        }
+        var bstr = "";
+        var estr = "";
+        bstr = bdate.getFullYear() + "-" + (bdate.getMonth()+1) + "-" + bdate.getDate();
+        estr = edate.getFullYear() + "-" + (edate.getMonth()+1) + "-" + edate.getDate();
+
+        var sql = "select msg from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "')";
+
+        global.mysql.query(sql, function(err, rows){
+            if (rows.length > 0){
+                data.msg = "Messages( " + bstr + " ~ " + estr + " )";
+                var socket_id = rooms[room].socket_ids[nickname];
+                if (socket_id != undefined) {
+                    io.to(socket_id).emit('broadcast_msg', data);
+                    for(i=0; i < rows.length; i++){
+                            data.msg = rows[i].msg;
+                            io.to(socket_id).emit('broadcast_msg', data);
+                    }// if
+                }
+            }
+        })
+    })
+
+    socket.on('send_msg',function(data){
+        var room = socket.room;
+        var nickname = socket.nickname;
+
+        if(nickname != undefined && room != undefined ) {
+            console.log('in send msg room is ' + room);
+
+            data.msg = nickname + ' : ' + data.msg;
+            if (data.to == 'ALL') socket.broadcast.to(room).emit('broadcast_msg', data); // send to other clients except self
+            else {
+                // whisper
+                var socket_id = rooms[room].socket_ids[data.to];
+                if (socket_id != undefined) {
+
+                    data.msg = 'Only to you :' + data.msg;
+                    io.to(socket_id).emit('broadcast_msg', data);
+                }// if
+            }
+            var d = new Date();
+            var sdate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+            var stime = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+
+            // save msg into DB
+            var sql = "insert into message (sender, reciever, mdate, mtime, msg, room)";
+            sql += " values('" + nickname + "','" + data.to + "','";
+            sql += sdate + "','" + stime + "','" + data.msg + "','" + room + "')";
+
+            global.mysql.query(sql, function (err, rows) {
+                if (err) {
+                    console.error(err);
+                }
+            })
+            socket.emit('broadcast_msg', data);
+        }
+    })
+});    //
+
+// ---------------- end of group chatting server -------------------------
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
