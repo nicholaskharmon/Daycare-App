@@ -6,14 +6,21 @@
 
     <!--<link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />-->
     <script src="/socket.io/socket.io.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body style="margin:0px;background-color: #c6daf0;background-repeat: no-repeat;max-height: 100%">
     <div id="div-head" style="height:100px; padding:20px 20px 10px 20px;background-color: #eaee9a">
         <h2 style="text-align:center">Welcome to <%= room %></h2>
         <div>
-            <img id="homebtn" src="/images/home.png" onclick="location.href='/dashboard'" style="width:30px;height:30px;float:left">
+            <div id="homebtn" style="width:50px;height:50px; background-position: left center; background-repeat: no-repeat;
+            background-image: url('/images/home.png');float:left"
+                 onclick="location.href='/dashboard'" >
+            </div>
+            <!--<div id="invitebtn" style="float:left;width:80px;height:50px;  background-position: right center; background-repeat: no-repeat;-->
+                <!--background-image: url('/images/invite-a.png')">-->
+            <!--</div>-->
+
             <div style="float:right;">
                 <!--<img src="/images/search-b.png" style="width:30px;height:30px">-->
                 <select id="during" style="height: 30px;display: inline-block;">
@@ -52,6 +59,7 @@
                     socket.emit('select_during', {during: $('#during').val(),room:'<%=room%>', nickname:'<%=nname%>'});
                 }
             });
+
             $("#msgbox").keyup(function (event) {
                 if (event.which == 13) {
                     var d = new Date();
@@ -62,6 +70,9 @@
                     $('#msgbox').val('');
                 }
             });
+            <!--$("#invitebtn").click(function(){-->
+                <!--socket.emit('joinroom',{room:'Staff', nickname:'<%=nname%>'});-->
+            <!--})-->
             socket.on('new', function (data) {
                 console.log(data.nickname);
                 $('#nickname').val(data.nickname);

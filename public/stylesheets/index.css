@@ -5,7 +5,9 @@ body {
   /*margin-left: auto; margin-right: auto;*/
   /*margin-top:auto; margin-bottom: auto;*/
 }
-
+input {
+  text-indent: 10px;
+}
 #email{
   position:fixed;
   top : 229px;

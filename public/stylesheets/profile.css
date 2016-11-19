@@ -11,6 +11,10 @@ body{
   /*background-color: #00B7FF;*/
 }
 
+input {
+  text-indent: 10px;
+}
+
 h2{
   text-align: center;
 }

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DayCare</title>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/event_setting.css' />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/javascripts/jquery-1.11.0.min.js"></script>
+
+<script type="text/javascript">
+
+    var socket = io.connect("http://localhost:8005");
+    var nname = Math.floor((Math.random() * 100) + 1) + "";
+    socket.emit('joinroom',{room:'events', nickname: nname});
+    var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
+
+    $(document).ready(function() {
+        socket.on('broadcast_msg', function (data) {
+            console.log(data);
+            var contents = "";
+            var sd = "";
+            if(data.date != undefined) {
+                var ss = new Date(data.date);
+                sd = (ss.getMonth()+1) +'-' + ss.getDate();
+                contents = smonths[ss.getMonth()] + " " + ss.getDate() + "&nbsp;&nbsp;&nbsp;&nbsp;";
+            }
+
+            if( data.time != undefined) {
+                if (data.time == '00:00:00') {
+                    contents += 'All Day';
+                } else {
+                    contents += data.time;
+                }
+            }
+
+            if(data.event != undefined) {
+                contents += "&nbsp;&nbsp;&nbsp;&nbsp;" + data.event;
+            }
+            console.log(contents);
+
+            if(contents != "") {
+//                $('.event-list').append('<li>' + contents + "</li>");
+                console.log(sd);
+                $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
+            }
+        });
+
+        var currentmonth = new Date();
+        var cc = new Date();
+
+        function datesinMonth(vdate){
+            var first = new Date(vdate.getFullYear(), vdate.getMonth(), 1, 0, 0, 0, 0);
+            var next =  new Date(vdate.getFullYear(), vdate.getMonth(), 1, 0, 0, 0, 0);
+            next.setMonth(next.getMonth()+1);
+
+            var diff = (next - first)/ 24 / 3600 / 1000;
+            return diff ;
+        }
+
+        $('#edate').focus(function(){
+            $("#dmsg").html('');
+        })
+
+        $('#etime').focus(function(){
+            $("#tmsg").html('');
+        })
+
+        $('#econtent').focus(function(){
+            $("#emsg").html('');
+        })
+
+        $('form').submit(function () {
+            var etime = $.trim($('#etime').val());
+            var edate = $.trim($('#edate').val());
+            var econtent = $.trim($('#econtent').val());
+
+            console.log('date'+edate+'-');
+            console.log('time'+etime+'-');
+            console.log('content'+econtent+'-');
+
+            if (edate === '' ){
+                $("#dmsg").html('Select Date Please.');
+                return false;
+            }
+            if (etime === '' ){
+
+                $("#tmsg").html('Select Time Please.');
+                return false;
+            }
+            if (econtent === '' ){
+                $("#emsg").html('Input the content of Event.');
+                return false;
+            }
+        });
+
+        function loadCalendar(vdate){
+            var year = vdate.getFullYear();
+            var month = vdate.getMonth();
+            var today = vdate.getDate();
+
+            var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            var smonth = months[month];
+
+            $("#smonth").html(year + "  " + smonth);
+
+            var first = new Date(year, month, 1, 0, 0, 0, 0);
+            var firstday = first.getDay();
+
+            if (firstday > 0) {
+                first.setDate(-firstday+1);
+            }
+
+            var days = datesinMonth(vdate);
+            var cells = days + firstday;
+//            alert(cells);
+            var weeks = 5;
+            if (cells % 7 > 0){
+                weeks = (cells-cells % 7)/7 + 1;
+            }else{
+                weeks = cells / 7;
+            }
+            cells = weeks * 7;
+            $(".days").empty();
+            for (i = 0; i < cells; i++) {
+                var date = first.getDate();
+                var id = (first.getMonth()+1) + '-' + first.getDate();
+
+                if(cc.toDateString() == first.toDateString()){
+                    $(".days").append('<li id="today">' + date + "</li>");
+                }else if(i < firstday || i >= (firstday + days)) {
+                    $(".days").append('<li class="prevday"' + ' id="'+ id + '">' + date + "</li>");
+                }else{
+                    $(".days").append('<li id="' + id + '">' + date + "</li>");
+                }
+                first.setDate(date + 1);
+            }
+            $("#today").attr({"style" : "padding:0px 5px;background: #5193bf; color: white !important"});
+            $(".prevday").attr({"style" : "color:#8db4ce"});
+
+            if(weeks == 5){
+                $('#div-list').attr({"style" : "padding-top:360px"});
+            }else{
+                $('#div-list').attr({"style" : "padding-top:390px"});
+            }
+        }
+
+        function loadEvent(vdate){
+            console.log(vdate);
+            var year = vdate.getFullYear();
+            var month = vdate.getMonth();
+
+            var first = new Date(year, month, 1, 0, 0, 0, 0);
+            var firstday = first.getDay();
+
+            if (firstday > 0) {
+                first.setDate(-firstday+1);
+            }
+
+            var days = datesinMonth(vdate);
+            var cells = days + firstday;
+
+
+            if (cells * 7 > 0){
+                cells = ((cells - cells % 7)/7 + 1) * 7;
+            }
+
+            var lastday = new Date(first);
+            lastday.setDate(lastday.getDate() + cells);
+
+            var sfirst = first.getFullYear() + '-' + (first.getMonth()+1) + '-' + first.getDate();
+            var slast = lastday.getFullYear() + '-' + (lastday.getMonth()+1) + '-' + lastday.getDate();
+            console.log(nname + '|' + sfirst + '|'+ slast);
+            socket.emit('get-event',{to: nname, firstday: sfirst, lastday:slast});
+
+            $(".event-list").empty();
+        }
+
+        $(window).load(function () {
+            loadCalendar(currentmonth);
+            loadEvent(currentmonth);
+        });
+
+        $(".prev").click(function(){
+            currentmonth.setMonth(currentmonth.getMonth() - 1);
+            loadCalendar(currentmonth);
+            loadEvent(currentmonth);
+        })
+
+        $(".next").click(function(){
+            currentmonth.setMonth(currentmonth.getMonth() + 1);
+            loadCalendar(currentmonth);
+            loadEvent(currentmonth);
+        })
+    });
+</script>
+
+<body >
+    <div id="div-head">
+        <div id="div-title">
+            <!--<div id="homebtn" onclick="location.href='/dashboard'" > </div>-->
+            <!--<div id="settingbtn" > </div>-->
+            <h1 style="text-align:center">Calendar</h1>
+        </div>
+
+        <div  id="div-calendar" class ="div-calendar">
+            <div class="month">
+                <ul>
+                    <li class="prev"><</li>
+                    <li class="next">></li>
+                    <li id="smonth" style="text-align:center">  </li>
+                </ul>
+            </div>
+
+            <ul class="weekdays">
+                <li>Sun</li>
+                <li>Mon</li>
+                <li>Tue</li>
+                <li>Wed</li>
+                <li>Thu</li>
+                <li>Fri</li>
+                <li>Sat</li>
+            </ul>
+
+            <ul class="days"></ul>
+        </div>
+    </div>
+
+    <div id="div-list">
+        <!--<ul class="event-list"></ul>-->
+        <form action="/save-event" method="post" style="width:80%">
+            <br><br>
+            <p >Date&nbsp;&nbsp;<span id="dmsg"></span></p>
+            <input name="edate" id="edate" type="date" width="200px"><br>
+            <p >Time&nbsp;&nbsp;<span id="tmsg"></span></p>
+            <input name="etime" id="etime"  type="time" width="200px"><br>
+            <p >Content&nbsp;&nbsp;<span id="emsg"></span></p>
+            <input name="econtent" id="econtent"  type="text" style="width:100%"><br><br><br><br>
+            <button id="savebtn"  >Save</button>
+        </form>
+    </div>
+
+</body>
+</html>

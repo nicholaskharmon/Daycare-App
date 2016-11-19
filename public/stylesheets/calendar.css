@@ -1,0 +1,142 @@
+* {box-sizing:border-box;}
+ul {list-style-type: none;}
+body {
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    /*font-family: Verdana,sans-serif;*/
+    margin : 0px;
+    background-color: #5193bf;
+
+}
+
+#div-head{
+    width:100%;
+    position:fixed;
+    z-index:999;
+    top:0px;
+    left:0px;
+    -webkit-box-shadow: 0 1px 2px 0 #777;
+    box-shadow: 0 1px 2px 0 #777;
+}
+
+#div-title {
+    height: 80px;
+    padding: 20px 20px 0px 20px;
+    background-color: #eaee9a;
+    color : #ff2f42;
+}
+
+#div-list{
+    padding-top: 350px;
+    /*padding-left: 20%;*/
+    width : 100%;
+}
+
+#div-list input{
+    padding-left : 40px
+}
+#homebtn{
+    width:50px;height:50px;
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-image: url('/images/home.png');
+    float:left;
+}
+
+#settingbtn{
+    width:50px;height:50px;
+    background-position: left center;
+    background-repeat: no-repeat;
+    background-image: url('/images/setting.png');
+    float:right;
+}
+
+#div-calendar{
+    background-color: #d8e3aa;
+    padding : 0px 10px;
+}
+
+.month {
+    padding: 20px 25px;
+    width: 100%;
+    color: #d34e2c;
+}
+
+.month ul {
+    margin: 0;
+    padding: 0;
+}
+
+.month ul li {
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.month .prev {
+    float: left;
+    padding-top: 10px;
+}
+
+.month .next {
+    float: right;
+    padding-top: 10px;
+}
+
+.weekdays {
+    color:#3581d5;
+    margin: 0;
+    padding: 10px 0;
+    background-color: #d8e3aa;
+}
+
+.weekdays li {
+    display: inline-block;
+    width: 13.6%;
+    text-align: center;
+}
+
+.days {
+    padding: 10px 0;
+    color:#3581d5;
+    background-color: #d8e3aa;
+    margin: 0;
+}
+
+.days li {
+    list-style-type: none;
+    display: inline-block;
+    width: 13.6%;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size:14px;
+}
+.event-list{
+    list-style-type: none;
+    padding: 0px 20px;
+    /*border: 2px solid white;*/
+}
+.event-list li {
+    font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+    /*height : 30px;*/
+    color : white;
+    padding : 5px 0px;
+    border-bottom : 2px solid white;
+    text-indent : 5px;
+}
+.event-list li:first-child{
+    border-top: 2px solid white;
+}
+
+/* Add media queries for smaller screens */
+@media screen and (max-width:720px) {
+    .weekdays li, .days li {width: 13.1%;}
+}
+
+@media screen and (max-width: 420px) {
+    .weekdays li, .days li {width: 12.5%;}
+    .days li .active {padding: 2px;}
+}
+
+@media screen and (max-width: 290px) {
+    .weekdays li, .days li {width: 12.2%;}
+}

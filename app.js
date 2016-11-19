@@ -383,12 +383,59 @@ app.get('/dashboard', function(req, res){
     res.render('dashboard', { title: 'DayCare' });
 });
 
+// when click calendar in dashboard
+app.get('/calendar', function(req, res){
+    res.render('calendar');
+});
+
+// when click calendar in dashboard
+app.get('/event-setting', function(req, res){
+    res.render('event_setting');
+});
+
+// when click calendar in dashboard
+app.post('/save-event', function(req, res){
+    console.log(req);
+    var edate = req.body.edate;
+    var etime = req.body.etime;
+    var econtent = req.body.econtent;
+
+    if(edate == '' || etime == '' || econtent == '') {
+        var smsg = 'Event data was not saved. Retry later.';
+        res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
+
+        return false;
+    }
+
+    econtent = econtent.replace(/'/gi, "`");
+
+    var sql = "insert into events (mdate, mtime, event) values('"+edate+"','"+etime+"','"+econtent+"')";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            var smsg = 'Event data was not saved. Retry later.';
+            res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
+        }
+        res.render('calendar');
+    })
+});
+
 app.get('/chatting/',function(req,res){
     var cid = req.session.child_id;
     var uid = req.session.user_id;
     var grade = req.session.grade;
     var nickname = req.session.nickname;
     var roomname;
+
+    if(nickname== undefined){
+        var shd = "Not Signed in yet.";
+        var smsg = "Please SignIn.";
+        var surl = "/";
+        var sbtnname = "Return to Login Page";
+        res.render('errorMsg', { title:'DayCare', hd:shd, msg:smsg, url:surl, btnname:sbtnname });
+        return;
+    }
 
     if(grade == '3'){ // parents
         if(cid == '0'){ // when no profile
@@ -403,11 +450,11 @@ app.get('/chatting/',function(req,res){
                 }
 
                 var childname = rows[0].child_name;
-                console.log('room name is :' + childname + "   nickname="+nickname);
+                console.log('room name is : Staff   nickname=' + nickname);
 
                 roomname = childname + ' Family';
 
-                res.render('chatting',{room:roomname, nname : nickname });
+                res.render('chatting',{room:'Staff', nname : nickname });
             })
         }
     } else {
@@ -425,12 +472,40 @@ var rooms = [];
 io.sockets.on('connection',function(socket){
     console.log('a user connected');
 
+    socket.on('get-event', function(data){
+        var first = data.firstday, last = data.lastday, nickname = data.to;
+        var sdate = "", stime = "", sevent = "";
+
+        var sql = "select mdate, mtime, event from events where mdate between '" + first + "' and '" + last + "' order by mdate";
+        global.mysql.query(sql, function(err, rows){
+            if (err) {
+                console.error(err);
+                throw err;
+            }
+            if(rows.length > 0){
+                var socket_id = rooms['events'].socket_ids[nickname];
+                if (socket_id != undefined) {
+                    for(i=0; i < rows.length; i++){
+                        var ss = new Date("" + rows[i].mdate);
+                        var n = ss.getFullYear() + "-" + (ss.getMonth()+1)+"-"+ss.getDate();
+                        data.date = n;
+                        data.time = rows[i].mtime;
+                        data.event= rows[i].event;
+                        io.to(socket_id).emit('broadcast_msg', data);
+                    }// if
+                }
+            }
+        })
+    })
+
     socket.on('joinroom',function(data){
+        if(data.nickname == '' || data.nickname == undefined ) return;
         socket.join(data.room);
 
         var room = data.room;
         //var nickname = 'guest-'+count;
         var nickname = data.nickname;
+
         socket.room = room;
         socket.nickname = nickname;
 
@@ -446,7 +521,7 @@ io.sockets.on('connection',function(socket){
         rooms[room].socket_ids[nickname] = socket.id;
 
         // broad cast join message
-        data = {msg: nickname + ' entered in.\n'};
+        data = {msg: nickname + ' entered in room ' + room + '.\n'};
         io.sockets.in(room).emit('broadcast_msg', data);
 
         // broadcast changed user list in the room
@@ -470,11 +545,11 @@ io.sockets.on('connection',function(socket){
     });
 
     socket.on('disconnect',function(data){
-        var room = data.room;
+        var room = socket.room;
 
         if(room != undefined && rooms[room] != undefined){
 
-            var nickname = data.nickname;
+            var nickname = socket.nickname;
             console.log('nickname ' + nickname + ' has been disconnected\n');
             // broad cast <out room> message
             if (nickname != undefined) {
@@ -482,7 +557,7 @@ io.sockets.on('connection',function(socket){
                     && rooms[room].socket_ids[nickname] != undefined)
                     delete rooms[room].socket_ids[nickname];
             }// if
-            data = {msg: nickname + 'was out.'};
+            data = {msg: nickname + 'was out.\n'};
 
             io.sockets.in(room).emit('broadcast_msg', data);
             io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
@@ -495,7 +570,7 @@ io.sockets.on('connection',function(socket){
         var nickname = data.nickname;
         var bdate = new Date(), edate = new Date();
 
-        if(during=="1week"){
+        if(during == "1week"){
             bdate.setDate(bdate.getDate()-7);
             edate = new Date();
         }else if(during=="2week"){
@@ -513,7 +588,7 @@ io.sockets.on('connection',function(socket){
         bstr = bdate.getFullYear() + "-" + (bdate.getMonth()+1) + "-" + bdate.getDate();
         estr = edate.getFullYear() + "-" + (edate.getMonth()+1) + "-" + edate.getDate();
 
-        var sql = "select msg from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "')";
+        var sql = "select msg from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "') order by id";
 
         global.mysql.query(sql, function(err, rows){
             if (rows.length > 0){
@@ -544,7 +619,7 @@ io.sockets.on('connection',function(socket){
                 var socket_id = rooms[room].socket_ids[data.to];
                 if (socket_id != undefined) {
 
-                    data.msg = 'Only to you :' + data.msg;
+                    data.msg = data.to + ':' + data.msg;
                     io.to(socket_id).emit('broadcast_msg', data);
                 }// if
             }
