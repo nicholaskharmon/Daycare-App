@@ -70,25 +70,28 @@ h2{
   background-image: url("/images/calendar.png");
 }
 #btnOnMyWay, #btnMessenger{
-  width : 170px;
-  height: 170px;
+  width : 120px;
+  height: 120px;
   float: left;
   background-color: #d2e3f3;
 }
 #btnTimeLine, #btnCalender{
-  width : 170px;
-  height: 170px;
+  width : 120px;
+  height: 120px;
   float: right;
   background-color: #d2e3f3;
 }
 #row1, #row2{
-  width: 100%;
-  height:200px;
+  width: 270px;
+  height:150px;
+  margin-left:auto;
+  margin-right: auto;
 }
 #btnProfile,#btnReport,#btnPhoneCall {
+  padding:0px;
   background-color: #fafcf9;
-  width: 115px;
-  height: 115px;
+  width: 100px;
+  height: 100px;
   margin-top : 7px;
   border : 0px;
 }

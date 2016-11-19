@@ -7,13 +7,13 @@
   </head>
   <script type="text/javascript" >
     function check(){
-      var email = document.getElementById("email").value;
-      var pwd = document.getElementById("pwd").value;
+      var email = document.getElementById("email");
+      var pwd = document.getElementById("pwd");
 
-      if(email==''){
-        window.alert("Input Email address.");
-      }else if(pwd==''){
-        window.alert("Input Password.");
+      if (email.checkValidity() == false) {
+        email.value = "Input correct email address";
+      }else if(pwd.value==''){
+        pwd.value = "Input Password.";
       }else{
         document.getElementById("login_form").submit();
       }
@@ -23,7 +23,7 @@
 
   <body >
     <form id="login_form" action="/verifyuser" method="post">
-      <input type="text" id="email" name="email" placeholder="useremail@mail.com" >
+      <input type="email" id="email" name="email" placeholder="useremail@mail.com" >
       <input type="password" id="pwd" name="pwd" placeholder="Password">
       <div id="verify" onclick="check();"></div>
       <div id="repairPWD" onclick="location.href='/recoverpwd';"></div>
