@@ -45,14 +45,6 @@ body {
     float:left;
 }
 
-/*#settingbtn{*/
-    /*width:30px;height:30px;*/
-    /*background-position: left center;*/
-    /*background-repeat: no-repeat;*/
-    /*background-image: url('/images/add.png');*/
-    /*float:right;*/
-/*}*/
-
 #div-calendar{
     background-color: #d8e3aa;
     padding : 0px 10px;
@@ -109,7 +101,7 @@ body {
     cursor:pointer;
     list-style-type: none;
     display: inline-block;
-    width: 13.6%;
+    width: 14%;
     text-align: center;
     margin-bottom: 15px;
     font-size:14px;
@@ -133,11 +125,13 @@ body {
 
 /* Add media queries for smaller screens */
 @media screen and (max-width:720px) {
-    .weekdays li, .days li {width: 13.1%;}
+    .weekdays li {width: 13.2%;}
+    /*.weekdays li, .days li {width: 13.2%;}*/
 }
 
 @media screen and (max-width: 420px) {
-    .weekdays li, .days li {width: 12.5%;}
+    /*.weekdays li, .days li {width: 12.7%;}*/
+    .weekdays li {width: 12.8%;}
     .days li .active {padding: 2px;}
 }
 

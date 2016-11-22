@@ -23,7 +23,7 @@ exports.readSetting = function() {
 
     var parser = new xml2js.Parser();
 
-    var xml = fs.readFileSync('config.xml', 'utf-8');
+    var xml = fs.readFileSync('./config.xml', 'utf-8');
 
     parser.parseString(xml, function(err, result) {
         console.log(result);

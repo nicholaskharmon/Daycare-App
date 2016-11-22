@@ -88,7 +88,8 @@ function onListening() {
     debug('Listening on ' + bind);
 }
 
-var port = normalizePort(process.env.PORT || '8005');
+//var port = normalizePort(process.env.PORT || '8005');
+var port = normalizePort(process.env.PORT);
 
 app.set('port', port);
 
@@ -106,8 +107,7 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 
-var io1 = require('socket.io').listen(server);
-var io2 = require('socket.io').listen(server);
+var io = require('socket.io').listen(server);
 
 
 // for facebook login
@@ -389,14 +389,9 @@ app.get('/calendar', function(req, res){
     res.render('calendar');
 });
 
-// when click <Messenger> in dashboard
+// when click calendar in dashboard
 app.get('/event-setting', function(req, res){
     res.render('event_setting');
-});
-
-// when click <On my Way> in dashboard
-app.get('/map', function(req, res){
-    res.render('location-sharing.ejs');
 });
 
 // when click calendar in dashboard
@@ -413,7 +408,7 @@ app.post('/save-event', function(req, res){
         return false;
     }
 
-    econtent = econtent.replace(/'/gi, "\'");
+    econtent = econtent.replace(/'/gi, "`");
 
     var sql = "insert into events (mdate, mtime, event) values('"+edate+"','"+etime+"','"+econtent+"')";
 
@@ -423,7 +418,7 @@ app.post('/save-event', function(req, res){
             var smsg = 'Event data was not saved. Retry later.';
             res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         }
-        res.render('event_setting');
+        res.render('calendar');
     })
 });
 
@@ -475,11 +470,8 @@ app.get('/chatting/',function(req,res){
 var count = 0;
 var rooms = [];
 
-io1.sockets.on('connection',function(socket){
+io.sockets.on('connection',function(socket){
     console.log('a user connected');
-    //io1.set("transports", ["xhr-polling"]);
-    //io1.set("polling duration", 10);
-    //io1.set('log level', 1);
 
     socket.on('get-event', function(data){
         var first = data.firstday, last = data.lastday, nickname = data.to;
@@ -500,7 +492,7 @@ io1.sockets.on('connection',function(socket){
                         data.date = n;
                         data.time = rows[i].mtime;
                         data.event= rows[i].event;
-                        io1.to(socket_id).emit('broadcast_msg', data);
+                        io.to(socket_id).emit('broadcast_msg', data);
                     }// if
                 }
             }
@@ -531,10 +523,10 @@ io1.sockets.on('connection',function(socket){
 
         // broad cast join message
         data = {msg: nickname + ' entered in room ' + room + '.\n'};
-        io1.sockets.in(room).emit('broadcast_msg', data);
+        io.sockets.in(room).emit('broadcast_msg', data);
 
         // broadcast changed user list in the room
-        io1.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+        io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
         count++;
     });
 
@@ -549,8 +541,8 @@ io1.sockets.on('connection',function(socket){
 
         socket.nickname = nickname;
         data = {msg: pre_nick + ' change nickname to ' + nickname};
-        io1.sockets.in(room).emit('broadcast_msg', data);
-        io1.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+        io.sockets.in(room).emit('broadcast_msg', data);
+        io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
     });
 
     socket.on('disconnect',function(data){
@@ -568,8 +560,8 @@ io1.sockets.on('connection',function(socket){
             }// if
             data = {msg: nickname + 'was out.\n'};
 
-            io1.sockets.in(room).emit('broadcast_msg', data);
-            io1.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+            io.sockets.in(room).emit('broadcast_msg', data);
+            io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
         }
     });
 
@@ -604,10 +596,10 @@ io1.sockets.on('connection',function(socket){
                 data.msg = "Messages( " + bstr + " ~ " + estr + " )";
                 var socket_id = rooms[room].socket_ids[nickname];
                 if (socket_id != undefined) {
-                    io1.to(socket_id).emit('broadcast_msg', data);
+                    io.to(socket_id).emit('broadcast_msg', data);
                     for(i=0; i < rows.length; i++){
                             data.msg = rows[i].msg;
-                            io1.to(socket_id).emit('broadcast_msg', data);
+                            io.to(socket_id).emit('broadcast_msg', data);
                     }// if
                 }
             }
@@ -629,7 +621,7 @@ io1.sockets.on('connection',function(socket){
                 if (socket_id != undefined) {
 
                     data.msg = data.to + ':' + data.msg;
-                    io1.to(socket_id).emit('broadcast_msg', data);
+                    io.to(socket_id).emit('broadcast_msg', data);
                 }// if
             }
             var d = new Date();

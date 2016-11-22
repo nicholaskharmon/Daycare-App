@@ -91,7 +91,7 @@ body {
 
 .weekdays li {
     display: inline-block;
-    width: 13.3%;
+    width: 13.6%;
     text-align: center;
 }
 
@@ -105,7 +105,6 @@ body {
 .days li {
     list-style-type: none;
     display: inline-block;
-    /*width: 13.6%;*/
     width: 14%;
     text-align: center;
     margin-bottom: 15px;
@@ -130,14 +129,17 @@ body {
 
 /* Add media queries for smaller screens */
 @media screen and (max-width:720px) {
+    .weekdays li {width: 13.2%;}
     /*.weekdays li, .days li {width: 13.1%;}*/
 }
 
 @media screen and (max-width: 420px) {
+    .weekdays li {width: 12.7%;}
     /*.weekdays li, .days li {width: 12.5%;}*/
     /*.days li .active {padding: 2px;}*/
 }
 
 @media screen and (max-width: 290px) {
     /*.weekdays li, .days li {width: 12.2%;}*/
+    /*.weekdays li, .days li {width: 13.1%;}*/
 }

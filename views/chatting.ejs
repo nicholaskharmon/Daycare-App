@@ -70,9 +70,7 @@
                     $('#msgbox').val('');
                 }
             });
-            <!--$("#invitebtn").click(function(){-->
-                <!--socket.emit('joinroom',{room:'Staff', nickname:'<%=nname%>'});-->
-            <!--})-->
+
             socket.on('new', function (data) {
                 console.log(data.nickname);
                 $('#nickname').val(data.nickname);
@@ -85,7 +83,7 @@
                 console.log(data.users.length);
                 $('#to').empty().append('<option value="ALL">ALL</option>');
                 for (var i = 0; i < data.users.length; i++) {
-                    $('#to').append('<option value="' + users[i] + '">' + users[i] + "</option>");
+                    $('#to').append('<option value="' + users[i] + '">' + users[i] + '</option>');
                 }
             });
 
