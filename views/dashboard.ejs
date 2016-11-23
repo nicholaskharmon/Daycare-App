@@ -1,28 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title><%=title%></title>
+    <title>Sunshine and Sprout Daycare</title>
     <link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<script type="text/javascript">
-    function check(){
-    }
-</script>
-<body onload="check()">
-<!--<body >-->
-    <div id="div-body">
-        <!--<div id="div-settingbtn" class="float:right;">-->
-            <!--&lt;!&ndash;<button id="btnSetting" onclick="location.href='';">Setting</button>&ndash;&gt;-->
-        <!--</div>-->
-        <!--<div id="div-head" class="float:right;">-->
-            <!--&lt;!&ndash;<div><h2 class="align:center;">DashBoard</h2></div>&ndash;&gt;-->
-        <!--</div>-->
-        <!--<br>-->
+<script src="/javascripts/jquery-1.11.0.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 
+<script type="text/javascript">
+    var socket = io.connect("http://localhost:8005");
+
+    var nm = '<%=nname%>';
+    var grd = '<%=grade%>';
+    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+
+    socket.on('notify', function (data) {
+        $('#msg').text(data.msg + " is on way.");
+        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
+        socket.emit('location', data);
+    });
+
+    var onmywayDown = false;
+
+    function onmyway(){
+        if (!onmywayDown){
+            onmywayDown = true;
+            $('#btnOnMyWay').attr({'style': 'background-image : url("/images/myway1.png")'})
+        }else{
+            onmywayDown = false;
+            $('#btnOnMyWay').attr({'style': 'background-image  : url("/images/myway.png")'})
+        }
+
+        socket.emit('notify', { msg: nm});
+        location.href="/map";
+        return true;
+    }
+
+    function hide(){
+        $('#notify').attr({'style':'display:none'});
+    }
+
+</script>
+<body>
+    <div id="div-body">
+        <div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+            <br>
+            <h3 style="text-align: center" id="msg"></h3>
+            <button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+            <br>
+        </div>
         <div id="div-main">
             <div id="row1" >
-                <button id="btnOnMyWay" onclick="location.href='/map';"></button>
+                <button id="btnOnMyWay" onclick="onmyway();"></button>
                 <div style="width: 30px; height:100px;float:left"></div>
                 <button id="btnTimeLine" onclick=""></button>
             </div>

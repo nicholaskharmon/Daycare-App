@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DayCare</title>
+    <title>Sunshine and Sprout Daycare</title>
     <link rel='stylesheet' type="text/css" href='/stylesheets/calendar.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -12,11 +12,40 @@
 <script type="text/javascript">
 
     var socket = io.connect("http://localhost:8005");
-    var nname = Math.floor((Math.random() * 100) + 1) + "";
-    socket.emit('joinroom',{room:'events', nickname: nname});
+    var nm = '<%=nname%>';
+    var grd = '<%=grade%>';
+    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+    socket.emit('joinroom',{room:'events', nickname: nm});
+
+    socket.on('notify', function (data) {
+        $('#msg').text(data.msg + " is on way.");
+        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
+        socket.emit('location', data);
+    });
+
     var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
 
     $(document).ready(function() {
+
+        var onmywayDown = false;
+
+        function onmyway(){
+            if (!onmywayDown){
+                onmywayDown = true;
+                $('#btnOnMyWay').attr({'style': 'background-image : url("/images/myway1.png")'})
+            }else{
+                onmywayDown = false;
+                $('#btnOnMyWay').attr({'style': 'background-image  : url("/images/myway.png")'})
+            }
+
+            socket.emit('notify', { msg: nm});
+            location.href="/map";
+            return true;
+        }
+
+        function hide(){
+            $('#notify').attr({'style':'display:none'});
+        }
 
         socket.on('broadcast_msg', function (data) {
             console.log(data);
@@ -134,7 +163,7 @@
             var sfirst = first.getFullYear() + '-' + (first.getMonth()+1) + '-' + first.getDate();
             var slast = lastday.getFullYear() + '-' + (lastday.getMonth()+1) + '-' + lastday.getDate();
 
-            socket.emit('get-event',{to: nname, firstday: sfirst, lastday:slast});
+            socket.emit('get-event',{to: nm, firstday: sfirst, lastday:slast});
 
             $(".event-list").empty();
         }
@@ -188,6 +217,13 @@
             </ul>
 
             <ul class="days"></ul>
+        </div>
+
+        <div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+            <br>
+            <h3 style="text-align: center" id="msg"></h3>
+            <button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+            <br>
         </div>
     </div>
 

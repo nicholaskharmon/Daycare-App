@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title><%=title%></title>
+    <title>Sunshine and Sprout Daycare</title>
     <!--<link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />-->
     <link rel='stylesheet' type="text/css" href='/stylesheets/profile.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+<script src="/javascripts/jquery-1.11.0.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
 <script type="text/javascript">
     function check() {
         var photopath = document.getElementById('photo').src;
@@ -43,6 +46,37 @@
             };
         }
     }
+    var socket = io.connect("http://localhost:8005");
+
+    var nm = '<%=nname%>';
+    var grd = '<%=grade%>';
+    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+
+    socket.on('notify', function (data) {
+        $('#msg').text(data.msg + " is on way.");
+        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
+        socket.emit('location', data);
+    });
+
+    var onmywayDown = false;
+
+    function onmyway(){
+        if (!onmywayDown){
+            onmywayDown = true;
+            $('#btnOnMyWay').attr({'style': 'background-image : url("/images/myway1.png")'})
+        }else{
+            onmywayDown = false;
+            $('#btnOnMyWay').attr({'style': 'background-image  : url("/images/myway.png")'})
+        }
+
+        socket.emit('notify', { msg: nm});
+        location.href="/map";
+        return true;
+    }
+
+    function hide(){
+        $('#notify').attr({'style':'display:none'});
+    }
 
 </script>
 <!--<body onload="loadProfileData();">-->
@@ -58,6 +92,14 @@
             <div><h2 class="align:center;">Profile</h2></div>
         </div>
         <br>
+
+        <div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+            <br>
+            <h3 style="text-align: center" id="msg"></h3>
+            <button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+            <br>
+        </div>
+
         <div id="div-main">
 
             <form name="profileform" action="/saveProfile" method="post" onsubmit="return check()" >

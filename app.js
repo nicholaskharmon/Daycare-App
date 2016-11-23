@@ -2,7 +2,7 @@ var express = require('express');
 var http = require('http');
 var path = require('path');
 var mime = require('mime');
-var favicon = require('serve-favicon');
+//var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -88,8 +88,8 @@ function onListening() {
     debug('Listening on ' + bind);
 }
 
-//var port = normalizePort(process.env.PORT || '8005');
-var port = normalizePort(process.env.PORT);
+var port = normalizePort(process.env.PORT || '8005');
+//var port = normalizePort(process.env.PORT || '80');
 
 app.set('port', port);
 
@@ -161,7 +161,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // for facebook login (11.10)
-app.use(session({ secret: 'todayandfuture', key: 'sid',saveUninitialized: false}));
+app.use(session({ secret: 'todayandfuture', key: 'sid',saveUninitialized: true}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -332,6 +332,8 @@ app.post('/saveuser', signup.saveUser);
 
 // when press button<signup>, show page<signup>
 app.get('/profile', function(req, res){
+    var nm = req.session.nickname;
+    var grd = req.session.grade;
     var chid = req.session.child_id;
     global.mysql.query("select * from childs where child_id='" + chid + "'", function(err, rows) {
         if (err) {
@@ -339,7 +341,7 @@ app.get('/profile', function(req, res){
             throw err;
         }
         console.log(rows);
-        res.render('profile', { title: 'DayCare', cdata : rows  });
+        res.render('profile', { cdata : rows, nname: nm, grade : grd });
 
     })
 });
@@ -381,17 +383,37 @@ app.get('/recoverpwd', function(req, res){
 
 // when go Dashboard
 app.get('/dashboard', function(req, res){
-    res.render('dashboard', { title: 'DayCare' });
+    var nickname = req.session.nickname;
+    var grade  = req.session.grade;
+
+    console.log(nickname+"  "+grade);
+
+    res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade });
 });
 
 // when click calendar in dashboard
 app.get('/calendar', function(req, res){
-    res.render('calendar');
+    var nm = req.session.nickname;
+    var grd = req.session.grade;
+
+    res.render('calendar', { nname: nm, grade: grd });
 });
 
 // when click calendar in dashboard
 app.get('/event-setting', function(req, res){
     res.render('event_setting');
+});
+
+// when click onmyway in dashboard
+app.get('/map', function(req, res){
+    var nickname = req.session.nickname;
+    var grade  = req.session.grade;
+    // when parent pressed <on my way>, push notification to owner and assists.
+    if (grade == 3){
+
+    }
+
+    res.render('location-sharing',{nname: nickname});
 });
 
 // when click calendar in dashboard
@@ -455,7 +477,7 @@ app.get('/chatting/',function(req,res){
 
                 roomname = childname + ' Family';
 
-                res.render('chatting',{room:'Staff', nname : nickname });
+                res.render('chatting',{room:'Staff', nname : nickname});
             })
         }
     } else {
@@ -472,6 +494,16 @@ var rooms = [];
 
 io.sockets.on('connection',function(socket){
     console.log('a user connected');
+
+    // when moving position
+    socket.on('location', function (data) {
+        io.sockets.in('map').emit('location', data);
+    });
+
+    // when push notification
+    socket.on('notify', function (data) {
+        io.sockets.in('map').emit('notify', data);
+    });
 
     socket.on('get-event', function(data){
         var first = data.firstday, last = data.lastday, nickname = data.to;
@@ -499,8 +531,8 @@ io.sockets.on('connection',function(socket){
         })
     })
 
-    socket.on('joinroom',function(data){
-        if(data.nickname == '' || data.nickname == undefined ) return;
+    socket.on('joinroom',function(data) {
+        if (data.nickname == '' || data.nickname == undefined) return;
         socket.join(data.room);
 
         var room = data.room;
@@ -513,7 +545,7 @@ io.sockets.on('connection',function(socket){
         socket.emit('changename', {nickname: nickname});
 
         // Create Room
-        if (rooms[room] == undefined) {
+        if (rooms[room] == undefined || rooms.length == 0) {
             console.log('room create :' + room);
             rooms[room] = new Object();
             rooms[room].socket_ids = new Object();
@@ -522,8 +554,10 @@ io.sockets.on('connection',function(socket){
         rooms[room].socket_ids[nickname] = socket.id;
 
         // broad cast join message
-        data = {msg: nickname + ' entered in room ' + room + '.\n'};
-        io.sockets.in(room).emit('broadcast_msg', data);
+        if (room == 'Staff'){
+            data = {msg: nickname + ' entered in room ' + room + '.\n'};
+           io.sockets.in(room).emit('broadcast_msg', data);
+        }
 
         // broadcast changed user list in the room
         io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
@@ -558,10 +592,12 @@ io.sockets.on('connection',function(socket){
                     && rooms[room].socket_ids[nickname] != undefined)
                     delete rooms[room].socket_ids[nickname];
             }// if
-            data = {msg: nickname + 'was out.\n'};
+            if(room == 'Staff'){
+                data = {msg: nickname + ' was out.\n'};
+                io.sockets.in(room).emit('broadcast_msg', data);
+                io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+            }
 
-            io.sockets.in(room).emit('broadcast_msg', data);
-            io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
         }
     });
 
