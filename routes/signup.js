@@ -5,6 +5,7 @@
      var phonenumber = req.body.phonenumber;
      var gender = req.body.gender;
      var pwd = req.body.pwd1;
+     var nickname = req.body.nickname;
 
     var sql = "select * from users where user_email='" + email;
      sql +=  "' and user_name='" + username + "'";
@@ -25,14 +26,14 @@
         }
 
         // if correct account, register user and redirect to next page
-        var sql = "insert into users (user_email,user_name, phonenumber,gender,user_pwd) ";
+        var sql = "insert into users (user_email,user_name, phonenumber,gender,user_pwd, nickname) ";
         sql += " values('" + email + "','" + username + "','" + phonenumber + "',";
         if (gender == "Father") {
             sql += "'f'";
         }else{
             sql += "'m'";
         }
-        sql += ",'" + pwd + "')";
+        sql += ",'" + pwd + "','" + nickname + "')";
 
         global.mysql.query(sql, function(err, rows) {
             if (err) {

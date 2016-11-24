@@ -88,7 +88,8 @@ function onListening() {
     debug('Listening on ' + bind);
 }
 
-var port = normalizePort(process.env.PORT || '8005');
+var port = normalizePort(process.env.PORT || '8080');
+//var port = normalizePort(process.env.PORT || '8005');
 //var port = normalizePort(process.env.PORT || '80');
 
 app.set('port', port);
@@ -122,7 +123,7 @@ passport.deserializeUser(function(obj, done) {
 passport.use(new FacebookStrategy({
         clientID    : '1843633225883368',
         clientSecret: 'b400c3647c06b6d35ee2ee79d282c631',
-        callbackURL : 'http://localhost:8005/auth/facebook/callback',    // 8005 : port that server listening
+        callbackURL : 'http://localhost:8080/auth/facebook/callback',    // 8080 : port that server listening
         profileFields: ['id', 'displayName', 'email']
     },
     function(accessToken, refreshToken, profile, done) {
@@ -234,6 +235,7 @@ app.post('/uploadPhoto', function(req, res) {
 
 app.post('/saveProfile', function(req, res) {
     console.log(req);
+    var imgpath = req.body.imgpath;
     var cname = req.body.cname;
     var birthday = req.body.birthday;
     var address = req.body.address;
@@ -244,7 +246,6 @@ app.post('/saveProfile', function(req, res) {
     var sibling = req.body.sibling;
     var cid = req.session.child_id;
     var uid = req.session.user_id;
-    var imgpath = req.session.photopath;
 
     // parse the incoming request containing the form data
     //form.parse(req);
@@ -270,15 +271,16 @@ app.post('/saveProfile', function(req, res) {
             if (medication == 'on') {  sql += " medication='1', "; }
             else                    {  sql += " medication='0', "; }
 
-            if (sibling == 'on') {  sql += " sibling='1' "; }
-            else                 {  sql += " sibling='0' "; }
+            if (sibling == 'on') {  sql += " sibling='1', "; }
+            else                 {  sql += " sibling='0', "; }
+            sql += "'" + imgpath + "'";
 
             sql += " where child_id='" + cid + "'";
 
             global.mysql.query(sql, function (err, rows) {
                 if (err) {
                     console.error(err);
-                    throw err;
+                    //throw err;
                 }
             });
             return res.redirect('/profile');
@@ -316,11 +318,12 @@ app.post('/saveProfile', function(req, res) {
                             global.mysql.query(sql, function (err, rows) {
                                 if (err) {
                                     console.error(err);
+                                }else{
+                                    return res.redirect('/profile');
                                 }
                             })
                         }
                     })
-                    return res.redirect('/profile');
                 }
             })
         }

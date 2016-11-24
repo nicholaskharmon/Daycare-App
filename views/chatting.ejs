@@ -52,7 +52,7 @@
     </div>
 
     <script type="text/javascript">
-        var socket = io.connect("http://localhost:8005");
+        var socket = io.connect("http://localhost:8080");
         var nm = '<%=nname%>';
         var rm = '<%=room%>';
 
@@ -62,8 +62,8 @@
         $(document).ready(function() {
             //=========  notify code
             socket.on('notify', function (data) {
-                $('#msgs').append("      Notification");
-                $('#msgs').append(data.msg  + " is on way.");
+                $('#msgs').append("      Notification\n");
+                $('#msgs').append(data.msg  + " is on way.\n");
 //                $('#msg').text(data.msg + " is on way.");
 //                $('#notify').attr({'style':'display:block;background-color:#eaee9a;z-index:999'});
                 socket.emit('location', data);

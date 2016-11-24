@@ -11,7 +11,7 @@
 
 <script type="text/javascript">
 
-    var socket = io.connect("http://localhost:8005");
+    var socket = io.connect("http://localhost:8080");
     var nname = Math.floor((Math.random() * 100) + 1) + "";
     socket.emit('joinroom',{room:'events', nickname: nname});
     var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];

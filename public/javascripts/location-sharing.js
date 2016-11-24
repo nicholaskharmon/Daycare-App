@@ -18,7 +18,11 @@ function initLocationSharing(location_callback, error_callback){
     // ================================
     // Setup Socket IO 
     // ================================
-    var socket = io.connect('http://localhost:8005');
+    //var socket = io.connect('http://ec2-54-147-229-234.compute-1.amazonaws.com:8080');
+    var socket = io.connect('http://localhost:8080');
+    var nname = '<%=nname%>';
+    console.log(nname);
+    socket.emit('joinroom',{room:'map', nickname: nname});
     socket.on('connect', function () {
         socket.on('location', function(location){
             if(location.id != userInfo.id) {

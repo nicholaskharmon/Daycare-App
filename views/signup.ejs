@@ -2,13 +2,14 @@
 <html xmlns="http://www.w3.org/1999/html">
   <head>
     <title><%= title %></title>
-    <link rel='stylesheet' type="text/css" href='/stylesheets/style.css' />
+    <link rel='stylesheet' type="text/css" href='/stylesheets/signup.css' />
       <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <script type="text/javascript" >
       function check(){
           var email = document.getElementById("email").value;
           var username = document.getElementById("username").value;
+          var nickname = document.getElementById("nickname").value;
           var phonenumber = document.getElementById("phonenumber").value;
           var pwd1 = document.getElementById("pwd1").value;
           var pwd2 = document.getElementById("pwd2").value;
@@ -18,6 +19,8 @@
               window.alert("Input Email address.");
           }else if(username==''){
               window.alert("Input Name.");
+          }else if(nickname==''){
+              window.alert("Input Nickname.");
           }else if(phonenumber==''){
               window.alert("Input Phonenumber.");
           }else if(pwd1==''){
@@ -36,21 +39,32 @@
   <body>
 
   <div id="wrape">
-    <h2>SignUp of New User</h2>
-    <p class="head">E-Mail Address, User name and Phonenumber are necessary.</p>
+        <div id="div-head">
+            <div id="div-homebtn" >
+              <button id="btnhome" onclick="location.href='/';"></button>
+            </div>
+
+            <h2>SignUp of New User</h2>
+        </div>
+
+    <p class="head">(Requirement) marked items are necessary.</p>
     <p class="head">Please remember E-Mail Address and Password for Login in future.</p>
     <div class="formwrap">
     <form id="getinform" action="/saveuser" method="post" onsubmit="return check();">
         <div class="a">
-            <p class="inform">E-Mail Address.</p>
+            <p class="inform">E-Mail Address(Requirement) </p>
             <input type="text" id="email" name="email" class="ipt" placeholder="address@mail.com">
         </div>
         <div class="a">
-            <p class="inform">User name</p>
+            <p class="inform">User name(Requirement)</p>
             <input type="text" id="username" name="username" class="ipt" placeholder="Susan Macklin">
         </div>
         <div class="a">
-            <p class="inform">PhoneNumber</p>
+            <p class="inform">Nickname(Requirement)</p>
+            <input type="text" id="nickname" name="nickname" class="ipt" placeholder="Jane's Mother">
+        </div>
+        <div class="a">
+            <p class="inform">PhoneNumber(Requirement)</p>
             <input type="text" id="phonenumber" name="phonenumber" class="ipt" placeholder="123456789">
         </div>
         <div class="a">
@@ -60,7 +74,7 @@
             <br>
         </div>
         <div class="a">
-            <p class="inform">Your Password</p>
+            <p class="inform">Your Password(Requirement)</p>
             <input type="text" id="pwd1" name="pwd1" class="ipt" placeholder="abc123456">
         </div>
         <div class="a">

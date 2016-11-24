@@ -1,11 +1,15 @@
-html,body{ height:100%;}
+html {
+  background: url("/images/bg.png") no-repeat top center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
 body{
+  height:100%;
   margin:0px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  /*width : 90%;*/
-  background-color: #00B7FF;
-  background-image: url("/images/bg.png");
-  background-repeat: no-repeat;
 }
 
 h2{
@@ -28,14 +32,14 @@ h2{
 }
 
 #div-foot{
-  margin-top:-130px;
-  height : 130px;
   background-color: #fafcf9;
-  margin-right: 0px;
-  margin-left: 0px;
-  /*display:inline-block;*/
-  /*width:100px;*/
+  margin: 0px;
+  /*margin-left: 0px;*/
+  vertical-align: bottom;
+  bottom: 0;
+  position: fixed;
   text-align:center;
+  width : 100%;
 }
 
 #div-body{
@@ -90,8 +94,8 @@ h2{
 #btnProfile,#btnReport,#btnPhoneCall {
   padding:0px;
   background-color: #fafcf9;
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   margin-top : 7px;
   border : 0px;
 }

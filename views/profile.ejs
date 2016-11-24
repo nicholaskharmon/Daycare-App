@@ -11,26 +11,28 @@
 
 <script type="text/javascript">
     function check() {
-        var photopath = document.getElementById('photo').src;
-        var cname = document.getElementById('cname').value;
-        var birthday = document.getElementById('birthday').value;
-        var address = document.getElementById('address').value;
-        var weight = document.getElementById('weight').value;
-        var cheight = document.getElementById('cheight').value;
-        if (photopath = '') {
+        var photopath = $('#imgpath').val(); console.log(photopath);
+        console.log( $('#imgpath').val());
+        var cname = $('#cname').val();
+        var birthday = $('#birthday').val();
+        var address = $('#address').val();
+        var weight = $('#weight').val();
+        var cheight = $('#cheight').val();
+        if (photopath == '' || photopath == undefined) {
             window.alert('Please Select Photo.');
-        } else if (cname = '') {
+        } else if (cname == '' || cname == undefined) {
             window.alert('Please Input Name.');
-        } else if (address = '') {
+        } else if (address == '' || address == undefined) {
             window.alert('Please Input Address.');
-        } else if (birthday = '') {
+        } else if (birthday == '' || birthday == undefined) {
             window.alert('Please Input birthday.');
-        } else if (weight = '') {
+        } else if (weight == '' || weight == undefined) {
             window.alert('Please input Weight.');
-        } else if (cheight = '') {
+        } else if (cheight == '' || cheight == undefined) {
             window.alert('Input height please.');
         } else {
-            return true;
+            $('#profileform').submit();
+//            return true;
         }
         return false;
     }
@@ -46,7 +48,7 @@
             };
         }
     }
-    var socket = io.connect("http://localhost:8005");
+    var socket = io.connect("http://localhost:8080");
 
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
@@ -101,18 +103,22 @@
         </div>
 
         <div id="div-main">
+            <div id="div-photo">
+                <% if (cdata.length>0 ){ %>
+                <img id="photo" alt="Upload Photo" src="/uploads/<%=cdata[0].imgsrc %>" width="150" height="150" >
+                <% }else{ %>
+                <img id="photo" alt="Upload Photo" src="" width="150" height="150" >
+                <% } %>
+                &nbsp;
+                <img id="selectphoto" src="/images/addphoto.png" onclick="location.href='/selectPhoto'">
+            </div>
 
-            <form name="profileform" action="/saveProfile" method="post" onsubmit="return check()" >
-                <div id="div-photo">
-                    <% if (cdata.length>0 ){ %>
-                        <img id="photo" alt="Upload Photo" src="/uploads/<%=cdata[0].imgsrc %>" width="150" height="150" >
-                    <% }else{ %>
-                        <img id="photo" alt="Upload Photo" src="<%='' %>" width="150" height="150" >
-                    <% } %>
-                    &nbsp;
-                    <img id="selectphoto" src="/images/addphoto.png" onclick="location.href='/selectPhoto'">
-                </div>
-
+            <form id="profileform" action="/saveProfile" method="post" onsubmit="" >
+                <% if (cdata.length>0 ){ %>
+                <input name="imgpath" id="imgpath" type="hidden" value="/uploads/<%=cdata[0].imgsrc %>">
+                <% }else{ %>
+                <input name="imgpath" id="imgpath" type="hidden" value="">
+                <% } %>
                 <div id="row">
                     <label class="lbl">Name</label>
                     <% if (cdata.length>0 ){ %>
@@ -190,7 +196,7 @@
                 </div>
                 <br>
                 <div id="btnSave">
-                    <input type="submit" id="btnSave" value="">
+                    <img src= "/images/save.png" id="btnSave" onclick="return check();">
                 </div>
             </form>
         </div>

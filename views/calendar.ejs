@@ -11,7 +11,7 @@
 
 <script type="text/javascript">
 
-    var socket = io.connect("http://localhost:8005");
+    var socket = io.connect("http://localhost:8080");
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
     socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
