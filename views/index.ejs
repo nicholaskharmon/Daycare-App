@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/index.css' />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <script type="text/javascript" >
+    function check(){
+      var email = document.getElementById("email");
+      var pwd = document.getElementById("pwd");
+
+      if (email.checkValidity() == false) {
+        email.value = "Input correct email address";
+      }else if(pwd.value==''){
+        pwd.value = "Input Password.";
+      }else{
+        document.getElementById("login_form").submit();
+      }
+      return 0;
+    }
+  </script>
+
+  <body >
+    <form id="login_form" action="/verifyuser" method="post">
+      <input type="email" id="email" name="email" placeholder="useremail@mail.com" >
+      <input type="password" id="pwd" name="pwd" placeholder="Password">
+      <div id="verify" onclick="check();"></div>
+      <div id="repairPWD" onclick="location.href='/recoverpwd';"></div>
+      <div id="signup" onclick="location.href='/signup';"></div>
+      <div id="fbLogin" onclick="location.href='/auth/facebook';"></div>
+    </form>
+  </body>
+</html>

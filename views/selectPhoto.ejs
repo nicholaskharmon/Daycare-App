@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%=title%></title>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/profile.css' />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<script type="text/javascript">
+    function handleFiles() {
+        var selector = document.getElementById('fileElem');
+        if(selector.files && selector.files[0]){
+            var oFReader = new FileReader();
+            oFReader.readAsDataURL(selector.files[0]);
+
+            oFReader.onload = function (oFREvent) {
+                document.getElementById("photo").src = oFREvent.target.result;
+            };
+//            document.getElementById('hfilename').value = selector.files[0].path;
+        }
+    }
+
+</script>
+
+<body>
+    <div id="div-body">
+        <div id="div-head" class="float:right;">
+            <br><br>
+            <div style="height:150px; "><h2 class="align:center;">Photo Upload</h2></div>
+        </div>
+        <br>
+        <div id="div-main" style="margin-top:50px">
+            <form id="photoForm" action="/uploadphoto" method="post" enctype="multipart/form-data">
+                <div id="div-photo">
+                        <img id="photo" alt="Upload Photo" src="" width="150" height="150" >
+                    &nbsp;
+                    <input type="file" name="fileElem" id="fileElem" accept="image/*" onchange="handleFiles(this.files)">
+                    <br>
+                    <br>
+
+                    <input type="submit" id="photoupload" style="width:100px;height:100px;background-image: url('/images/uploadphoto.png')" value="">
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="div-foot">
+        <button id="btnProfile" onclick="location.href='/profile';"></button>
+        <button id="btnReport" onclick="location.href='';"></button>
+        <button id="btnPhoneCall" onclick="location.href='';"></button>
+
+    </div>
+
+</body>
+</html>

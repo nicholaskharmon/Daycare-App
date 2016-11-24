@@ -1,0 +1,112 @@
+html,body{ height:100%;}
+body{
+  margin:0px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  /*width : 90%;*/
+  background-color: #00B7FF;
+  background-image: url("/images/bg.png");
+  background-repeat: no-repeat;
+}
+
+h2{
+  text-align: center;
+}
+
+#div-head, #div-foot, #div-main{
+  color: #000066;
+}
+
+#div-main{
+  margin-left: 5%;
+  margin-right: 5%;
+  padding-bottom:130px;
+  vertical-align:middle;
+}
+
+#div-head{
+  height : 50px;
+}
+
+#div-foot{
+  margin-top:-130px;
+  height : 130px;
+  background-color: #fafcf9;
+  margin-right: 0px;
+  margin-left: 0px;
+  /*display:inline-block;*/
+  /*width:100px;*/
+  text-align:center;
+}
+
+#div-body{
+  min-height:100%;
+}
+
+#div-main{
+  margin-top:25%;
+  height:75%;
+}
+
+#btnSetting{
+  width: 115px;
+  height: 115px;
+  display: block;
+  float: right;
+}
+#btnOnMyWay, #btnMessenger,#btnCalender, #btnTimeLine{
+  background-repeat: no-repeat;
+  background-position:center center;
+}
+#btnOnMyWay{
+  background-image: url("/images/myway.png");
+}
+#btnMessenger{
+  background-image: url("/images/messenger.png");
+}
+#btnTimeLine{
+  background-image: url("/images/timeline.png");
+}
+#btnCalender{
+  background-image: url("/images/calendar.png");
+}
+#btnOnMyWay, #btnMessenger{
+  width : 120px;
+  height: 120px;
+  float: left;
+  background-color: #d2e3f3;
+}
+#btnTimeLine, #btnCalender{
+  width : 120px;
+  height: 120px;
+  float: right;
+  background-color: #d2e3f3;
+}
+#row1, #row2{
+  width: 270px;
+  height:150px;
+  margin-left:auto;
+  margin-right: auto;
+}
+#btnProfile,#btnReport,#btnPhoneCall {
+  padding:0px;
+  background-color: #fafcf9;
+  width: 100px;
+  height: 100px;
+  margin-top : 7px;
+  border : 0px;
+}
+#btnProfile {
+  background-image: url("/images/profile.png");
+  float: left;
+  margin-left: 20px;
+}
+#btnReport{
+  background-image: url("/images/report.png");
+  display:inline-block;
+}
+#btnPhoneCall{
+  background-image: url("/images/phone.png");
+  float : right;
+  margin-right: 20px;
+}
+

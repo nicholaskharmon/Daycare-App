@@ -1,0 +1,39 @@
+html,body{ height:100%;}
+body{
+  margin:0px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  margin:0px;
+  background-color: #c6daf0;
+  max-height: 100%;
+  /*background-image: url("/images/bg.png");*/
+}
+
+#div-head{
+  height:100px;
+  padding:20px 20px 10px 20px;
+  background-color: #eaee9a;
+}
+
+#homebtn{
+  width:50px;height:50px;
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-image: url('/images/home.png');
+  float:left;
+}
+
+#div-main{
+  margin:10px 5% 30px 5%;
+  width:90%;height:70%;
+  position:fixed;
+  top:130px;
+}
+#msgs{
+  width:100%; border:none; height:100%;
+}
+
+#div-bottom{
+  position: fixed; bottom: 0px; right: 0px;
+  width: 90%; padding:10px 5%;
+  background-color: #f3f39c;
+}
