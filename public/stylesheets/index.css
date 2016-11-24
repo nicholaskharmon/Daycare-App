@@ -1,0 +1,58 @@
+body {
+  width : 100%;
+  background-image: url("/images/back.png");
+  background-repeat: no-repeat;
+  /*margin-left: auto; margin-right: auto;*/
+  /*margin-top:auto; margin-bottom: auto;*/
+}
+input {
+  text-indent: 10px;
+}
+#email{
+  position:fixed;
+  top : 229px;
+  left: 115px;
+  width : 240px;
+  height: 30px;
+  border:none;
+}
+#pwd{
+  position:fixed;
+  top : 281px;
+  left: 115px;
+  width : 240px;
+  height: 30px;
+  border:none;
+}
+#verify{
+  position:fixed;
+  top : 330px;
+  left: 55px;
+  background-image: url("/images/login.png");
+  width:320px;
+  height:50px;
+}
+#repairPWD{
+  position:fixed;
+  top : 390px;
+  left: 55px;
+  background-image: url("/images/forgot.png");
+  width:320px;
+  height:50px;
+}
+#signup{
+  position:fixed;
+  top : 448px;
+  left: 55px;
+  background-image: url("/images/signup.png");
+  width:320px;
+  height:50px;
+}
+#fbLogin{
+  position:fixed;
+  top : 503px;
+  left: 55px;
+  background-image: url("/images/btnFB.png");
+  width:320px;
+  height:50px;
+}

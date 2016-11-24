@@ -10,7 +10,7 @@ Cascades Location has 12 children, 1 Owner, 1 Full-Time Assistant
 
 Broadlands Location has 2 children, 1 Owner. Both address information is on the www.sunshineandsproutsdaycare.com website.
 
-Features 
+Features: 
 
 Dashboard, Main PageAdmin Page (Daycare owner/assistant screen)On My Way ButtonUser ProfileSocial Media LoginSecure User LoginTimelineCalendarMessengerClick to Call Phone ButtonClick to Email ButtonChild Reports
 

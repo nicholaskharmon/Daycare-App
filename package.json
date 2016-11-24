@@ -1,0 +1,30 @@
+{
+  "name": "reveal-server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "body-parser": "~1.15.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.2.0",
+    "ejs": "~2.5.2",
+    "express": "^4.14.0",
+    "formidable": "^1.0.17",
+    "gm": "^1.23.0",
+    "google-geolocation": "^1.0.1",
+    "morgan": "~1.7.0",
+    "multer": "^1.2.0",
+    "mysql": "^2.12.0",
+    "passport-facebook": "latest",
+    "passport-google-oauth": "latest",
+    "passport-local": "^1.0.0",
+    "passport-twitter": "latest",
+    "request": "^2.78.0",
+    "serve-favicon": "~2.3.0",
+    "socket.io": "^1.5.1",
+    "sprintf-js": "^1.0.3",
+    "xml2js": "^0.4.17"
+  }
+}
