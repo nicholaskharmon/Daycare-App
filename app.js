@@ -10,6 +10,7 @@ var multer = require('multer');
 var fs = require('fs');
 //var fstools = require('fs-tools');
 var formidable = require('formidable');
+var crypto = require('crypto');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -89,7 +90,6 @@ function onListening() {
 }
 
 var port = normalizePort(process.env.PORT || '8080');
-//var port = normalizePort(process.env.PORT || '8005');
 //var port = normalizePort(process.env.PORT || '80');
 
 app.set('port', port);
@@ -221,7 +221,7 @@ app.post('/uploadPhoto', function(req, res) {
         var cid = req.session.child_id;
 
         if(cid) {   // when uploading completed, changed imgsrc of DB according child_id
-            var sql = "update childs set imgsrc='" + temp_path + "' where child_id='" + cid + "'";
+            var sql = "update childs set imgsrc='/uploads/" + temp_path + "' where child_id='" + cid + "'";
             global.mysql.query(sql, function (err, rows) {
                 if (err) {
                     console.error(err);
@@ -229,8 +229,8 @@ app.post('/uploadPhoto', function(req, res) {
                 }
             })
         }
+        return res.redirect('/profile?imgsrc=' + temp_path);
     });
-    return res.redirect('/profile');
 })
 
 app.post('/saveProfile', function(req, res) {
@@ -290,16 +290,11 @@ app.post('/saveProfile', function(req, res) {
             var sql = "insert into childs (child_name,birthday,address,weight,height,allergies,medication,sibling,imgsrc) ";
             sql += " values('" + cname + "','" + birthday + "','" + address + "',";
             sql += "'" + weight + "','" + cheight + "','" + allergy + "',";
-            if (medication == 'on') {
-                sql += "'1',";
-            } else {
-                sql += "'0',";
-            }
-            if (sibling == 'on') {
-                sql += "'1',";
-            } else {
-                sql += "'0',";
-            }
+            if (medication == 'on') { sql += "'1',"; }
+            else {                    sql += "'0',"; }
+
+            if (sibling == 'on') { sql += "'1',"; }
+            else {                 sql += "'0',"; }
             sql += "'" + imgpath + "')";
 
             global.mysql.query(sql, function (err, rows) {
@@ -319,6 +314,7 @@ app.post('/saveProfile', function(req, res) {
                                 if (err) {
                                     console.error(err);
                                 }else{
+                                    req.session.child_id = ncid;
                                     return res.redirect('/profile');
                                 }
                             })
@@ -334,18 +330,31 @@ app.post('/saveProfile', function(req, res) {
 app.post('/saveuser', signup.saveUser);
 
 // when press button<signup>, show page<signup>
+
 app.get('/profile', function(req, res){
+    var ipath = req.query.imgsrc;
     var nm = req.session.nickname;
     var grd = req.session.grade;
-    var chid = req.session.child_id;
-    global.mysql.query("select * from childs where child_id='" + chid + "'", function(err, rows) {
+    var uid = req.session.user_id;
+
+    global.mysql.query("select child_id from users where user_id='" + uid + "'", function(err, rows) {
         if (err) {
             console.error(err);
             throw err;
         }
         console.log(rows);
-        res.render('profile', { cdata : rows, nname: nm, grade : grd });
 
+        var chid = rows[0].child_id;
+        global.mysql.query("select * from childs where child_id='" + chid + "'", function(err, rows) {
+            if (err) {
+                console.error(err);
+                throw err;
+            }
+            console.log(rows);
+
+            res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
+
+        })
     })
 });
 // when press button<signup>, show page<signup>

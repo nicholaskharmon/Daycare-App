@@ -8,8 +8,9 @@ html {
     color: #000066;
 }
 body {
+    margin:0px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  width : 100%; height : 100px;
+  width : 100%; height : 100%;
 }
 #div-homebtn{
     float:left;
@@ -42,12 +43,21 @@ h2 {
 .ipt, .b {
   height: 25px;
   width : 100%;
+    border-radius: 4px;
 }
 .btn{
   margin-left: 25%;
   width : 50%;
   height: 50px;
+    border-color: #3581d5;
+    background-color: #3581d5;
+    border-radius: 5px;
+    color : white;
+    font-size: 16px;
 }
 label{
   padding-left: 20%;
+}
+p{
+    margin: 10px 0px 5px 0px;
 }

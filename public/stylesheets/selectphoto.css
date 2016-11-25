@@ -11,18 +11,16 @@ body{
       font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
-input {
-  text-indent: 10px;
-}
-
 h2{
   text-align: center;
   margin : 0px;
   padding-top: 15px;
 }
-#selectphoto{
-  margin-left: 45px;
-  margin-top: 15px;
+
+#photoupload{
+  width:80px;
+  height:80px;
+  margin-left: 35px;
 }
 
 #div-foot, #div-main{
@@ -31,7 +29,10 @@ h2{
 }
 
 #div-main{
-  padding-top:65px;
+  width:100%;
+  position: fixed;
+  top: 50px;
+  left: 0px;
   padding-bottom: 100px;
 }
 
@@ -67,7 +68,7 @@ h2{
 
 #div-body{ min-height:100%; }
 #div-main{ height:80%;}
-#div-photo{width: 150px; margin-left: auto; margin-right: auto}
+#div-photo{width: 150px; margin-left: auto; margin-right: auto; padding-top: 20px}
 #photo, #openphoto{margin-left: auto; margin-right: auto}
 
 #btnSetting{

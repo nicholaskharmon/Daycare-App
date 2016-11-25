@@ -7,22 +7,23 @@
     <link rel='stylesheet' type="text/css" href='/stylesheets/chatting.css' />
     <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/jquery-1.11.0.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
 </head>
 <body >
     <div id="div-head">
         <h2 style="text-align:center">Welcome to <%= room %></h2>
-        <div>
-            <div id="homebtn" onclick="location.href='/dashboard'" >
-            </div>
-            <!--<div id="invitebtn" style="float:left;width:80px;height:50px;  background-position: right center; background-repeat: no-repeat;-->
-                <!--background-image: url('/images/invite-a.png')">-->
-            <!--</div>-->
+        <div style="width:100%; height:35px;">
+            <div id="homebtn" onclick="location.href='/dashboard'" > </div>
 
-            <div style="float:right;">
-                <!--<img src="/images/search-b.png" style="width:30px;height:30px">-->
-                <select id="during" style="height: 30px;display: inline-block;">
-                    <option value="">&nbsp; </option>
+            <div id="div-to" style="height:30px; width:30%; float:left;margin-left:10px">
+                <select id="to" style="height:30px; width:100%">
+                    <option value="ALL">ALL</option>
+                </select>
+            </div>
+
+            <div style="float:left;width:40%;margin-left:10px">
+                <select id="during" style="height: 30px;width:100%;display: inline-block;">
+                    <option value="">Review</option>
                     <option value="1week">~ 7 days ago</option>
                     <option value="2week">8 days ago ~ 14 days ago</option>
                     <option value="3week">15 days ago ~ 21 days ago</option>
@@ -30,25 +31,14 @@
                 </select>
             </div>
         </div>
-        <!--Name <input type="text" id="nickname" /> <input type="button" id="changename" value="Change name"/><br>-->
     </div>
 
-    <!--<div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">-->
-        <!--<br>-->
-        <!--<h3 style="text-align: center" id="msg"></h3>-->
-        <!--<button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>-->
-        <!--<br>-->
-    <!--</div>-->
     <div id="div-main" >
         <textarea id="msgs"></textarea>
     </div>
+
     <div id="div-bottom">
-
-        <select id="to" style="height:30px; width:30%">
-            <option value="ALL">ALL</option>
-        </select>
-
-        <textarea id="msgbox" rows="3" style="width:65%;float:right;"></textarea>
+        <textarea id="msgbox" rows="3" style="width:100%;"></textarea>
     </div>
 
     <script type="text/javascript">

@@ -1,11 +1,11 @@
  exports.saveUser = function(req, res) {
     //console.log(req);
-    var email = req.body.email;
-    var username = req.body.username;
-     var phonenumber = req.body.phonenumber;
+    var email = req.body.email.replace(/'/gi, "`");
+    var username = req.body.username.replace(/'/gi, "`");
+     var phonenumber = req.body.phonenumber.replace(/'/gi, "`");
      var gender = req.body.gender;
-     var pwd = req.body.pwd1;
-     var nickname = req.body.nickname;
+     var pwd = req.body.pwd1.replace(/'/gi, "`");
+     var nickname = req.body.nickname.replace(/'/gi, "`");
 
     var sql = "select * from users where user_email='" + email;
      sql +=  "' and user_name='" + username + "'";
@@ -34,6 +34,7 @@
             sql += "'m'";
         }
         sql += ",'" + pwd + "','" + nickname + "')";
+        //sql = sql.replace(/'/gi, "`");
 
         global.mysql.query(sql, function(err, rows) {
             if (err) {

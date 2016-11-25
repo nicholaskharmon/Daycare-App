@@ -4,15 +4,15 @@
     <title>Sunshine and Sprout Daycare</title>
     <!--<link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />-->
     <link rel='stylesheet' type="text/css" href='/stylesheets/profile.css' />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
 </head>
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
 <script type="text/javascript">
     function check() {
-        var photopath = $('#imgpath').val(); console.log(photopath);
-        console.log( $('#imgpath').val());
+        var photopath = $('#imgpath').val();
+        console.log(photopath);
         var cname = $('#cname').val();
         var birthday = $('#birthday').val();
         var address = $('#address').val();
@@ -50,6 +50,12 @@
     }
     var socket = io.connect("http://localhost:8080");
 
+    var srvpath = '<%=imgpath%>';
+    console.log(srvpath);
+    if(srvpath != 'none' && srvpath != undefined){
+        $('#imgpath').val(srvpath);
+    }
+
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
     socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
@@ -84,16 +90,17 @@
 <!--<body onload="loadProfileData();">-->
 <body>
     <div id="div-body">
-        <div id="div-homebtn" class="float:left;">
-            <button id="btnhome" onclick="location.href='/dashboard';"></button>
-        </div>
-        <div id="div-settingbtn" class="float:right;">
-            <button id="btnSetting" onclick="location.href='';"></button>
-        </div>
+        <!--<div id="div-homebtn" style="float:left;">-->
+        <!--</div>-->
+        <!--<div id="div-settingbtn" class="float:right;">-->
+            <!--<img id="btnSetting" src="" onclick="location.href='';">-->
+        <!--</div>-->
         <div id="div-head" class="float:right;">
-            <div><h2 class="align:center;">Profile</h2></div>
+            <img id="btnhome" src="/images/home.png" style="float:left;" onclick="location.href='/dashboard';">
+            <!--<div>-->
+                <h2 class="align:center;">Profile</h2>
+            <!--</div>-->
         </div>
-        <br>
 
         <div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
             <br>
@@ -105,9 +112,11 @@
         <div id="div-main">
             <div id="div-photo">
                 <% if (cdata.length>0 ){ %>
-                <img id="photo" alt="Upload Photo" src="/uploads/<%=cdata[0].imgsrc %>" width="150" height="150" >
-                <% }else{ %>
-                <img id="photo" alt="Upload Photo" src="" width="150" height="150" >
+                <img id="photo" src="<%=cdata[0].imgsrc %>" width="150" height="150" >
+                <% }else if(imgpath != 'none' && imgpath != undefined){ %>
+                <img id="photo" src="/uploads/<%=imgpath%>" width="150" height="150" >
+                <% } else {%>
+                <img id="photo" src="" width="150" height="150" >
                 <% } %>
                 &nbsp;
                 <img id="selectphoto" src="/images/addphoto.png" onclick="location.href='/selectPhoto'">
@@ -116,7 +125,9 @@
             <form id="profileform" action="/saveProfile" method="post" onsubmit="" >
                 <% if (cdata.length>0 ){ %>
                 <input name="imgpath" id="imgpath" type="hidden" value="/uploads/<%=cdata[0].imgsrc %>">
-                <% }else{ %>
+                <% }else if(imgpath != 'none' && imgpath != undefined){ %>
+                <input name="imgpath" id="imgpath" type="hidden" value="/uploads/<%=imgpath %>">
+                <% } else {%>
                 <input name="imgpath" id="imgpath" type="hidden" value="">
                 <% } %>
                 <div id="row">
@@ -124,7 +135,7 @@
                     <% if (cdata.length>0 ){ %>
                         <input type="text" id="cname" name="cname" placeholder="Name" class="ipt" value="<%=cdata[0].child_name %>">
                     <% }else{ %>
-                        <input type="text" id="cname" name="cname" placeholder="Name" class="ipt" value="<%='' %>">
+                        <input type="text" id="cname" name="cname" placeholder="Name" class="ipt" value="">
                     <% } %>
                 </div>
                 <div id="row">
@@ -132,7 +143,7 @@
                     <% if (cdata.length>0 ){ %>
                         <input type="text" id="birthday" name="birthday" placeholder="2016-1-1" class="ipt" value="<%=cdata[0].birthday %>">
                     <% } else{ %>
-                        <input type="text" id="birthday" name="birthday" placeholder="2016-1-1" class="ipt" value="<%= '' %>">
+                        <input type="text" id="birthday" name="birthday" placeholder="2016-1-1" class="ipt" value="">
                     <% } %>
                 </div>
                 <div id="row">
@@ -140,45 +151,42 @@
                     <% if (cdata.length>0 ){%>
                         <input type="text" id="address" name="address" class="ipt" value="<%=cdata[0].address%>">
                     <%} else{  %>
-                        <input type="text" id="address" name="address" class="ipt" value="<%= '' %>">
+                        <input type="text" id="address" name="address" class="ipt" value="">
                     <% } %>
                 </div>
                 <div id="row">
                     <label class="lbl">Weight</label>
                     <% if (cdata.length>0 ){ %>
-                        <input type="number" id="weight" name="weight" class="ipt" value="<%=cdata[0].weight %>">
+                        <input type="text" id="weight" name="weight" class="ipt" value="<%=cdata[0].weight %>">
                     <% }else{ %>
-                        <input type="number" id="weight" name="weight" class="ipt" value="<%= '' %>">
+                        <input type="text" id="weight" name="weight" class="ipt" value="">
                     <% } %>
                 </div>
                 <div id="row">
-                    <label class="lbl">height
-                        <% if (cdata.length>0 ){ %>
-                            <input type="number" id="cheight" name="cheight" class="ipt" value="<%=cdata[0].height %>">
-                        <% } else{ %>
-                            <input type="number" id="cheight" name="cheight" class="ipt" value="<%=''%>">
-                        <% } %>
-                    </label>
-
-                </div>
-                <div id="row">
-                    <p style="text-wrap: normal;"> Allergies. Please input allergies seperated with |. </p>
+                    <label class="lbl">Height</label>
                     <% if (cdata.length>0 ){ %>
-                        <input type="text" id="allergy" name="allergy" placeholder="ex. egg|peanuts|latex|penicillin"
-                           style="width:100%;" value="<%=cdata[0].allergies %>">
-                    <% }else{ %>
-                        <input type="text" id="allergy" name="allergy" placeholder="ex. egg|peanuts|latex|penicillin"
-                           style="width:100%;" value="<%= '' %>">
+                        <input type="text" id="cheight" name="cheight" class="ipt" value="<%=cdata[0].height %>">
+                    <% } else{ %>
+                        <input type="text" id="cheight" name="cheight" class="ipt" value="">
                     <% } %>
-
+                </div>
+                <div id="row">
+                    <label style="text-wrap: normal;"> Allergies </label>
+                    <% if (cdata.length>0 ){ %>
+                        <input type="text" id="allergy" name="allergy"  class="ipt" placeholder="ex. egg, peanuts, latex, penicillin"
+                           value="<%=cdata[0].allergies %>">
+                    <% }else{ %>
+                        <input type="text" id="allergy" name="allergy"  class="ipt" placeholder="ex. egg, peanuts, latex, penicillin"
+                           value="">
+                    <% } %>
                 </div>
                 <div id="row">
                     <label >Medication &nbsp; :&nbsp;
 
                         <% if( cdata.length > 0 && cdata[0].medication > 0){ %>
-                            <input type="checkbox" id="medication" name="medication" checked>
+                            <input type="checkbox" name="medication" class ="chk" checked>
                         <% } else { %>
-                            <input type="checkbox" id="medication" name="medication">
+                            <input type="checkbox" name="medication" class ="chk" >
                         <% } %>
                     </label>
 
@@ -187,9 +195,9 @@
                     <label>Siblings below 5 yrs old?&nbsp;
 
                         <% if( cdata.length>0 && cdata[0].sibling > 0){ %>
-                            <input type="checkbox" id="sibling" name="sibling" checked>
+                            <input type="checkbox" name="sibling" class ="chk" checked>
                         <% }else{ %>
-                            <input type="checkbox" id="sibling" name="sibling" >
+                            <input type="checkbox" name="sibling" class ="chk" >
                         <% } %>
                     </label>
 

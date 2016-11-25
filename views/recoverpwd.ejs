@@ -30,10 +30,16 @@
   <body>
 
   <div id="wrape">
-    <h2 >Did you forget your password?</h2>
+      <div id="div-head">
+          <div id="div-homebtn" >
+              <button id="btnhome" onclick="location.href='/';"></button>
+          </div>
+
+          <h2>Did you forget password?</h2>
+      </div>
+
     <p class="head">Please Input followings.</p>
-    <p class="head">User name is to equal to the full name when Sign up.</p>
-    <p class="head">If it is correct, we will change your password with new password.</p>
+    <p class="head">User name is to equal to the full name when Sign up. If it is correct, you can use new password.</p>
     <div class="formwrap">
     <form id="getinform" action="/sendSMS" method="post" onsubmit="return check();">
         <div class="a">

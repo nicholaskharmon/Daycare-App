@@ -7,11 +7,18 @@ html {
 }
 body {
   width : 100%;
+    margin:0px;
+    overflow-y: scroll;
+    /*width: 100%;*/
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 input {
   text-indent: 10px;
 }
+
 #div-email,#div-pwd, #verify, #repairPWD, #signup, #fbLogin{
     width:290px;
     height:40px;

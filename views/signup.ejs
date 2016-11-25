@@ -3,7 +3,7 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' type="text/css" href='/stylesheets/signup.css' />
-      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="viewport" content="width=device-width,initial-scale=1,minium-scale=1,maximum-scale=1,user-scalable=no">
   </head>
   <script type="text/javascript" >
       function check(){
@@ -47,24 +47,24 @@
             <h2>SignUp of New User</h2>
         </div>
 
-    <p class="head">(Requirement) marked items are necessary.</p>
+    <p class="head">All items are necessary.</p>
     <p class="head">Please remember E-Mail Address and Password for Login in future.</p>
     <div class="formwrap">
     <form id="getinform" action="/saveuser" method="post" onsubmit="return check();">
         <div class="a">
-            <p class="inform">E-Mail Address(Requirement) </p>
+            <p class="inform">E-Mail Address</p>
             <input type="text" id="email" name="email" class="ipt" placeholder="address@mail.com">
         </div>
         <div class="a">
-            <p class="inform">User name(Requirement)</p>
+            <p class="inform">User name</p>
             <input type="text" id="username" name="username" class="ipt" placeholder="Susan Macklin">
         </div>
         <div class="a">
-            <p class="inform">Nickname(Requirement)</p>
+            <p class="inform">Nickname</p>
             <input type="text" id="nickname" name="nickname" class="ipt" placeholder="Jane's Mother">
         </div>
         <div class="a">
-            <p class="inform">PhoneNumber(Requirement)</p>
+            <p class="inform">PhoneNumber</p>
             <input type="text" id="phonenumber" name="phonenumber" class="ipt" placeholder="123456789">
         </div>
         <div class="a">
@@ -74,7 +74,7 @@
             <br>
         </div>
         <div class="a">
-            <p class="inform">Your Password(Requirement)</p>
+            <p class="inform">Your Password</p>
             <input type="text" id="pwd1" name="pwd1" class="ipt" placeholder="abc123456">
         </div>
         <div class="a">
@@ -85,6 +85,7 @@
             </br>
             <input type="submit" class="btn" value="Register User">
         </div>
+        <br><br>
     </form>
     </div>
   </div>

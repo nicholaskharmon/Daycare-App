@@ -2,8 +2,8 @@
 <html>
 <head>
     <title><%=title%></title>
-    <link rel='stylesheet' type="text/css" href='/stylesheets/profile.css' />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' type="text/css" href='/stylesheets/selectphoto.css' />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
 </head>
 <script type="text/javascript">
     function handleFiles() {
@@ -24,20 +24,18 @@
 <body>
     <div id="div-body">
         <div id="div-head" class="float:right;">
-            <br><br>
-            <div style="height:150px; "><h2 class="align:center;">Photo Upload</h2></div>
+            <h2 class="text-align:center;">Photo Upload</h2>
         </div>
         <br>
-        <div id="div-main" style="margin-top:50px">
+        <div id="div-main">
             <form id="photoForm" action="/uploadphoto" method="post" enctype="multipart/form-data">
                 <div id="div-photo">
-                        <img id="photo" alt="Upload Photo" src="" width="150" height="150" >
-                    &nbsp;
+                        <img id="photo" src="" width="150" height="150" >
                     <input type="file" name="fileElem" id="fileElem" accept="image/*" onchange="handleFiles(this.files)">
                     <br>
                     <br>
 
-                    <input type="submit" id="photoupload" style="width:100px;height:100px;background-image: url('/images/uploadphoto.png')" value="">
+                    <img id="photoupload" src="/images/uploadphoto.png" onclick="document.getElementById('photoForm').submit();">
                 </div>
             </form>
         </div>

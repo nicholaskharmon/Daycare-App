@@ -13,6 +13,32 @@
 <!--<script type="text/javascript" src="/javascripts/location-sharing.js"></script>-->
 <script type="text/javascript">
 
+    function deg2rad(val) {
+        var pi = Math.PI;
+        var de_ra = ((eval(val))*(pi/180));
+        return de_ra;
+    }
+
+    function getmeter(lat1, lon1, lat2, lon2) {
+        delta_lon = deg2rad(lon2) - deg2rad(lon1);
+
+        distance = Math.acos(Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                        Math.cos(delta_lon)) * 3963.189; //mile
+
+        gap = parseInt(distance * 1.609344); // km
+        return gap;
+    }
+
+    function getDistanceFromLatLonInKm(lat1,lng1,lat2,lng2) {
+        var R = 6371; // Radius of the earth in km
+        var dLat = deg2rad(lat2-lat1);  // deg2rad below
+        var dLon = deg2rad(lng2-lng1);
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        var d = R * c; // Distance in km
+        return d;
+    }
+
     function initLocationSharing(location_callback, error_callback){
 
         //For generating a random unique ID
@@ -92,6 +118,7 @@
         users[userInfo.id].name = userInfo.name;
         users[userInfo.id].latitude  = userInfo.latitude;
         users[userInfo.id].longitude = userInfo.longitude;
+        users[userInfo.id].speed = userInfo.speed;
         users[userInfo.id].timestamp = new Date().getTime()
         refreshMarkers();
     }
@@ -102,18 +129,30 @@
             $('#user-name').val(currentUserInfo.name);
             $('#user-name').keyup(function() {
                 currentUserInfo.name = $('#user-name').val();
-//                        alert(currentUserInfo.name);
             })
             currentUserInfo.movedMapCenter = true;
             map.setCenter(new google.maps.LatLng(
                     currentUserInfo.latitude, currentUserInfo.longitude));
         }
 
+        var dist = getDistanceFromLatLonInKm(40.037710, 124.340278, currentUserInfo.latitude, currentUserInfo.longitude);
+        dist = dist * 1;
+        var speed = eval(currentUserInfo.speed);
+        var ETA = 0;
+
+        if(speed > 0) {
+            ETA = dist / speed * 60;
+        }else{
+            speed = 0;
+        }
+
+        var informstr = "distance : " + dist.toFixed(1) + "\&nbsp;\&nbsp; speed : " + speed.toFixed(1) + "\&nbsp;\&nbsp; ETA : " + ETA.toFixed(1);
+        $('#inform').html(informstr);
+
         for (var id in users) {
             var userInfo = users[id];
 
             if(userInfo.marker){
-
                 // If we havn't received any update from the user
                 //  We remove the marker of missing user
                 if( userInfo.id != currentUserInfo.id &&
@@ -134,13 +173,12 @@
                 userInfo.marker = marker;
             }
 
+
             //Move the markers
             userInfo.marker.setTitle(userInfo.name);
             userInfo.marker.setPosition(
                     new google.maps.LatLng(userInfo.latitude, userInfo.longitude));
         }
-
-//                $('#user-number').text(Math.max(Object.keys(users).length-1,0) +'')
 
         // Refresh the markers every 20 seconds
         clearTimeout(refreshTimeout)
@@ -150,7 +188,7 @@
     function mapInitialize() {
         map = new google.maps.Map(document.getElementById("map-canvas"), {
             zoom: 12,
-            center: new google.maps.LatLng(40.037710, 124.340278)
+            center: new google.maps.LatLng(40.037710, 124.340278)  // 40.037710, 124.340278
         });
         infowindow = new google.maps.InfoWindow({ content: 'Test' });
         google.maps.event.addListener(map, 'click', function() {
@@ -179,7 +217,7 @@
 
 <style>
     #div-title {
-        height: 80px;
+        height: 70px;
         padding: 20px 20px 0px 20px;
         background-color: #eaee9a;
         color : #ff2f42;
@@ -196,15 +234,11 @@
     #map-canvas  { height: 100%; width:100%; }
 </style>
 
-<!--<p>there are other-->
-<!--<a href="#" id="user-number" onclick="move_to_otheruser()">0</a>-->
-<!--users viewing this page with you.-->
-<!--</p>-->
-
 <div id="div-title">
-    <p></p>
+    <!--<p></p>-->
     <div id="homebtn" onclick="location.href='/dashboard'" > </div>
-    <h2 style="text-align:center">Map</h2>
+    <h2 style="text-align:center; margin-top:0px">Map</h2>
+    <p id="inform"></p>
 </div>
 
 <div id="map-canvas"></div>
