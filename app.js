@@ -452,7 +452,10 @@ app.post('/save-event', function(req, res){
             var smsg = 'Event data was not saved. Retry later.';
             res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         }
-        res.render('calendar');
+        var nm = req.session.nickname;
+        var grd = req.session.grade;
+
+        res.render('calendar', { nname: nm, grade: grd });
     })
 });
 
