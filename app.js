@@ -20,10 +20,10 @@ var sendSMS = require('./routes/sendSMS');
 var signup = require('./routes/signup');
 var saveProfile = require('./routes/saveProfile');
 var debug = require('debug')('reveal-server:server');
+var user = require('./routes/user');
 
 //for Facebook Login
 var passport          =     require('passport');
-var util              =     require('util');
 var FacebookStrategy  =     require('passport-facebook').Strategy;
 var session           =     require('express-session');
 //--------------
@@ -107,47 +107,8 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-
+// start socket server
 var io = require('socket.io').listen(server);
-
-
-// for facebook login
-// Passport session setup.
-passport.serializeUser(function(user, done) {
-    done(null, user);
-});
-passport.deserializeUser(function(obj, done) {
-    done(null, obj);
-});
-// Use the FacebookStrategy within Passport.
-passport.use(new FacebookStrategy({
-        clientID    : '1843633225883368',
-        clientSecret: 'b400c3647c06b6d35ee2ee79d282c631',
-        callbackURL : 'http://localhost:8080/auth/facebook/callback',    // 8080 : port that server listening
-        profileFields: ['id', 'displayName', 'email']
-    },
-    function(accessToken, refreshToken, profile, done) {
-        process.nextTick(function (req, res) {
-            //Check whether the User exists or not using profile.id
-            //Further DB code.
-            console.log(profile);
-            var eaddress = profile.emails[0].value;
-            var sql = 'select  from users where user_email=';
-            mysql.query('select user_id cnt from users where user_email=?', [eaddress], function(err, rows){
-                if(err) console.error('err', err);
-                console.log('rows',rows);
-
-                if(rows.length > 0) {
-                    session.user_id = rows[0].user_id;
-                }else{
-                    session.user_id = '-1';
-                }
-            })
-           // return done(null, profile);
-        });
-    }
-));
-//-------------------
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -161,21 +122,81 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+// for facebook login
+// Passport session setup.
+// after authentication, store user profile in session
+passport.serializeUser(function(user, done) {
+    console.log('serialize');
+    console.log(user);
+    done(null, user);
+});
+// after authentication, read user profile from session and store in req.user
+passport.deserializeUser(function(user, done) {
+    console.log('deserialize');
+    console.log(user);
+    done(null, user);
+});
+
+// Use the FacebookStrategy within Passport.
+passport.use(new FacebookStrategy({
+        clientID    : '1601310540178555',
+        clientSecret: '6233dcc07f29e12b335f1a608c154b72',
+        callbackURL : 'http://192.168.4.148:8080/auth/facebook/callback',    // 8080 : port that server listening
+        //callbackURL : 'http://ec2-54-147-107-47.compute-1.amazonaws.com:8080/auth/facebook/callback',    // 8080 : port that server listening
+        profileFields: ['id', 'displayName', 'email']
+    },
+    function(accessToken, refreshToken, profile, done) {
+        process.nextTick(function (req, res) {
+            //Check whether the User exists or not using profile.id
+            //Further DB code.
+            console.log(profile);
+            return done(null,{'email':profile.emails[0].value} );
+        });
+    }
+));
+//-------------------
+
 // for facebook login (11.10)
-app.use(session({ secret: 'todayandfuture', key: 'sid',saveUninitialized: true}));
+app.use(session({ secret: 'todayandfuture'}));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.get('/auth/facebook', passport.authenticate('facebook',{scope:'email'}));
+app.get('/auth/facebook', passport.authenticate('facebook'));
 app.get('/auth/facebook/callback',
-    // need attension !!!
     // successRedirect : case of facebook login success
     // failureRedirect : case of facebook login failure
-    passport.authenticate('facebook', {successRedirect:'/dashboard', failureRedirect: '/' }),
-    function(req, res) {
-        console.log(session.user_id);
-        res.redirect('/');
-    });
+    passport.authenticate('facebook', {successRedirect:'/login_success', failureRedirect: '/login_fail' })
+);
+
+// when success in facebook login
+app.get('/login_success', ensureAuthenticated, function(req, res){
+    var eaddress = req.user.email;
+
+    mysql.query('select user_id, nickname, grade from users where user_email=?', [eaddress], function(err, rows){
+        if(err) console.error('err', err);
+        console.log('rows',rows);
+
+        if(rows.length > 0) {
+            req.session.user_id = rows[0].user_id;
+            var nickname = req.session.nickname = rows[0].nickname;
+            var grade = req.session.grade = rows[0].grade;
+            res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade });
+        }else{
+            console.log('facebook login success. unregistered email.');
+            var smsg = eaddress + ' has not been registered. Please Sign up.';
+            res.render('errorMsg', { title:'DayCare', hd:'', msg:smsg, url:'/', btnname:'To Login Page' });
+        }
+    })
+});
+
+// when facebook login fail
+app.get('/login_fail', function(req, res){
+    console.log('facebook login success. unregistered email.');
+    var smsg = 'Facebook Login Fail. Return to Login Page.';
+    res.render('errorMsg', { title:'DayCare', hd:'', msg:smsg, url:'/', btnname:'To Login Page' });
+})
+
 app.get('/logout', function(req, res){
     req.logout();
     res.redirect('/');
@@ -183,7 +204,8 @@ app.get('/logout', function(req, res){
 
 function ensureAuthenticated(req, res, next) {
     if (req.isAuthenticated()) { return next(); }
-    res.redirect('/login')
+    alert('Failure in Facebook Login. Return to Login.');
+    res.redirect('/')
 }
 
 //-----------------------
@@ -398,7 +420,7 @@ app.get('/dashboard', function(req, res){
     var nickname = req.session.nickname;
     var grade  = req.session.grade;
 
-    console.log(nickname+"  "+grade);
+    console.log("nicname=" + nickname+"  grade="+grade);
 
     res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade });
 });
@@ -452,7 +474,10 @@ app.post('/save-event', function(req, res){
             var smsg = 'Event data was not saved. Retry later.';
             res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         }
-        res.render('calendar');
+        var nm = req.session.nickname;
+        var grd = req.session.grade;
+
+        res.render('calendar', { nname: nm, grade: grd });
     })
 });
 
@@ -544,6 +569,7 @@ io.sockets.on('connection',function(socket){
     })
 
     socket.on('joinroom',function(data) {
+        console.log(data);
         if (data.nickname == '' || data.nickname == undefined) return;
         socket.join(data.room);
 
@@ -641,7 +667,7 @@ io.sockets.on('connection',function(socket){
 
         global.mysql.query(sql, function(err, rows){
             if (rows.length > 0){
-                data.msg = "Messages( " + bstr + " ~ " + estr + " )";
+                data.msg = "Messages( " + bstr + " ~ " + estr + " )\n";
                 var socket_id = rooms[room].socket_ids[nickname];
                 if (socket_id != undefined) {
                     io.to(socket_id).emit('broadcast_msg', data);

@@ -9,10 +9,11 @@
 <script src="/socket.io/socket.io.js"></script>
 
 <script type="text/javascript">
-    var socket = io.connect("http://localhost:8080");
+    var socket = io.connect("http://192.168.4.148:8080");
 
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
+    console.log('nickname='+nm + " grade="+grd);
     socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
 
     socket.on('notify', function (data) {
