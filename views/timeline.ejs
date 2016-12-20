@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Daycare</title>
+
+    <link rel='stylesheet' type="text/css" href='/stylesheets/timeline.css' />
+    <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/jquery.backstretch.min.js"></script>
+    <script src="/javascripts/jquery-ui-1.12.1.js"></script>
+
+</head>
+
+<body >
+
+<!-- Form to notify OnMyWay Event  -->
+<div id="notify-dialog" title="Information" style="display: none;">
+    <form>
+        <fieldset>
+            <p class="validateTips"><%= nname %> is on Way.</p>
+            <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Note  -->
+<div id="timer-dialog" title="Edit Note" style="display: none;">
+    <p class="validateTips">Timer</p>
+    <form>
+        <fieldset>
+            <input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="hidden" id="rid" >
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Bottle  -->
+<div id="bottle-dialog" title="Edit Bottle" style="display: none;">
+    <form>
+        <fieldset>
+            <input type="time" id="bottle-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="hidden" id="rid" >
+            <br>
+            <div>
+                <h4>Milk of oz</h4>
+                <input type="text" pattern="[0-9]{2}" id="bottle-num" value="0">
+                <img src="/images/add-circular-button.png" id="bottle-plus">
+                <img src="/images/minus-circular-button.png" id="bottle-minus">
+            </div>
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Drink  -->
+<div id="drink-dialog" title="Edit Drink" style="display: none;">
+    <form>
+        <fieldset>
+            <input type="time" id="drink-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="hidden" id="rid" >
+            <br>
+            <div>
+                <h4 style="margin-bottom: 0px">Drinks</h4>
+                <table style="width:100%; border:0px;background-color:white" id="drinkTable">
+                    <tr style="background-color:white;padding-bottom: 0px">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="checkbox" id="milk"  value="milk"> &nbsp;&nbsp;Milk </label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px;"> <input type="checkbox" id="water" value="water">&nbsp;&nbsp;Water</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white;padding-bottom: 0px">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="checkbox" id="juice" value="juice">&nbsp;&nbsp;Juice</label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px;"> <input type="checkbox" id="other" value="other">&nbsp;&nbsp;Other</label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Potty  -->
+<div id="potty-dialog" title="Edit Potty & Diaper" style="display: none;">
+    <form>
+        <fieldset>
+            <input type="time" id="potty-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="hidden" id="rid" >
+            <br>
+            <div>
+                <h4>Potty & Diaper</h4>
+                <table style="width:100%; border:0px;background-color:white">
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="potty" id="wet" value="wet" checked>&nbsp;&nbsp;Wet</label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="potty" id="dry" value="dry">&nbsp;&nbsp;Dry</label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Food  -->
+<div id="food-dialog" title="Edit Food" style="display: none;">
+    <form>
+        <input type="hidden" id="rid" >
+        <fieldset>
+            <div>
+                <table style="width:100%; border:0;background-color:white" id="foodtable">
+                    <tr class="list">
+                        <td class="foodcell" width="50%" style="background-image:url('');">Animal Crackers</td>
+                        <td class="foodcell" width="50%" style="background-image:url('');">Apple</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" width="50%" style="background:url('') no-repeat left center;">Apple Sauce</td>
+                        <td class="foodcell" width="50%" style="background:url('') no-repeat left center;">Bagel</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Banana</td>
+                        <td class="foodcell" style="background-image:url('');">Barley</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Bread</td>
+                        <td class="foodcell" style="background-image:url('');">Carrots & Peas</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Cereal</td>
+                        <td class="foodcell" style="background-image:url('');">Cheerios</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Chicken Nuggets</td>
+                        <td class="foodcell" style="background-image:url('');">Chicken Soup</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Chickpeas</td>
+                        <td class="foodcell" style="background-image:url('');">Corn</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Crackers</td>
+                        <td class="foodcell" style="background-image:url('');">Cucumber</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Grill Cheese</td>
+                        <td class="foodcell" style="background-image:url('');">Lentils</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Mix Veggies</td>
+                        <td class="foodcell" style="background-image:url('');">Noodles</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Oatmeal</td>
+                        <td class="foodcell" style="background-image:url('');">Orange</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Pear</td>
+                        <td class="foodcell" style="background-image:url('');">Pretzel</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Quinoa</td>
+                        <td class="foodcell" style="background-image:url('');">Rice</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Sweet Potato</td>
+                        <td class="foodcell" style="background-image:url('');">Toast-Jelly</td>
+                    </tr>
+                    <tr class="list">
+                        <td class="foodcell" style="background-image:url('');">Tuna</td>
+                        <td class="foodcell">                </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Mood  -->
+<div id="mood-dialog" title="Edit Mood" style="display: none;">
+    <form>
+        <input type="hidden" id="rid" >
+        <fieldset>
+            <label style="font-size: 18px"> Time&nbsp;&nbsp;
+                <input type="time" id="mood-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            </label>
+            <br>
+            <div>
+                <h4>Mood</h4>
+                <table style="width:100%; border:0px;background-color:white" id="foodTable">
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="focused">&nbsp;&nbsp;Focused</label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="friendly">&nbsp;&nbsp;Friendly</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="fussy">&nbsp;&nbsp;Fussy</label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="happy" checked>&nbsp;&nbsp;Happy</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="hyper">&nbsp;&nbsp;Hyper</label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="sick">&nbsp;&nbsp;Sick</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="misbeahaving">&nbsp;&nbsp;Misbeahaving</label>
+                        </td>
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="needy">&nbsp;&nbsp;Needy</label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to Edit Request  -->
+<div id="request-dialog" title="Edit Request" style="display: none;">
+    <form>
+        <input type="hidden" id="rid" >
+        <fieldset>
+            <div>
+                <h4>Request</h4>
+                <table style="width:100%; border:0px;background-color:white">
+                    <tr style="background-color:white">
+                        <td height="25px">
+                            <label style="font-size: 18px"> <input type="checkbox" id="diapers" checked>&nbsp;&nbsp;Diapers</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="checkbox" id="dry" checked>&nbsp;&nbsp;Dry</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="checkbox" id="disposable" checked>&nbsp;&nbsp;Disposable Bibs</label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
+    <div id="div-head">
+        <div id="homebtn" onclick="location.href='/dashboard'" >
+            <i class="fa fa-angle-left" style="font-size:20px; padding-top:25px;">&nbsp;Back</i>
+        </div>
+        <div id="btnsearch" style="float:right;margin-right:20px;color:red;">
+            <i class="fa fa-group" style="font-size:20px; padding-top:25px;float:right;"></i>
+            <ul id="namerole"> </ul>
+        </div>
+
+        <h2 style="text-align:center">Timeline</h2>
+    </div>
+
+    <div id="div-main" >
+        <ul id="msgs"></ul>
+    </div>
+
+    <div id="div-bottom">
+        <div id="addphoto"></div>
+        <div id="send">Add</div>
+        <input type="text" id="msgbox" style="width:60%;border-radius: 5px;float:right;"/>
+    </div>
+
+    <div id="add-tip" style="width:162px;height:139px;display:none">
+        <form id="photoUploadForm" action="/upload-msg-photo" method="post">
+        <label id="file-wraper" for="photo-selector">
+            <input id="photo-selector" name="photo-selector" type="file"  accept="image/*" capture="camera">
+        </label>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        $.backstretch("/images/bg.png");
+
+        var socket = io.connect("http://192.168.4.148:8080");
+        var nm = '<%=nname%>';
+        var count = 0;
+        var childlist = [];
+        var reportlist = [];
+        var drinkList = [];
+        var foodList = [];
+
+        socket.emit('joinroom',{room:'map', nickname:nm});
+
+        $(document).ready(function() {
+            var timer = $("#timer"),
+                    bottle_timer = $("#bottle-timer"),
+                    bottle_num = $("#bottle-num"),
+                    drink_timer= $("#drink-timer"),
+                    potty_timer= $("#potty-timer"),
+                    mood_timer = $("#mood-timer");
+            var timer_Fields = $( [] ).add( timer),
+                    bottle_Fields = $([]).add(bottle_timer).add(bottle_num),
+                    drink_Fields = $([]).add(drink_timer).add($("#milk")).add($("#water")).add($("#juice")).add($("#other")),
+                    potty_Fields = $([]).add(potty_timer).add($("#wet")).add($("#dry")),
+                    request_Fields = $([]).add("#diapers").add($("#dry")).add($("#disposable")),
+                    mood_Fields = $([]).add(potty_timer).add("#focused").add("#friendly").add("#fussy").add("#happy").add("#hyper").add("#boy").add($("#sick")).add($("#misbeahaving")).add($("#needy"));
+
+            // select photo, upload it
+            $("#send").click(function(){
+                var selector = $("#photo-selector");
+
+                if(selector[0].files && selector[0].files[0]){
+                    var formData = new FormData();
+                    formData.append("comment", $("input[id=msgbox]").val());
+                    formData.append("photo", selector[0].files[0]);
+
+                    $.ajax({
+                        url: '/upload-report-Photo',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        type: 'POST',
+                        success: function(data){
+                            loadReports(localStorage.getItem('cid'));
+                        }
+                    });
+                }
+            })
+
+            $("#addphoto").click(function(){
+                $("#file-wraper").click();
+            })
+
+            $("#msgbox").keyup(function (event) {
+                if (event.which == 13) {
+                    var d = new Date();
+                    var txt = $('#msgbox').val();
+                    socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                    $('#msgbox').val('');
+                }
+            });
+
+            $("#send").click(function () {
+                var d = new Date();
+                var txt = $('#msgbox').val();
+                socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                $('#msgbox').val('');
+            });
+
+            socket.on('notify', function(data){
+                var nickname = data.nickname;
+                // Error
+                console.log('Get notify');
+                var notify_dialog = $( "#notify-dialog" ).dialog({
+                    autoOpen: false,
+                    height: 200,
+                    width: 300,
+                    modal: true,
+                    buttons: {
+                        "Close": function(){ notify_dialog.dialog("close");}
+                    },
+                    close: function() {
+                        notify_form[0].reset();
+                        //food_Fields.removeClass( "ui-state-error" );
+                    }
+                });
+
+                var notify_form = notify_dialog.find( "form" ).on( "submit", function( event ) {
+                    event.preventDefault();
+                });
+
+            });
+
+            $(window).load( function(){
+                loadChildlist();
+            });
+
+            function loadChildlist(){
+                $.ajax({
+                    url:"/getChildList",
+                    type:"get",
+                    datatype:"JSON",
+                    success:function(res){
+                        childlist = res;
+
+                        if(childlist.length == 1){
+                            localStorage.setItem('cid', childlist[0].cid);
+                            loadReports(childlist[0].cid);
+                        }else{
+                            var shtml='';
+
+                            for(var i=0; i<childlist.length; i++){
+                                var cid = childlist[i].cid;
+                                var cname = childlist[i].child_name;
+
+                                shtml = '<li class="name" value="' + cid + '" id="list'+cid+'">' + cname + '</li>';
+
+                                $("#namerole").append(shtml);
+                                $("#list"+cid).on('click', function(){
+                                    $("#namerole").slideUp(300);
+
+                                    $("#msgs").empty();
+                                    loadReports($(this).val());
+                                    localStorage.setItem('cid', $(this).val());
+                                })
+                            }
+                        }
+                    },
+                    error:function(xhr, status, error){
+                        console.log(error);
+                    }
+                })
+            }
+
+            function ISODateString(rdate){
+                var ndate = new Date(rdate);
+                var tstr = ndate.getFullYear() + "-" + (ndate.getMonth()+1) + "-" + ndate.getDate();
+                return tstr;
+            }
+
+            $("#foodtable td").click(function(){
+                var food = $(this).text().trim();
+                if (foodList.indexOf(food) < 0){
+                    foodList.push(food);
+                    $(this).css("color", "#f00");
+                }else{
+                    $(this).css("color", "#000");
+                    foodList.splice(foodList.indexOf(food), 1);
+                }
+            })
+
+            $("#bottle-plus").click(function(){
+                var old = parseFloat(bottle_num.val());
+                if(old < 99) bottle_num.val(old + 1);
+            });
+
+            $("#bottle-minus").click(function(){
+                var old = parseFloat(bottle_num.val());
+                if(old > 0) bottle_num.val(old - 1);
+            });
+
+            $("#drinkTable input").click(function() {
+                var drink = $(this).val();
+                if ($(this).is(":checked")) {
+                    if (drinkList.indexOf(drink) < 0) drinkList.push(drink);
+                } else {
+                    drinkList.splice(drinkList.indexOf(drink), 1);
+                }
+            })
+
+            function loadReports(cid){
+                var ts = new Date();
+                var today = ts.getFullYear() + "-" + (ts.getMonth()+1) + "-" + ts.getDate();
+                $("#msgs").empty();
+
+                reportlist = [];
+                $.ajax({
+                    url : "/get-report",
+                    type: "get",
+                    data: {cid : cid},
+                    datatype: "JSON",
+                    success: function(res){
+                        if(res != undefined) {
+                            var rows = res.data;
+                            reportlist = rows;
+                            console.log(reportlist);
+
+                            for (var i = 0; i < rows.length; i++) {
+                                var msg = "";
+                                var rid = rows[i].rid,
+                                    child_name = rows[i].child_name,
+                                    rdate = ISODateString(rows[i].rdate),
+                                    btime = rows[i].btime,
+                                    act_id = rows[i].action_id,
+                                    act_content = rows[i].action_content,
+                                    act_note = rows[i].action_note,
+                                    author = rows[i].author,
+                                    photo = rows[i].photo,
+                                    cphoto= rows[i].cphoto,
+                                    cid = rows[i].cid * 1;
+
+                                console.log(photo);
+                                console.log(cphoto);
+
+                                if (child_name == undefined) child_name = "";
+                                if (rdate == undefined) rdate = "";
+                                if (btime == undefined) btime = "";
+                                if (act_id == undefined) act_id = "0";
+                                if (act_content == undefined) act_content = "";
+                                if (act_note == undefined) act_note = "";
+                                if (author == undefined) author = "";
+                                if (photo == undefined) photo = "";
+                                if (cphoto == undefined) cphoto = "";
+
+                                var stime = rdate + "  " + btime;
+
+                                // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
+                                switch (act_id * 1) {
+                                    case 1 :
+                                        msg = child_name + " arrived.";
+                                        break;
+                                    case 2 :
+                                        msg = child_name + " leaved.";
+                                        break;
+                                    case 3 :
+                                        msg = child_name + " sleeped.";
+                                        break;
+                                    case 4 :
+                                        msg = child_name + " waked up.";
+                                        break;
+                                    case 5 :
+                                        msg = child_name + " was bottled " + act_content + "oz.";
+                                        break;
+                                    case 6 :
+                                        msg = child_name + " ate " + act_content + ".";
+                                        break;
+                                    case 7 :
+                                        msg = child_name + " drinked " + act_content + ".";
+                                        break;
+                                    case 8 :
+                                        msg = child_name + "'s diapper & potty is " + act_content + ".";
+                                        break;
+                                    case 9 :
+                                        msg = child_name + "'s requests are " + act_content;
+                                        break;
+                                    case 10:
+                                        msg = child_name + "'s mood is " + act_content + ".";
+                                        break;
+                                    case 11:
+                                        msg = act_content;
+                                        break;
+                                }
+
+                                var shtml = '<li style="width:100%;" id="item'+rid+'" rid="'+rid+'">' +
+                                        '<div class="msg">';
+                                console.log(cid );
+                                if (cid == 0){
+                                    if(photo != "")
+                                        shtml += '<img id="photo" style="width:100%;" src="' + photo + '" >';
+                                }else{
+                                    if (cphoto != "")
+                                        shtml += '<img id="photo" src="' + cphoto + '" >';
+                                }
+
+                                shtml += '<span>' + msg + '</span><br>';
+
+                                shtml += '</div><br>'
+                                         + '</li>';
+                                shtml += '<span style="float: right;margin-bottom: 10px;">' + stime + '</span>';
+
+                                $('#msgs').append(shtml);
+
+                                // codes for edit and delete
+                                $("#item"+rid).on("click", function(){
+                                    var i, ritem,
+                                        rln=reportlist.length,
+                                        rid = $(this).attr('rid');
+                                    for(i=0; i< rln; i++){
+                                        if(reportlist[i].rid == rid){
+                                            ritem = reportlist[i];
+                                            break;
+                                        }
+                                    }
+
+                                    var act_id = ritem.action_id;
+                                    var act_cont = ritem.action_content;
+                                    var act_time = ritem.btime;
+                                    switch (act_id*1){
+                                        case 1:
+                                        case 2:
+                                        case 3:
+                                        case 4:
+                                            $("#timer").val(act_time);
+                                            $("#timer-dialog #rid").val(rid);
+                                            timer_dialog.dialog("open");
+                                            break;
+                                        case 5:
+                                            $("#bottle-timer").val(act_time);
+                                            $("#bottle-dialog #rid").val(rid);
+                                            $("#bottle-num").val(act_cont);
+                                            bottle_dialog.dialog("open");
+                                            break;
+                                        case 6:
+                                            foodList = act_cont.split(',');
+                                            var fln = foodList.length;
+                                            var foodCells = $('td.foodcell');
+                                            var tln = foodCells.length;
+
+                                            for(var j=0; j<fln; j++){
+                                                for(i=0; i<tln; i++){
+                                                    if($(foodCells[i]).text() == foodList[j].trim()) {
+                                                        $(foodCells[i]).css('color', '#f00');
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            $("#food-dialog #rid").val(rid);
+                                            food_dialog.dialog("open");
+                                            break;
+                                        case 7:
+                                            drinkList = act_cont.split(',');
+                                            var dln = drinkList.length;
+                                            for(i=0; i<dln; i++){
+                                                var drink = drinkList[i].trim().toLowerCase();
+                                                //console.log(drink);
+                                                $("#"+drink).prop('checked', true);
+                                            }
+                                            $("#drink-timer").val(act_time);
+                                            $("#drink-dialog #rid").val(rid);
+                                            drink_dialog.dialog("open");
+                                            break;
+                                        case 8:
+                                            var diapers = act_cont.toLowerCase();
+                                            $("input :radio[id='" + diapers.trim() + "']").prop('checked', true);
+                                            $("#potty-timer").val(act_time);
+                                            $("#potty-dialog #rid").val(rid);
+
+                                            potty_dialog.dialog("open");
+                                            break;
+                                        case 9:
+                                            var reqs = act_cont.split(','), rln = reqs.length;
+                                            for(i=0; i<rln; i++){
+                                                var req = reqs[i].trim();
+
+                                                if(req == 'Diapers')
+                                                    $("input :checkbox[id='diapers']").prop('checked', true);
+                                                if(req == 'Dry')
+                                                    $("input :checkbox[id='dry']").prop('checked', true);
+                                                if(req == 'Disposable Bibs')
+                                                    $("input :checkbox[id='disposable']").prop('checked', true);
+                                            }
+                                            $("#request-dialog #rid").val(rid);
+
+                                            request_dialog.dialog("open");
+                                            break;
+                                        case 10:
+                                            $("#mood-timer").val(act_time);
+
+                                            $("input :radio[id='"+act_cont+"']").prop('checked', true);
+                                            $("#mood-dialog #rid").val(rid);
+                                            mood_dialog.dialog("open");
+                                            break;
+                                        case 11: ;
+                                    }
+                                })
+
+                                $("#msgs").animate({scrollTop: $(".msg:last").offset().top}, 100);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error){
+                        console.log(error);
+                    }
+                })
+            }
+
+            var timer_dialog = $( "#timer-dialog" ).dialog({
+                autoOpen: false,
+                height: 220,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deleteTime();},
+                    Cancel: function() {
+                        timer_dialog.dialog( "close" );
+                    },
+                    "Save & Close": function(){ updateTime();}
+                },
+                close: function() {
+                    timer_form[0].reset();
+                    timer_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var timer_form = timer_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            function currentDate(){
+                var ndate = new Date();
+                return ndate.getFullYear() + '-' + (ndate.getMonth()+1) + '-' + ndate.getDate();
+            }
+
+            // Arrive, leave, sleep, wakeup   server:/new-note
+            function updateTime() {
+                var valid = true;
+                timer_Fields.removeClass( "ui-state-error" );
+                var rid = $("#timer-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = timer.val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) {
+                        cid = reportlist[i].cid;
+                        break;
+                    }
+                }
+
+                $.ajax({
+                    url: "/edit-note",
+                    data:{rid:rid, rdate:rdate, btime:btime},
+                    type:"post",
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.result == 'success'){
+                            loadReports(cid);
+                        }
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                timer_dialog.dialog( "close" );
+            }
+
+            // Arrive, leave, sleep, wakeup   server:/new-note
+            function deleteTime() {
+                var valid = true;
+                timer_Fields.removeClass( "ui-state-error" );
+                var rid = $("#timer-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) {
+                        cid = reportlist[i].cid;
+                        break;
+                    }
+                }
+
+                $.ajax({
+                    url: "/delete-note",
+                    data:{rid:rid},
+                    type:"post",
+                    dataType: "JSON",
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                timer_dialog.dialog( "close" );
+            }
+
+            var bottle_dialog = $( "#bottle-dialog" ).dialog({
+                autoOpen: false,
+                height: 300,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deleteBottle();},
+                    Cancel: function() {
+                        bottle_dialog.dialog( "close" );
+                    },
+                    "Save & Close": function(){ updateBottle();}
+                },
+                close: function() {
+                    bottle_form[0].reset();
+                    bottle_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var bottle_form = bottle_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            // Bottle server:edit-bottle
+            function updateBottle() {
+                bottle_Fields.removeClass( "ui-state-error" );
+                var rid = $("#bottle-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = bottle_timer.val();
+                var action_content = bottle_num.val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) {
+                        cid = reportlist[i].cid;
+                        break;
+                    }
+                }
+
+                $.ajax({
+                    url: "/edit-bottle",
+                    type:"post",
+                    data:{rid:rid, rdate:rdate, btime:btime,action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                bottle_dialog.dialog( "close" );
+            }
+            // Bottle server:delete-bottle
+            function deleteBottle() {
+                bottle_Fields.removeClass( "ui-state-error" );
+                var rid = $("#bottle-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) {
+                        cid = reportlist[i].cid;
+                        break;
+                    }
+                }
+
+                $.ajax({
+                    url: "/delete-bottle",
+                    type:"post",
+                    data:{rid:rid},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                bottle_dialog.dialog( "close" );
+            }
+            // Mood
+            var mood_dialog = $( "#mood-dialog" ).dialog({
+                autoOpen: false,
+                height: 370,
+                width: 400,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deleteMood();},
+                    Cancel: function() {
+                        mood_dialog.dialog( "close" );
+                    },
+                    "Save & Close": function(){ updateMood();}
+                },
+                close: function() {
+                    mood_form[0].reset();
+                    mood_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var mood_form = mood_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            // Mood server:edit-bottle
+            function updateMood() {
+                bottle_Fields.removeClass( "ui-state-error" );
+                var rid = $("#mood-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = mood_timer.val();
+                var action_content = "";
+                if($("#focused").prop( "checked")) action_content = "focused";
+                if($("#friendly").prop( "checked")) action_content = "friendly";
+                if($("#fussy").prop( "checked")) action_content = "fussy";
+                if($("#happy").prop( "checked")) action_content = "happy";
+                if($("#hyper").prop( "checked")) action_content = "hyper";
+                if($("#sick").prop( "checked")) action_content = "sick";
+                if($("#misbeahaving").prop( "checked")) action_content = "misbeahaving";
+                if($("#needy").prop( "checked")) action_content = "needy";
+
+                var cid = '';
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break;}
+                }
+
+                $.ajax({
+                    url: "/edit-bottle",
+                    type:"post",
+                    data:{rid:rid, rdate:rdate, btime:btime,action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                mood_dialog.dialog( "close" );
+            }
+            // Mood server:delete-bottle
+            function deleteMood() {
+                bottle_Fields.removeClass( "ui-state-error" );
+                var rid = $("#mood-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) {
+                        cid = reportlist[i].cid;
+                        break;
+                    }
+                }
+
+                $.ajax({
+                    url: "/delete-bottle",
+                    type:"post",
+                    data:{rid:rid},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                mood_dialog.dialog( "close" );
+            }
+            // potty
+            var potty_dialog = $( "#potty-dialog" ).dialog({
+                autoOpen: false,
+                height: 300,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deletePotty();},
+                    Cancel: function() {
+                        potty_dialog.dialog( "close" );
+                    },
+                    "Save & Close": function(){ updatePotty();}
+                },
+                close: function() {
+                    potty_form[0].reset();
+                    potty_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var potty_form = potty_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            // Potty server:edit-bottle
+            function updatePotty() {
+                potty_Fields.removeClass( "ui-state-error" );
+                var rid = $("#potty-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = potty_timer.val();
+                var action_content = "";
+                if($("#wet").prop( "checked")) action_content = "Wet";
+                else action_content = "Dry";
+
+                var cid = '';
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break;}
+                }
+
+                $.ajax({
+                    url: "/edit-bottle",
+                    type:"post",
+                    data:{rid:rid, rdate:rdate, btime:btime,action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                potty_dialog.dialog( "close" );
+            }
+            // Potty server:delete-bottle
+            function deletePotty() {
+                potty_Fields.removeClass( "ui-state-error" );
+                var rid = $("#potty-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break; }
+                }
+
+                $.ajax({
+                    url: "/delete-bottle",
+                    type:"post",
+                    data:{rid:rid},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                potty_dialog.dialog( "close" );
+            }
+
+            // request
+            var request_dialog = $( "#request-dialog" ).dialog({
+                autoOpen: false,
+                height: 300,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deleteRequest();},
+                    Cancel: function() {
+                        request_dialog.dialog( "close" );
+                    },
+                    "Save & Close": function(){ updateRequest();}
+                },
+                close: function() {
+                    request_form[0].reset();
+                    request_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var request_form = request_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            // Potty server:edit-bottle
+            function updateRequest() {
+                request_Fields.removeClass( "ui-state-error" );
+                var rid = $("#request-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = $("#request-timer").val();
+
+                var requestList = [];
+                if($("#diapers").prop( "checked"))      requestList.push("Diapers");
+                if($("#dry").prop( "checked"))          requestList.push("Dry");
+                if($("#disposable").prop( "checked"))   requestList.push("Disposable Bibs");
+                var action_content = requestList.join();
+
+                var cid = '';
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break;}
+                }
+
+                $.ajax({
+                    url: "/edit-bottle",
+                    type:"post",
+                    data:{rid:rid, rdate:rdate, btime:btime,action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                request_dialog.dialog( "close" );
+            }
+            // Potty server:delete-bottle
+            function deleteRequest() {
+                request_Fields.removeClass( "ui-state-error" );
+                var rid = $("#request-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break; }
+                }
+
+                $.ajax({
+                    url: "/delete-bottle",
+                    type:"post",
+                    data:{rid:rid},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                request_dialog.dialog( "close" );
+            }
+            // drink
+            var drink_dialog = $( "#drink-dialog" ).dialog({
+                autoOpen: false,
+                height: 300,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deleteDrink();},
+                    Cancel: function() { drink_dialog.dialog( "close" ); },
+                    "Save & Close": function(){ updateDrink();}
+                },
+                close: function() {
+                    drink_form[0].reset();
+                    drink_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var drink_form = drink_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            // Drink server:edit-bottle
+            function updateDrink() {
+                drink_Fields.removeClass( "ui-state-error" );
+                var rid = $("#drink-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = $("#drink-timer").val();
+                var action_content = drinkList.join();
+
+                console.log(action_content);
+
+                var cid = '';
+                for(var i=0; i<reportlist.length;i++)
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break;}
+
+                $.ajax({
+                    url: "/edit-bottle",
+                    type:"post",
+                    data:{rid:rid, rdate:rdate, btime:btime,action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                drink_dialog.dialog( "close" );
+            }
+            // Drink server:delete-bottle
+            function deleteDrink() {
+                drink_Fields.removeClass( "ui-state-error" );
+                var rid = $("#drink-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break; }
+                }
+
+                $.ajax({
+                    url: "/delete-bottle",
+                    type:"post",
+                    data:{rid:rid},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                drink_dialog.dialog( "close" );
+            }
+            // food
+            var food_dialog = $( "#food-dialog" ).dialog({
+                autoOpen: false,
+                height: 600,
+                width: 450,
+                modal: true,
+                buttons: {
+                    "Delete": function(){ deleteFood();},
+                    Cancel: function() {
+                        food_dialog.dialog( "close" );
+                    },
+                    "Save & Close": function(){ updateFood();}
+                },
+                close: function() {
+                    food_form[0].reset();
+                    //food_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var food_form = food_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+            function ISOtimeformat(){
+                var ndate = new Date();
+                var tstr = ndate.getHours() + ":";
+                if(ndate.getHours() < 10) tstr = "0" + tstr;
+                if(ndate.getMinutes() < 10){
+                    tstr = tstr.concat("0", ndate.getMinutes());
+                }else{
+                    tstr = tstr.concat(ndate.getMinutes());
+                }
+                return tstr;
+            }
+            // Drink server:edit-bottle
+            function updateFood() {
+//                Food_Fields.removeClass( "ui-state-error" );
+                var rid = $("#food-dialog #rid").val();
+                var rdate = currentDate();
+                var btime = ISOtimeformat();
+                var action_content = foodList.join();
+
+                console.log(action_content);
+
+                var cid = '';
+                for(var i=0; i<reportlist.length;i++)
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break;}
+
+                $.ajax({
+                    url: "/edit-bottle",
+                    type:"post",
+                    data:{rid:rid, rdate:rdate, btime:btime,action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                food_dialog.dialog( "close" );
+            }
+            // Drink server:delete-bottle
+            function deleteFood() {
+                drink_Fields.removeClass( "ui-state-error" );
+                var rid = $("#food-dialog #rid").val();
+                var cid = '';
+
+                for(var i=0; i<reportlist.length;i++) {
+                    if(reportlist[i].rid == rid) { cid = reportlist[i].cid; break; }
+                }
+
+                $.ajax({
+                    url: "/delete-bottle",
+                    type:"post",
+                    data:{rid:rid},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        if(data.result == 'success') loadReports(cid);
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                food_dialog.dialog( "close" );
+            }
+            // when click search button
+            $("#btnsearch").click(function(){
+               // $("#namerole").css("display", "block");
+                $("#namerole").slideDown(300);
+            })
+
+        })
+    </script>
+</body>
+</html>

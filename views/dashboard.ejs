@@ -11,16 +11,22 @@
 <script type="text/javascript">
     var socket = io.connect("http://192.168.4.148:8080");
 
+    var uid = '<%=uid%>';
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
-    console.log('nickname='+nm + " grade="+grd);
-    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
 
-    socket.on('notify', function (data) {
-        $('#msg').text(data.msg + " is on way.");
-        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
-        socket.emit('location', data);
-    });
+    sessionStorage.setItem('uid', uid);
+    sessionStorage.setItem('nickname', nm);
+    sessionStorage.setItem('grade', grd);
+
+    console.log('nickname='+nm + " grade="+grd);
+//    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+
+//    socket.on('notify', function (data) {
+//        $('#msg').text(data.msg + " is on way.");
+//        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
+//        socket.emit('location', data);
+//    });
 
     var onmywayDown = false;
 
@@ -38,9 +44,9 @@
         return true;
     }
 
-    function hide(){
-        $('#notify').attr({'style':'display:none'});
-    }
+//    function hide(){
+//        $('#notify').attr({'style':'display:none'});
+//    }
 
 </script>
 <body>
@@ -55,7 +61,7 @@
             <div id="row1" >
                 <button id="btnOnMyWay" onclick="onmyway();"></button>
                 <div style="width: 30px; height:100px;float:left"></div>
-                <button id="btnTimeLine" onclick=""></button>
+                <button id="btnTimeLine" onclick="location.href='/timeline';"></button>
             </div>
             <br>
             <div id="row2">
@@ -68,8 +74,8 @@
     </div>
     <div id="div-foot">
         <button id="btnProfile" onclick="location.href='/profile?imgsrc=none';"></button>
-        <button id="btnReport" onclick=""></button>
-        <button id="btnPhoneCall" onclick="location.href='';"></button>
+        <button id="btnReport" onclick="location.href='/report';"></button>
+        <a href="tel:703-987-6037"><button id="btnPhoneCall"></button></a>
     </div>
 
 </body>

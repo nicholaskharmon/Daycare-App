@@ -3,11 +3,13 @@
 <head>
     <title>Sunshine and Sprout Daycare</title>
     <link rel='stylesheet' type="text/css" href='/stylesheets/calendar.css' />
-    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
 
 </head>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
+<script src="/javascripts/jquery-ui-1.12.1.js"></script>
 
 <script type="text/javascript">
 
@@ -15,7 +17,6 @@
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
     socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
-    socket.emit('joinroom',{room:'events', nickname: nm});
 
     socket.on('notify', function (data) {
         $('#msg').text(data.msg + " is on way.");
@@ -46,34 +47,6 @@
         function hide(){
             $('#notify').attr({'style':'display:none'});
         }
-
-        socket.on('broadcast_msg', function (data) {
-            console.log(data);
-            var contents = "";
-            var sd = "";
-            if(data.date != undefined) {
-                var ss = new Date(data.date);
-                sd = (ss.getMonth()+1) +'-' + ss.getDate();
-                contents = smonths[ss.getMonth()] + " " + ss.getDate() + "&nbsp;&nbsp;&nbsp;&nbsp;";
-            }
-
-            if( data.time != undefined) {
-                if (data.time == '00:00:00') {
-                    contents += 'All Day';
-                } else {
-                    contents += data.time;
-                }
-            }
-
-            if(data.event != undefined) {
-                contents += "&nbsp;&nbsp;&nbsp;&nbsp;" + data.event;
-            }
-
-            if(contents != "") {
-                $('.event-list').append('<li>' + contents + "</li>");
-                $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
-            }
-        });
 
         var currentmonth = new Date();
         var cc = new Date();
@@ -132,9 +105,9 @@
             $(".prevday").attr({"style" : "color:#8db4ce"});
 
             if(weeks == 5){
-                $('#div-list').attr({"style" : "padding-top:360px"});
+                $('#div-list').attr({"style" : "padding-top:330px"});
             }else{
-                $('#div-list').attr({"style" : "padding-top:390px"});
+                $('#div-list').attr({"style" : "padding-top:350px"});
             }
         }
 
@@ -152,7 +125,6 @@
             var days = datesinMonth(vdate);
             var cells = days + firstday;
 
-
             if (cells * 7 > 0){
                 cells = ((cells - cells % 7)/7 + 1) * 7;
             }
@@ -163,9 +135,45 @@
             var sfirst = first.getFullYear() + '-' + (first.getMonth()+1) + '-' + first.getDate();
             var slast = lastday.getFullYear() + '-' + (lastday.getMonth()+1) + '-' + lastday.getDate();
 
-            socket.emit('get-event',{to: nm, firstday: sfirst, lastday:slast});
+            var surl = "/get-event?firstday=" + sfirst + "&lastday="+slast;
 
             $(".event-list").empty();
+
+            $.ajax({
+                url : surl,
+                dataType:"JSON", // option
+                success : function(data) {
+                    for(i=0; i<data.length - 1;i++){
+                        var flag = 0;
+                        var stime = data[i].mtime;
+                        var sdate = data[i].mdate;
+                        var scont = data[i].event;
+                        var snote = data[i].note;
+                        var sd = "";
+
+//                        var contents = "";
+                        if( sdate != undefined) {
+                            var ss = new Date(sdate);
+                            if (ss.getMonth() != month) flag = 1;
+                            sd = (ss.getMonth() + 1) + '-' + ss.getDate();
+                        }
+
+                        if( stime != undefined) {
+                            if (stime == '00:00:00') stime = 'All Day';
+                        }
+
+                        if(scont == undefined) scont = "";
+                        if(snote == undefined) snote = "";
+
+                        add_event(sdate, stime, scont, snote, flag)
+                        $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
+
+                    }
+                },
+                error : function(xhr, status, error) {
+                    alert("error");
+                }
+            });
         }
 
         $(window).load(function () {
@@ -184,17 +192,134 @@
             loadCalendar(currentmonth);
             loadEvent(currentmonth);
         })
+
+        function add_event(sdate, stime, scont, snote, flag){
+            var shortMonth = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            var sday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+            var ss = sdate.split('-');
+            var nn = new Date(sdate);
+            var day = nn.getDay();
+            var dd = nn.getDate();
+            var yy = ss[0], mm = ss[1]*1 - 1;
+            var smm = shortMonth[mm];
+            var sst = sday[day] + " " + stime;
+            var sdd = '<span style="font-size:18px">' + dd +'</span>';
+            if (flag ) sdd = '<span style="font-size:12px">' + smm +'</span>' + '<br>' + sdd ;
+
+            var row = '<tr class="list" style="text-align: center">' +
+                    '<td class="cell" style="width:50px;">'+ sdd + '</td>' +
+                    '<td class="cell" colspan="2" style="font-size:12px">' +
+                    '<span style="font-size:16px">' + scont +'</span><br>' +
+                    '<span style="font-size:12px">' + sst +'</span>' +
+                    '</td>' +
+                    '</tr>';
+            $(".event-list").append(row);
+        }
+        // Error
+        var error_dialog = $( "#error-dialog" ).dialog({
+            autoOpen: false,
+            height: 200,
+            width: 300,
+            modal: true,
+            buttons: {
+                "Close": function(){ error_dialog.dialog( "close" );}
+            },
+            close: function() {
+                error_form[0].reset();
+                //food_Fields.removeClass( "ui-state-error" );
+            }
+        });
+
+        var error_form = error_dialog.find( "form" ).on( "submit", function( event ) {
+            event.preventDefault();
+        });
+        // when click <Search>
+        $("#btnsearch").click(function(){
+            var key = $("#word").val();
+            if (key == ""){
+                error_dialog.dialog( "open" );
+                return;
+            }
+
+            $.ajax({
+                url : "/search-event?key=" + key,
+                dataType:"JSON", // option
+                success : function(data) {
+                    console.log(data);
+                    $(".event-list").empty();
+                    for(var i=0; i < data.length; i++){
+                        var flag = 1;
+                        var stime = data[i].mtime;
+                        var sdate = data[i].mdate;
+                        var scont = data[i].event;
+                        var snote = data[i].note;
+                        var sd = "";
+
+//                        var contents = "";
+                        if( sdate != undefined) {
+                            var ss = new Date(sdate);
+//                            if (ss.getMonth() != month) flag = 1;
+                            sd = (ss.getMonth() + 1) + '-' + ss.getDate();
+                        }
+
+                        if( stime != undefined) {
+                            if (stime == '00:00:00') stime = 'All Day';
+                        }
+
+                        if(scont == undefined) scont = "";
+                        if(snote == undefined) snote = "";
+
+                        add_event(sdate, stime, scont, snote, flag)
+                        //$('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
+                    }
+                },
+                error : function(xhr, status, error) {
+                    alert("error");
+                }
+            });
+        })
+
     });
 </script>
 
 <body >
-    <div id="div-head">
+<!-- Form to add Note  -->
+<div id="error-dialog" title="Information" style="display: none;z-index: 9999;">
+    <form>
+        <fieldset>
+            <p class="validateTips">Please Input a Keyword.</p>
+            <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+<!-- Form to add Note  -->
+<!--<div id="error-dialog" title="Information" style="display: none;">-->
+    <!--<form>-->
+        <!--<fieldset>-->
+            <!--<p class="validateTips">For adding Event, you have to Login.</p>-->
+            <!--&lt;!&ndash;<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">&ndash;&gt;-->
+            <!--<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">-->
+        <!--</fieldset>-->
+    <!--</form>-->
+<!--</div>-->
+
+<div id="div-head">
         <div id="div-title">
-            <div id="homebtn" onclick="location.href='/dashboard'" > </div>
-            <!--<div>-->
-            <!--</div>-->
-            <div id="settingbtn" onclick="location.href='/event-setting'" > </div>
-            <h1 style="text-align:center">Calendar</h1>
+
+            <ul class="nav">
+                <li class="nav-item"><a href="/dashboard">Home</a></li>
+                <li class="nav-item" id="new"><a href="/event-setting">New</a></li>
+                <li class="nav-item" id="search">
+                    <img id="btnsearch" src="/images/search-a.png">
+                    <input type="text" id="word">
+                </li>
+            </ul>
+            <!--<div id="homebtn" onclick="location.href='/dashboard'" > </div>-->
+            <!--&lt;!&ndash;<div>&ndash;&gt;-->
+            <!--&lt;!&ndash;</div>&ndash;&gt;-->
+            <!--<div id="settingbtn" onclick="location.href='/event-setting'" > </div>-->
+            <!--<h1 style="text-align:center">Calendar</h1>-->
         </div>
 
         <div  id="div-calendar" class ="div-calendar">
@@ -228,7 +353,7 @@
     </div>
 
     <div id="div-list">
-        <ul class="event-list"></ul>
+        <table class="event-list"></table>
 
     </div>
 

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Daycare</title>
+
+    <link rel='stylesheet' type="text/css" href='/stylesheets/childreport.css' />
+    <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/jquery.backstretch.min.js"></script>
+    <script src="/javascripts/jquery-ui-1.12.1.js"></script>
+
+</head>
+
+<body >
+
+<!-- Form to notify OnMyWay Event  -->
+<div id="notify-dialog" title="Information" style="display: none;">
+    <form>
+        <fieldset>
+            <p class="validateTips"><%= nm %> is on Way.</p>
+            <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
+    <div id="div-head">
+        <div id="homebtn" onclick="location.href='/dashboard'" >
+            <i class="fa fa-angle-left" style="font-size:20px; padding-top:25px;">&nbsp;Back</i>
+        </div>
+        <h2 style="text-align:center">Report</h2>
+    </div>
+
+    <div id="div-date">
+        <i id="bprev" class="fa fa-angle-left" style="font-size:22px; padding:15px;float:left;color:red"></i>
+        <i id="bnext" class="fa fa-angle-right" style="font-size:22px; padding:15px;float:right;color:red"></i>
+        <span id="sdate">Wednesday Nov 1</span>
+
+    </div>
+
+    <div id="div-main" >
+        <ul id="msgs"></ul>
+    </div>
+
+    <script type="text/javascript">
+        $.backstretch("/images/bg.png");
+
+        var socket = io.connect("http://192.168.4.148:8080");
+        var reportlist = [];
+        var cid = localStorage.getItem("cid");
+        var nm = "<%=nm%>";
+
+        socket.emit('joinroom',{room:'map', nickname: nm });
+
+        $(document).ready(function() {
+            var curdate = new Date();
+            var today = new Date();
+            var week1 = today;
+            var month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var weeks = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+            week1.setDate(today.getDate() - today.getDay());
+
+            // when select previous date
+            $("#bprev").click(function(){
+                if(curdate > week1){
+                    console.log("current " + curdate);
+                    console.log("today " + today);
+                    curdate.setDate(curdate.getDate()-1);
+                    var sdate = weeks[curdate.getDay()] + " " + month[curdate.getMonth()] + " " + curdate.getDate();
+                    $("#sdate").html(sdate);
+                    loadReports(cid, curdate);
+                }
+            })
+
+            // when select next date
+            $("#bnext").click(function(){
+                if(curdate < today){
+                    console.log("current " + curdate);
+                    console.log("today " + today);
+                    curdate.setDate(curdate.getDate()+1);
+                    var sdate = weeks[curdate.getDay()] + " " + month[curdate.getMonth()] + " " + curdate.getDate();
+                    $("#sdate").html(sdate);
+                    loadReports(cid, curdate);
+                }
+            })
+
+            socket.on('notify', function(data){
+                var nickname = data.nickname;
+                // Error
+                console.log('Get notify');
+                var notify_dialog = $( "#notify-dialog" ).dialog({
+                    autoOpen: false,
+                    height: 200,
+                    width: 300,
+                    modal: true,
+                    buttons: {
+                        "Close": function(){ notify_dialog.dialog("close");}
+                    },
+                    close: function() {
+                        notify_form[0].reset();
+                        //food_Fields.removeClass( "ui-state-error" );
+                    }
+                });
+
+                var notify_form = notify_dialog.find( "form" ).on( "submit", function( event ) {
+                    event.preventDefault();
+                });
+
+            });
+
+            $(window).load( function(){
+                console.log("today " + today);
+                var sdate = weeks[today.getDay()] + " " + month[today.getMonth()] + " " + today.getDate();
+                $("#sdate").html(sdate);
+                loadReports(cid, today);
+            });
+
+            function ISODateString(rdate){
+                var ndate = new Date(rdate);
+                var tstr = ndate.getFullYear() + "-" + (ndate.getMonth()+1) + "-" + ndate.getDate();
+                return tstr;
+            }
+
+            function loadReports(cid, cdate){
+                var ts = new Date();
+                var today = ts.getFullYear() + "-" + (ts.getMonth()+1) + "-" + ts.getDate();
+                $("#msgs").empty();
+
+                reportlist = [];
+                $.ajax({
+                    url : "/get-report",
+                    type: "get",
+                    data: {cid : cid, cdate : cdate},
+                    datatype: "JSON",
+                    success: function(res){
+                        if(res != undefined) {
+                            var rows = res.data;
+                            reportlist = rows;
+                            console.log(reportlist);
+
+                            for (var i = 0; i < rows.length; i++) {
+                                var msg = "";
+                                var rid = rows[i].rid,
+                                    child_name = rows[i].child_name,
+                                    rdate = ISODateString(rows[i].rdate),
+                                    btime = rows[i].btime,
+                                    act_id = rows[i].action_id,
+                                    act_content = rows[i].action_content,
+                                    act_note = rows[i].action_note,
+                                    author = rows[i].author,
+                                    photo = rows[i].photo,
+                                    cphoto= rows[i].cphoto,
+                                    cid = rows[i].cid * 1;
+
+                                if (child_name == undefined) child_name = "";
+                                if (rdate == undefined) rdate = "";
+                                if (btime == undefined) btime = "";
+                                if (act_id == undefined) act_id = "0";
+                                if (act_content == undefined) act_content = "";
+                                if (act_note == undefined) act_note = "";
+                                if (author == undefined) author = "";
+                                if (photo == undefined) photo = "";
+                                if (cphoto == undefined) cphoto = "";
+
+                                var stime = rdate + "  " + btime;
+
+                                // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
+                                switch (act_id * 1) {
+                                    case 1 :
+                                        msg = child_name + " arrived.";
+                                        break;
+                                    case 2 :
+                                        msg = child_name + " leaved.";
+                                        break;
+                                    case 3 :
+                                        msg = child_name + " sleeped.";
+                                        break;
+                                    case 4 :
+                                        msg = child_name + " waked up.";
+                                        break;
+                                    case 5 :
+                                        msg = child_name + " was bottled " + act_content + "oz.";
+                                        break;
+                                    case 6 :
+                                        msg = child_name + " ate " + act_content + ".";
+                                        break;
+                                    case 7 :
+                                        msg = child_name + " drinked " + act_content + ".";
+                                        break;
+                                    case 8 :
+                                        msg = child_name + "'s diapper & potty is " + act_content + ".";
+                                        break;
+                                    case 9 :
+                                        msg = child_name + "'s requests are " + act_content;
+                                        break;
+                                    case 10:
+                                        msg = child_name + "'s mood is " + act_content + ".";
+                                        break;
+                                    case 11:
+                                        msg = act_content;
+                                        break;
+                                }
+
+                                var shtml = '<li style="width:100%;" id="item'+rid+'" rid="'+rid+'">' +
+                                        '<div class="msg">';
+//                                console.log(cid );
+                                if (cid == 0){
+                                    if(photo != "")
+                                        shtml += '<img id="photo" style="width:100%;" src="' + photo + '" >';
+                                }else{
+                                    if (cphoto != "")
+                                        shtml += '<img id="photo" src="' + cphoto + '" >';
+                                }
+
+                                shtml += '<span>' + msg + '</span><br>';
+                                shtml += '</div><br></li>';
+                                shtml += '<span style="float: right;margin-bottom: 10px;">' + stime + '</span>';
+
+                                $('#msgs').append(shtml);
+
+                                $("#msgs").animate({scrollTop: $(".msg:last").offset().top}, 100);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error){
+                        console.log(error);
+                    }
+                })
+            }
+
+            function currentDate(){
+                var ndate = new Date();
+                return ndate.getFullYear() + '-' + (ndate.getMonth()+1) + '-' + ndate.getDate();
+            }
+
+            function ISOtimeformat(){
+                var ndate = new Date();
+                var tstr = ndate.getHours() + ":";
+                if(ndate.getHours() < 10) tstr = "0" + tstr;
+                if(ndate.getMinutes() < 10){
+                    tstr = tstr.concat("0", ndate.getMinutes());
+                }else{
+                    tstr = tstr.concat(ndate.getMinutes());
+                }
+                return tstr;
+            }
+        })
+    </script>
+</body>
+</html>

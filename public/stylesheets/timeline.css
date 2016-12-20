@@ -1,0 +1,180 @@
+html{
+}
+
+body{
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    margin:0px;
+    max-height: 100%;
+}
+h2{
+    margin:0px;
+    padding-top:20px;
+    color: red;
+}
+#div-head{
+    position:fixed;
+    top:0px;
+    left: 0px;
+    height:50px;
+    padding:0px;
+    width: 100%;
+    background-color: #eaee9a;
+}
+
+.name{
+    height:25px;
+    padding : 5px 10px;
+    background-color: white;
+    font-size: 17px;
+    color : navy;
+}
+
+#homebtn{
+    float:left;
+    margin-left:20px;
+    color:red;
+}
+
+#div-main{
+    margin:90px 5% 90px 5%;
+    width:90%;height:70%;
+}
+
+.msg{
+    width : 90%;
+    background-color: rgba(243,243,156,0.6);
+    padding:5px;
+    margin-bottom:10px;
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    border-radius:5px;
+    box-shadow: 5px 5px 5px #888;
+    float:left;
+}
+
+.msg img{
+    width:20%;
+    float:left;
+    margin-right:10px;
+}
+
+.msg span{
+    vertical-align: middle;
+}
+
+.stime{
+    font-size:10px;
+    padding: 10px;
+}
+
+#msgs{
+    width:100%; border:none; height:100%;
+    margin-bottom:90px;
+    padding : 0px;
+    overflow-y: scroll;
+}
+
+#msgbox{
+    text-indent: 5px;
+    height: 25px;
+}
+
+#div-bottom{
+    position: fixed; bottom: 0px;
+    width: 90%; padding:10px 5%;
+    background-color: #f3f39c;
+}
+
+ul {
+    list-style-type: none;
+}
+
+li {
+	padding: 10px 5px;
+	margin: 0px;
+	overflow-wrap: break-word;
+}
+
+#during {
+	width : 180px;
+	display:none;
+	padding-left:0px;
+	float:right;
+	background-color: white;
+}
+#during li {
+	padding: 10px 5px;
+	margin: 0px;
+	overflow-wrap: break-word;
+	background-color: white;
+}
+
+#div-to{
+	height:30px;
+	width:30%;
+	float:left;
+	margin-left:10px;
+	display: none;
+}
+#addphoto {
+	width:40px;
+	height:30px;
+	float:left;
+	color:red;
+	background: url(/images/add_photo.png) no-repeat center center;
+}
+#send{
+	width:50px;
+	height:25px;
+	float:right;
+	text-align: right;
+	color:red;
+	font-size: 16px;
+	padding-top: 5px;
+}
+
+
+td.cell{
+    height : 40px;
+    vertical-align:middle;
+    padding : 5px;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+td.foodcell{
+    width : 50%;
+    background: no-repeat left center;
+    text-indent: 50px;
+}
+
+tr.list{
+    height : 40px;
+    background-color : #faf285;
+}
+
+tr:nth-child(even){
+    background-color : #a7dde8;
+}
+
+th{
+    vertical-align:middle;
+    background-color : white;
+}
+
+#bottle-num {
+    color: #777;
+    width: 2em;
+    font-size: 2em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    padding-left: 5px;
+}
+#namerole{
+    display:none;
+    position:absolute;
+    right:15px;
+    top:50px;
+    margin-top:0px;
+}

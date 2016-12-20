@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sunshine and Sprout Daycare</title>
+	<link rel='stylesheet' type="text/css" href='/stylesheets/admin_childlist.css' />
+	<meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+</head>
+<script src="/javascripts/jquery-1.11.0.min.js"></script>
+<!--<script src="/socket.io/socket.io.js"></script>-->
+
+<script type="text/javascript">
+    var childList = []; // container of childs informations
+
+//    var socket = io.connect("http://192.168.4.148:8080");
+
+    $(document).ready(function() {
+        <!--var nm = '<%//=nname%>';-->
+        <!--var grd = '<%//=grade%>';-->
+        <!--console.log('nickname='+nm + " grade="+grd);-->
+        <!--socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});-->
+
+        <!--socket.on('notify', function (data) {-->
+            <!--$('#msg').text(data.msg + " is on way.");-->
+            <!--$('#notify').attr({'style':'display:block;background-color:#eaee9a'});-->
+            <!--socket.emit('location', data);-->
+        <!--});-->
+
+        var selectedCIDs = [];
+
+        function hide(){
+            $('#notify').attr({'style':'display:none'});
+        }
+
+        function loadChildList(){
+            $.ajax({
+                url : "/getChildList",
+                dataType : "JSON",
+                success : function(data){
+                    console.log(data);
+                    childList = data;
+
+                    var ul_childs = $(".ul-childs");
+
+                    if(childList != undefined){
+                        ul_childs.empty();
+
+                        for(i = 0; i < childList.length; i++){
+                            var cid = childList[i].cid;
+                            ul_childs.append(
+                                    '<li style="display:inline-block; width: 85px; height: 85px; margin: 2px;" id="' + cid + '" class="child_item">' +
+                                        '<div class="tile pointable" style="background-image: url(' + childList[i].imgsrc + ');">' +
+                                            '<div  style="height:100%">' +
+                                                '<div class="note mask" >' +
+                                                    '<span id="cname-' + cid + '">' + childList[i].child_name + '</span>' +
+                                                '</div>' +
+                                                '<div class="fill inside-border tile-menu-border" style="display:none;" id="cbd-' + cid + '"></div>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</li>'
+                            );
+
+                            $("#"+ childList[i].cid).on("click", function(){
+                                cid = $(this).attr('id');
+                                var today = new Date()
+                                var stoday = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+
+                                var brd = $("#cbd-" + cid);
+                                if(brd.is(':visible')) {
+                                    selectedCIDs.splice(selectedCIDs.indexOf(cid),1);
+                                    brd.hide();
+                                } else {
+                                    selectedCIDs.push(cid);
+                                    brd.show();
+                                }
+
+                                console.log('cid=' + cid + ' date=' + stoday);
+                                console.log(selectedCIDs);
+
+                                sessionStorage.setItem('selectedCIDs', selectedCIDs);
+                                //loadReport(cid, stoday);
+                            });
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert("error")
+                }
+            })
+        }
+
+        $(window).load(function () {
+            loadChildList();
+        });
+
+    })
+
+</script>
+<body>
+<div id="div-body">
+	<div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+		<br>
+		<h3 style="text-align: center" id="msg"></h3>
+		<button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+		<br>
+	</div>
+	<div id="div-main">
+        <h2>My Cute Children</h2>
+		<div id = "div-child-list" >
+			<ul class = "ul-childs" >
+
+            </ul>
+		</div>
+		<br>
+	</div>
+	<br>
+    <a href="/add-activity" style="float:right;">Add Activity</a>
+</div>
+<div id="div-foot">
+	<button id="btnProfile" onclick="location.href='/profile?imgsrc=none';"></button>
+	<button id="btnReport" onclick="location.href='/report';"></button>
+	<a href="tel:703-987-6037"><button id="btnPhoneCall"></button></a>
+</div>
+
+</body>
+</html>

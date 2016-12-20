@@ -4,51 +4,39 @@
     <title>DayCare</title>
     <link rel='stylesheet' type="text/css" href='/stylesheets/event_setting.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-
+    <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
 </head>
-<script src="/socket.io/socket.io.js"></script>
+<!--<script src="/socket.io/socket.io.js"></script>-->
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
+<script src="/javascripts/jquery-ui-1.12.1.js"></script>
+
 
 <script type="text/javascript">
 
-    var socket = io.connect("http://192.168.4.148:8080");
-    var nname = Math.floor((Math.random() * 100) + 1) + "";
-    socket.emit('joinroom',{room:'events', nickname: nname});
     var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
 
     $(document).ready(function() {
-        socket.on('broadcast_msg', function (data) {
-            console.log(data);
-            var contents = "";
-            var sd = "";
-            if(data.date != undefined) {
-                var ss = new Date(data.date);
-                sd = (ss.getMonth()+1) +'-' + ss.getDate();
-                contents = smonths[ss.getMonth()] + " " + ss.getDate() + "&nbsp;&nbsp;&nbsp;&nbsp;";
-            }
+        var currentmonth = new Date();
+        var cc = new Date();
 
-            if( data.time != undefined) {
-                if (data.time == '00:00:00') {
-                    contents += 'All Day';
-                } else {
-                    contents += data.time;
-                }
-            }
-
-            if(data.event != undefined) {
-                contents += "&nbsp;&nbsp;&nbsp;&nbsp;" + data.event;
-            }
-            console.log(contents);
-
-            if(contents != "") {
-//                $('.event-list').append('<li>' + contents + "</li>");
-                console.log(sd);
-                $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
+        // Error
+        var error_dialog = $( "#error-dialog" ).dialog({
+            autoOpen: false,
+            height: 200,
+            width: 300,
+            modal: true,
+            buttons: {
+                "Go to Login Page": function(){ location.href = "/";}
+            },
+            close: function() {
+                error_form[0].reset();
+                //food_Fields.removeClass( "ui-state-error" );
             }
         });
 
-        var currentmonth = new Date();
-        var cc = new Date();
+        var error_form = error_dialog.find( "form" ).on( "submit", function( event ) {
+            event.preventDefault();
+        });
 
         function datesinMonth(vdate){
             var first = new Date(vdate.getFullYear(), vdate.getMonth(), 1, 0, 0, 0, 0);
@@ -60,39 +48,69 @@
         }
 
         $('#edate').focus(function(){
-            $("#dmsg").html('');
+            $("#dmsg").css('color', 'black');
+            $("#dmsg").html('&nbsp;Date(Pick a date above)');
         })
 
         $('#etime').focus(function(){
-            $("#tmsg").html('');
+            $("#tmsg").css('color', 'black');
+            $("#tmsg").html('&nbsp;Time');
         })
 
-        $('#econtent').focus(function(){
+        $('#ename').focus(function(){
+            $("#emsg").css('color', 'black');
             $("#emsg").html('');
         })
 
-        $('form').submit(function () {
+        $("#savebtn").click(function(){
             var etime = $.trim($('#etime').val());
             var edate = $.trim($('#edate').val());
-            var econtent = $.trim($('#econtent').val());
+            var ename = $.trim($('#ename').val());
+            var enote = $.trim($('#enote').val());
+            var uid = sessionStorage.getItem('uid');
 
-            console.log('date'+edate+'-');
-            console.log('time'+etime+'-');
-            console.log('content'+econtent+'-');
+            console.log(uid);
+
+            if(uid == '' || uid == undefined){
+                error_dialog.dialog("open");
+            }
 
             if (edate === '' ){
-                $("#dmsg").html('Select Date.');
+                $("#dmsg").css('color', 'red');
+                $("#dmsg").html('&nbsp;Select Date.');
                 return false;
+            }else{
+                $("#dmsg").html('&nbsp;Date(Pick a date above)');
             }
-            if (etime === '' ){
 
-                $("#tmsg").html('Select Time.');
+            if (etime === '' ){
+                $("#tmsg").css('color', 'red');
+                $("#tmsg").html('&nbsp;Select Time.');
                 return false;
+            }else{
+                $("#tmsg").html('&nbsp;Time.');
             }
-            if (econtent === '' ){
+
+            if (ename === '' ){
+                $("#emsg").css('color', 'red');
                 $("#emsg").html('Input the content of Event.');
                 return false;
             }
+
+            var surl = "/save-event?edate="+edate+"&etime="+etime+"&ename="+ename+"&enote="+enote+"&uid="+uid;
+            console.log(surl);
+            $.ajax({
+                url: surl,
+                dataType: "JSON", // option
+                success: function (data) {
+                    var dd = new Date(edate);
+
+                    loadEvent(dd);
+                },
+                error: function (xhr, status, error) {
+                    alert("error");
+                }
+            });
         });
 
         function loadCalendar(vdate){
@@ -142,7 +160,6 @@
         }
 
         function loadEvent(vdate){
-            console.log(vdate);
             var year = vdate.getFullYear();
             var month = vdate.getMonth();
 
@@ -162,33 +179,63 @@
             }
 
             var lastday = new Date(first);
-            lastday.setDate(lastday.getDate() + cells);
+            lastday.setDate(lastday.getDate() + cells - 1);
 
             var sfirst = first.getFullYear() + '-' + (first.getMonth()+1) + '-' + first.getDate();
             var slast = lastday.getFullYear() + '-' + (lastday.getMonth()+1) + '-' + lastday.getDate();
-            console.log(nname + '|' + sfirst + '|'+ slast);
-            socket.emit('get-event',{to: nname, firstday: sfirst, lastday:slast});
 
-            $(".event-list").empty();
+            var surl = "/get-event?firstday=" + sfirst + "&lastday="+slast;
+
+            $.ajax({
+                url : surl,
+                dataType:"JSON", // option
+                success : function(data) {
+                    for(i=0; i<data.length;i++){
+                        var contents = "";
+                        var sd = "";
+                        if(data[i].mdate != undefined) {
+                            var ss = new Date(data[i].mdate);
+                            sd = ss.getFullYear()+'-'+ (ss.getMonth()+1) +'-' + ss.getDate();
+                            contents = smonths[ss.getMonth()] + " " + ss.getDate() + "&nbsp;&nbsp;&nbsp;&nbsp;";
+                        }
+
+                        if( data[i].mtime != undefined) {
+                            if (data[i].mtime == '00:00:00') {
+                                contents += 'All Day';
+                            } else {
+                                contents += data[i].mtime;
+                            }
+                        }
+
+                        if(data[i].event != undefined) {
+                            contents += "&nbsp;&nbsp;&nbsp;&nbsp;" + data[i].event;
+                        }
+                        $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
+                    }
+                },
+                error : function(xhr, status, error) {
+                    alert("error");
+                }
+            });
         }
 
         $(window).load(function () {
             loadCalendar(currentmonth);
             loadEvent(currentmonth);
         });
-
+        // to previous date
         $(".prev").click(function(){
             currentmonth.setMonth(currentmonth.getMonth() - 1);
             loadCalendar(currentmonth);
             loadEvent(currentmonth);
         })
-
+        // to next date
         $(".next").click(function(){
             currentmonth.setMonth(currentmonth.getMonth() + 1);
             loadCalendar(currentmonth);
             loadEvent(currentmonth);
         })
-
+        // when click date of calendar
         $(document).on("click",".days li",function(e){
             var idv = e.target.id;
             var cls = e.target.class;
@@ -197,26 +244,55 @@
                 $('#edate').val(idv);
             }
         })
-
-        $("cancelbtn").click(function(){
+        // when press cancel button
+        $("#cancelbtn").click(function(){
             $('#edate').val('');
             $('#etime').val('');
-            $('#econtent').val('');
+            $('#ename').val('');
+            $('#enote').val('');
+            $('#allDay').attr('checked',false);
         })
-
+        // when select <All day>
         $("#allDay").click(function(){
             if($("#allDay").is(":checked")==true) {
                 $('#etime').val('00:00');
-                $("#etime").attr("readonly",true).attr("disabled",true);
+                $("#etime").attr("readonly",true);
             } else {
-                $("#etime").attr("readonly",false).attr("disabled",false);
+                $("#etime").attr("readonly",false);
             }
+        })
+        // when select default option
+        $("#opt-absent").click(function(){
+            $("#emsg").css('color', 'black');
+            $("#emsg").html('');
+            $("#ename").val($(this).val());
+        })
+        $("#opt-pickup").click(function(){
+            $("#emsg").css('color', 'black');
+            $("#emsg").html('');
+            $("#ename").val($(this).val());
+        })
+        $("#opt-dropoff").click(function(){
+            $("#emsg").css('color', 'black');
+            $("#emsg").html('');
+            $("#ename").val($(this).val());
         })
 
     });
 </script>
 
 <body >
+<!-- Form to add Note  -->
+<div id="error-dialog" title="Information" style="display: none;">
+    <form>
+        <fieldset>
+            <p class="validateTips">For adding Event, you have to Login.</p>
+            <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
     <div id="div-head">
         <div id="div-title">
             <div id="homebtn" onclick="location.href='/calendar'" > </div>
@@ -250,37 +326,64 @@
 
     <div id="div-list">
         <!--<ul class="event-list"></ul>-->
-        <form action="/save-event" method="post" style="width:100%">
+        <!--<form action="/save-event" method="post" style="width:100%">-->
             <!--<br><br>-->
             <div style="width:100%; height:50px;">
                 <div id="div-date">
-                    <p >&nbsp;Date&nbsp;&nbsp;<span id="dmsg"></span></p>
-                    <input name="edate" id="edate" type="text"><br>
+                    <p id="dmsg">&nbsp;Date(Pick date above)&nbsp;</p>
+                    <input name="edate" id="edate" type="text" readonly><br>
                 </div>
                 <div id="div-time">
-                    <p >&nbsp;Time&nbsp;&nbsp;<span id="tmsg"></span></p>
+                    <p  id="tmsg">&nbsp;Time&nbsp;&nbsp;</p>
                     <input name="etime" id="etime"  type="time"><br>
                 </div>
             </div><br>
             <div style="width:100%;height:35px;padding-top:10px">
-                <label style="float : right;">&nbsp;All day&nbsp;&nbsp;
-                <input id="allDay" type="checkbox">
+                <label style="float : right;">
+                <input id="allDay" type="checkbox">&nbsp;All day
                 </label>
             </div>
             <div id="div-content">
-                <p >&nbsp;Content&nbsp;&nbsp;<span id="emsg"></span></p>
-                <input name="econtent" id="econtent"  type="text" style="width:100%"><br><br>
+                <div width="100%">
+                    <div width="100%">
+                        <p >&nbsp;Event&nbsp;&nbsp;<span id="emsg"></span></p>
+                        <input name="ename" id="ename"  type="text" style="width:100%"><br>
+                    </div>
+                    <div id="options" style="width:100%; padding-left:30px;">
+                        <p>
+                        <label>
+                            <input type="radio" name="default" id="opt-absent" value="Absent">
+                            &nbsp;Absent
+                        </label>
+                        </p>
+                        <p>
+                        <label>
+                            <input type="radio" name="default" id="opt-pickup" value="Pick up early">
+                            &nbsp;Pick up early
+                        </label></p>
+                        <p>
+                        <label>
+                            <input type="radio" name="default" id="opt-dropoff" value="Drop off Late">
+                            &nbsp;Drop off Late
+                        </label></p>
+
+                    </div>
+                </div>
+                <div width="100%">
+                    <p >&nbsp;Note&nbsp;&nbsp;<span id="nmsg"></span></p>
+                    <textarea name="enote" id="enote" rows="3" maxlength="300" style="width:100%"></textarea><br>
+                </div>
             </div>
             <div id="div-btns">
                 <div style="width:49%; height:35px;float:left;">
-                    <input type="submit" id="savebtn"  value="Save" style="float:right;">
+                    <button id="savebtn"  style="float:right;">Save</button>
                 </div>
                 <div style="width:49%; height: 35px; float:right;">
-                    <input type="reset" id="cancelbtn" value="Cancel" style="float:left;">
+                    <button id="cancelbtn" style="float:left;">Cancel</button>
                 </div>
 
             </div>
-        </form>
+        <!--</form>-->
     </div>
 
 </body>

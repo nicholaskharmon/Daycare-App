@@ -18,9 +18,9 @@ p {
 }
 
 #allDay{
-    width: 25px; height:25px;
+    width: 20px; height:20px;
     /*float : right;*/
-    margin:4px 0px 0px 0px;
+    /*margin:4px 0px 0px 0px;*/
     border-radius: 3px;
     border:1px; color:blue;
 }
@@ -37,12 +37,12 @@ p {
 }
 
 #div-date{
-    width : 48%;
+    width : 60%;
     float:left;
 }
 
 #div-time{
-    width : 48%;
+    width : 38%;
     float:right;
 }
 
@@ -54,6 +54,10 @@ input{
     height : 30px;
     border-radius : 4px;
     text-indent: 10px;
+}
+
+#opt-absent, #opt-pickup, #opt-dropoff{
+    height : auto;
 }
 
 #div-content{
@@ -109,7 +113,7 @@ input{
 }
 
 .month ul li {
-    font-size: 20px;
+    font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 3px;
 }
@@ -151,7 +155,7 @@ input{
     width: 14%;
     text-align: center;
     margin-bottom: 15px;
-    font-size:18px;
+    font-size:16px;
 }
 
 /* Add media queries for smaller screens */

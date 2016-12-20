@@ -1,0 +1,122 @@
+html{
+    height : 100%;
+}
+
+body{
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    margin:0px;
+    height: 100%;
+}
+h2{
+    margin:0px;
+    padding-top:20px;
+    color: red;
+}
+#div-head{
+    position:fixed;
+    top:0px;
+    left: 0px;
+    height:50px;
+    padding:0px;
+    width: 100%;
+    background-color: rgba(234,238,154, 0.7);
+}
+
+#div-date{
+    position:fixed;
+    top:50px;
+    left: 0px;
+    height:50px;
+    margin:10px 2%;
+    width: 96%;
+    background-color: rgba(255,255,255, 0.3);
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    border-radius:5px;
+    box-shadow: 3px 3px 3px #888;
+}
+
+#homebtn{
+    width:70px;height:30px;
+    background-position: left center;
+    background-repeat: no-repeat;
+    float:left;
+    margin-left:10px;
+    color:red;
+}
+
+#sdate{
+    color:red;
+    font-size: 20px;
+    text-align: center;
+    width : 75%;
+    padding:12px 0px;
+    display: inline-block;
+}
+#div-main{
+    position:fixed;
+    top : 120px;
+    margin : 0px 3%;
+    width:94%;height:90%;
+    background-color: rgba(255,255,255, 0.3);
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    border-radius:5px;
+    box-shadow: 3px 3px 3px #888;
+}
+
+.msg{
+    width : 90%;
+    background-color: rgba(243,243,156,0.6);
+    padding:5px;
+    margin-bottom:10px;
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    border-radius:5px;
+    box-shadow: 3px 3px 3px #888;
+    float:left;
+}
+
+.msg img{
+    width:20%;
+    float:left;
+    margin-right:10px;
+}
+
+.msg span{ vertical-align: middle; }
+
+.stime{
+    font-size:10px;
+    padding: 10px;
+}
+
+#msgs{
+    width:100%; border:none; height:100%;
+    margin-bottom:90px;
+    padding : 0px;
+    overflow-y: scroll;
+}
+
+ul {
+    list-style-type: none;
+}
+
+li {
+	padding: 10px 5px;
+	margin: 0px;
+	overflow-wrap: break-word;
+}
+
+#during {
+	width : 180px;
+	display:none;
+	padding-left:0px;
+	float:right;
+	background-color: white;
+}
+#during li {
+	padding: 10px 5px;
+	margin: 0px;
+	overflow-wrap: break-word;
+	background-color: white;
+}

@@ -29,10 +29,8 @@ var session           =     require('express-session');
 //--------------
 
 var app = express();
-/**
- * Normalize a port into a number, string, or false.
- */
 
+/*** Normalize a port into a number, string, or false. */
 function normalizePort(val) {
     var port = parseInt(val, 10);
 
@@ -49,10 +47,7 @@ function normalizePort(val) {
     return false;
 }
 
-/**
- * Event listener for HTTP server "error" event.
- */
-
+/*** Event listener for HTTP server "error" event. */
 function onError(error) {
     if (error.syscall !== 'listen') {
         throw error;
@@ -77,10 +72,7 @@ function onError(error) {
     }
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
-
+/*** Event listener for HTTP server "listening" event. */
 function onListening() {
     var addr = server.address();
     var bind = typeof addr === 'string'
@@ -90,19 +82,17 @@ function onListening() {
 }
 
 var port = normalizePort(process.env.PORT || '8080');
-//var port = normalizePort(process.env.PORT || '80');
 
 app.set('port', port);
 
-/**
+/************************
  * Create HTTP server.
- */
-
+ ******************************/
 var server = http.createServer(app);
-/**
- * Listen on provided port, on all network interfaces.
- */
 
+/*******************************
+ * Listen on provided port, on all network interfaces.
+ ***************************************/
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
@@ -122,7 +112,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
 // for facebook login
 // Passport session setup.
 // after authentication, store user profile in session
@@ -131,6 +120,7 @@ passport.serializeUser(function(user, done) {
     console.log(user);
     done(null, user);
 });
+
 // after authentication, read user profile from session and store in req.user
 passport.deserializeUser(function(user, done) {
     console.log('deserialize');
@@ -163,9 +153,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/auth/facebook', passport.authenticate('facebook'));
+// successRedirect : case of facebook login success
+// failureRedirect : case of facebook login failure
 app.get('/auth/facebook/callback',
-    // successRedirect : case of facebook login success
-    // failureRedirect : case of facebook login failure
     passport.authenticate('facebook', {successRedirect:'/login_success', failureRedirect: '/login_fail' })
 );
 
@@ -178,10 +168,10 @@ app.get('/login_success', ensureAuthenticated, function(req, res){
         console.log('rows',rows);
 
         if(rows.length > 0) {
-            req.session.user_id = rows[0].user_id;
+            var uid = req.session.user_id = rows[0].user_id;
             var nickname = req.session.nickname = rows[0].nickname;
             var grade = req.session.grade = rows[0].grade;
-            res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade });
+            res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade, uid: uid});
         }else{
             console.log('facebook login success. unregistered email.');
             var smsg = eaddress + ' has not been registered. Please Sign up.';
@@ -222,6 +212,7 @@ app.get('/selectPhoto', function(req, res){
     res.render('selectPhoto', { title: 'DayCare' });
 });
 
+// File Upload API
 app.post('/uploadPhoto', function(req, res) {
     var form = new formidable.IncomingForm();
     form.uploadDir = path.join(__dirname, '/public/uploads');
@@ -255,6 +246,96 @@ app.post('/uploadPhoto', function(req, res) {
     });
 })
 
+// File Upload API in Messenger
+app.post('/upload-msg-Photo', function(req, res) {
+    var form = new formidable.IncomingForm();
+    form.uploadDir = path.join(__dirname, '/public/uploads');
+    form.keepExtensions = true;
+    form.maxFieldsSize = 2 * 1024 * 1024;
+
+    // parse a file upload
+    form.parse(req, function(err, fields, files) {
+    });
+    form.on('end', function(fields, files) {
+        /* Temporary location of our uploaded file */
+        var temp_path = path.basename(this.openedFiles[0].path);
+        req.session.photopath = temp_path;
+        /* The file name of the uploaded file */
+        var file_name = this.openedFiles[0].name;
+        var nm = req.session.nickname;
+        var nd = new Date();
+        var sd = nd.getFullYear() + "-" + (nd.getMonth()+1) + "-" + nd.getDate();
+        var st = nd.getHours() + ":" + nd.getMinutes() + ":" + nd.getSeconds();
+
+        if(nm) {   // when uploading completed, changed imgsrc of DB according child_id
+            var sql = "insert into message (sender, mdate,mtime,imgsrc) value('"+nm+"','"+sd+"','"+st+"','/uploads/" + temp_path + "')";
+            global.mysql.query(sql, function (err, rows) {
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+            })
+        }
+
+        res.json({sender:nm,
+            mdate : sd,
+            mtime : st,
+            imgsrc : '/uploads/' + temp_path});
+    });
+})
+
+// File Upload API in Report
+app.post('/upload-report-Photo', function(req, res) {
+    var form = new formidable.IncomingForm();
+    form.uploadDir = path.join(__dirname, '/public/uploads');
+    form.keepExtensions = true;
+    form.maxFieldsSize = 2 * 1024 * 1024;
+
+    // parse a file upload
+    form.parse(req, function(err, fields, files) {
+    });
+
+    var comment = "";
+
+    form.on('field',function(name,value){
+        if(name == "comment"){ comment = value;};
+        console.log('normal field / name = '+name+' , value = '+value);
+    });
+
+    form.on('end', function(fields, files) {
+        /* Temporary location of our uploaded file */
+        var temp_path = path.basename(this.openedFiles[0].path);
+        req.session.photopath = temp_path;
+        /* The file name of the uploaded file */
+//        var file_name = this.openedFiles[0].name;
+        var nm = req.session.user_id;
+        var nd = new Date();
+        var sd = nd.getFullYear() + "-" + (nd.getMonth()+1) + "-" + nd.getDate();
+        var st = nd.getHours() + ":" + nd.getMinutes() + ":" + nd.getSeconds();
+
+        if(nm) {   // when uploading completed, changed imgsrc of DB according child_id
+            var sql = "insert into report (cid,action_id,action_content,author, rdate,btime,imgsrc) " +
+                "value('0','11','" + comment + "','" + nm+"','"+sd+"','"+st+"','/uploads/" + temp_path + "')";
+            global.mysql.query(sql, function (err, rows) {
+                if (err) {
+                    console.error(err);
+                    res.json({state : "False"});
+                }
+                res.json({
+                    state : "success",
+                    author: nm,
+                    rdate : sd,
+                    btime : st,
+                    cid   : '0',
+                    action_id: nm,
+                    imgsrc: '/uploads/' + temp_path
+                });
+            })
+        }
+    });
+})
+
+// When saving Profile
 app.post('/saveProfile', function(req, res) {
     console.log(req);
     var imgpath = req.body.imgpath;
@@ -351,8 +432,7 @@ app.post('/saveProfile', function(req, res) {
 // when user answer is right, register user
 app.post('/saveuser', signup.saveUser);
 
-// when press button<signup>, show page<signup>
-
+// when press button<profile>, show page<Profile>
 app.get('/profile', function(req, res){
     var ipath = req.query.imgsrc;
     var nm = req.session.nickname;
@@ -379,10 +459,30 @@ app.get('/profile', function(req, res){
         })
     })
 });
+
+// when press button <Add activity>
+app.get("/add-activity", function(req, res){
+    var userid = req.session.user_id;
+    //res.render("report", {uid : userid});
+    res.render("add_activity", {uid : userid});
+})
+
+// when press button <Report>
+app.get("/report", function(req, res){
+    var nname = req.session.nickname;
+
+    if(req.session.grade == 3){
+        res.render("child_report", {nm : nname});
+    } else{
+        res.render("admin_childlist", {nm : nname});
+    }
+})
+
 // when press button<signup>, show page<signup>
 app.get('/signup', function(req, res){
     res.render('signup', { title: 'DayCare' });
 });
+
 // when wrong user information, show page<passsword error>
 app.get('/passerror', function(req, res){
   var shd = "E-mail address or Password is incorrect.";
@@ -391,6 +491,7 @@ app.get('/passerror', function(req, res){
   var sbtnname = "Return to Login Page";
   res.render('errorMsg', { title:'DayCare', hd:shd, msg:smsg, url:surl, btnname:sbtnname });
 });
+
 // when wrong user information, show page<passsword error>
 app.get('/change_pwd_error', function(req, res){
     var shd = "e-mail address, user name or phonenumber is incorrect.";
@@ -400,6 +501,7 @@ app.get('/change_pwd_error', function(req, res){
     var sbtnname = "Return to Login Page";
     res.render('errorMsg', { title:'Daycare',hd:shd, msg:smsg, url:surl, btnname:sbtnname });
 });
+
 // when wrong user information, show page<passsword error>
 app.get('/signup_error', function(req, res){
   var shd = "Data is duplicated or network problem.";
@@ -419,10 +521,11 @@ app.get('/recoverpwd', function(req, res){
 app.get('/dashboard', function(req, res){
     var nickname = req.session.nickname;
     var grade  = req.session.grade;
+    var uid = req.session.user_id;
 
     console.log("nicname=" + nickname+"  grade="+grade);
 
-    res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade });
+    res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade, uid: uid});
 });
 
 // when click calendar in dashboard
@@ -441,32 +544,123 @@ app.get('/event-setting', function(req, res){
 // when click onmyway in dashboard
 app.get('/map', function(req, res){
     var nickname = req.session.nickname;
-    var grade  = req.session.grade;
+    //var grade  = req.session.grade;
     // when parent pressed <on my way>, push notification to owner and assists.
-    if (grade == 3){
-
-    }
 
     res.render('location-sharing',{nname: nickname});
 });
 
-// when click calendar in dashboard
-app.post('/save-event', function(req, res){
-    console.log(req);
-    var edate = req.body.edate;
-    var etime = req.body.etime;
-    var econtent = req.body.econtent;
+// when get childList
+app.get('/getChildList', function(req, res){
+    var uid = req.session.user_id;
+    var grd = req.session.grade;
 
-    if(edate == '' || etime == '' || econtent == '') {
-        var smsg = 'Event data was not saved. Retry later.';
-        res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
+    if(grd == 3){
+        sql = "SELECT cid, child_name, imgsrc FROM childs ,(SELECT child_id cid FROM users WHERE user_id='" +
+            uid + "') AS b WHERE childs.child_id = cid order by cid";
+        global.mysql.query(sql, function(err, rows){
+            if(err){
+                res.json({result : err});
+            }
 
+            res.json(rows);
+        })
+    }else{
+        sql = "SELECT child_id cid, child_name, imgsrc FROM childs order by child_id";
+        global.mysql.query(sql, function(err, rows){
+            if(err){
+                res.json({result : err});
+            }
+
+            res.json(rows);
+        })
+    }
+})
+
+// when get childData
+app.get('/getChildData', function(req, res){
+    var cids = req.query.cids;
+    var cidlist = cids.split(',');
+    var condition = " where ";
+    for(var i=0; i < cidlist.length; i++){
+        condition = condition + " child_id='" + cidlist[i] + "' or ";
+    }
+    condition = condition.substr(0, condition.length - 4);
+    console.log(condition);
+    var sql = "SELECT child_name cname, imgsrc FROM childs " + condition;
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            res.json({result : err});
+        }
+        res.json(rows);
+    })
+})
+
+// when call Action 1:note,2:naps,3:meal,4:diapers,5:bathroom,6:activity,7:medication,8:snapshots
+app.get('/getAction', function(req, res){
+    //"/getAction?action=" + action + "&cid=" + cid + "&stoday=" + stoday
+    var action = req.query.action;
+    var cid = req.query.cid;
+    var stoday = req.query.stoday;
+
+    var sql = "SELECT id,btime,etime,TIMESTAMPDIFF(MINUTE,btime,etime) during, author,action_content,action_note FROM report " +
+        " WHERE cid='" + cid + "' AND action_id='" + action + "' AND rdate='" + stoday + "'";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            res.json({result : err});
+        }else{
+            res.json(rows);
+        }
+
+    })
+})
+
+// when search events with key
+app.get('/search-event', function(req, res){
+    var key = req.query.key;
+
+    if(key == undefined || key == ""){
+        res.json({result: 'Search key is empty.'});
+        return;
+    }
+
+    var sql = "SELECT * FROM (SELECT c.*, d.`child_name` FROM " +
+        "(SELECT b.user_id, b.`child_id`, b.`user_name`,a.`event`, a.`mdate`, a.`mtime`, a.`note` FROM EVENTS AS a " +
+        " LEFT JOIN users AS b ON a.`user_id`=b.`user_id`) AS c " +
+        " LEFT JOIN childs AS d ON d.`child_id`= c.`child_id`) AS e" +
+        " WHERE (LOWER(e.user_name) LIKE LOWER('%" + key + "%')) OR (LOWER(e.child_name) LIKE LOWER('%" + key + "%')) " +
+        " OR (LOWER(e.event) LIKE LOWER('%" + key + "%')) OR (LOWER(e.note) LIKE LOWER('%" + key + "%'))";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            res.json({result : err});
+        }else{
+            res.json(rows);
+        }
+
+    })
+})
+
+// when saving events
+app.get('/save-event', function(req, res){
+    var edate = req.query.edate;
+    var etime = req.query.etime;
+    var ename = req.query.ename;
+    var enote = req.query.enote;
+    var uid = req.query.uid;
+
+    if(edate == '' || etime == '' || ename == '') {
+        var smsg = 'Date "' + edate + '" Time "' + etime + '" Content "' + ename + '" is wrong. Retry it.';
+        res.render('errorMsg', { title:'Daycare',hd:'Data Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         return false;
     }
 
-    econtent = econtent.replace(/'/gi, "`");
+    ename = ename.replace(/'/gi, "`");
+    enote = enote.replace(/'/gi, "`");
 
-    var sql = "insert into events (mdate, mtime, event) values('"+edate+"','"+etime+"','"+econtent+"')";
+    var sql = "insert into events (mdate, mtime, event, note, user_id) values('"+edate+"','"+etime+"','"+ename+"','" + enote+"','" + uid +"')";
+    console.log(sql);
 
     global.mysql.query(sql, function(err, rows){
         if(err){
@@ -474,14 +668,261 @@ app.post('/save-event', function(req, res){
             var smsg = 'Event data was not saved. Retry later.';
             res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         }
-        var nm = req.session.nickname;
-        var grd = req.session.grade;
 
-        res.render('calendar', { nname: nm, grade: grd });
+        res.json({ result: "success" });
     })
 });
 
-app.get('/chatting/',function(req,res){
+// when editing existing note
+app.post('/edit-note', function(req, res){
+    var rid = req.body.rid;
+    var rdate = req.body.rdate;
+    var btime = req.body.btime;
+
+    if(rdate == ''){
+        res.json({result : 'Date is empty'});
+        return false;
+    }
+    if(btime == ''){
+        res.json({result : 'Time is empty'});
+        return false;
+    }
+
+    var sql = "update report set rdate='" + rdate + "',btime='" + btime +"' where id='" + rid + "'";
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            res.json({ result:'Inserting failure' });
+        }
+        res.json({result: "success"});
+    })
+});
+
+// when inserting new note :action_id 1= arrive, 2=leave, 3=sleep, 4=wakeup
+app.post('/new-note', function(req, res){
+    var rdate = req.body.rdate;
+    var btime = req.body.btime;
+    var action_id = req.body.action_id;
+    var cid = req.body.cid;
+    var author = req.session.user_id;
+
+    if(cid == ''){
+        res.json({result : 'cid is empty'});
+        return false;
+    }
+    if(rdate == ''){
+        res.json({result : 'Date is empty'});
+        return false;
+    }
+    if(btime == ''){
+        res.json({result : 'Time is empty'});
+        return false;
+    }
+    if(action_id*1 > 4){
+        res.json({result : 'Action is wrong'});
+        return false;
+    }
+
+    var sql = "insert into report (cid, rdate, btime, action_id, author) values('" +
+        cid + "','" + rdate + "','" + btime + "','" + action_id + "','" + author + "')";
+    console.log(sql);
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            res.json({ result:'Inserting failure' });
+        }
+        var sql = "select id from report where cid='" + cid + "' and rdate='" + rdate + "' and btime='" + btime + "' and action_id='"+action_id+"'";
+        console.log(sql);
+
+        global.mysql.query(sql, function(err, rows) {
+            res.json({result: "success", note_id: rows[0].id});
+        })
+    })
+});
+
+// when inserting new note :action_id 1= arrive, 2=leave, 3=sleep, 4=wakeup
+app.post('/new-photo', function(req, res){
+    var form = new formidable.IncomingForm();
+    form.uploadDir = path.join(__dirname, '/public/uploads');
+    form.keepExtensions = true;
+    form.maxFieldsSize = 2 * 1024 * 1024;
+
+    // parse a file upload
+    form.parse(req, function(err, fields, files) {
+    });
+
+    var comment = "";
+    var st = "";
+
+    form.on('field',function(name,value){
+        if(name == "comment"){ comment = value;};
+        if(name == "btime"){ st = value;};
+        console.log('normal field / name = '+name+' , value = '+value);
+    });
+
+    form.on('end', function(fields, files) {
+        /* Temporary location of our uploaded file */
+        var temp_path = path.basename(this.openedFiles[0].path);
+        req.session.photopath = temp_path;
+        /* The file name of the uploaded file */
+//        var file_name = this.openedFiles[0].name;
+        var nm = req.session.user_id;
+        var nd = new Date();
+        var sd = nd.getFullYear() + "-" + (nd.getMonth()+1) + "-" + nd.getDate();
+
+        if(nm) {   // when uploading completed, changed imgsrc of DB according child_id
+            var sql = "insert into report (cid,action_id,action_content,author, rdate,btime,imgsrc) " +
+                "value('0','11','" + comment + "','" + nm+"','"+sd+"','"+st+"','/uploads/" + temp_path + "')";
+            global.mysql.query(sql, function (err, rows) {
+                if (err) {
+                    console.error(err);
+                    res.json({state : "False"});
+                }
+                res.json({
+                    state : "success",
+                    author: nm,
+                    rdate : sd,
+                    btime : st,
+                    cid   : '0',
+                    action_id: nm,
+                    imgsrc: '/uploads/' + temp_path
+                });
+            })
+        }
+    });
+});
+
+// when deleting existing note
+app.post('/delete-note', function(req, res){
+    var rid = req.body.rid;
+    if(rid == ''){
+        res.json({result : 'report id is empty'});
+        return false;
+    }
+    var sql = "delete from report where id='" + rid + "'";
+    global.mysql.query(sql, function(err, rows){
+        if(err)  res.json({ result:'Deleting failure' });
+        res.json({result: "success"});
+    })
+});
+
+// when inserting new bottle, food, drink, potty, request, mood
+app.post('/new-bottle', function(req, res){
+    var rdate = req.body.rdate;
+    var btime = req.body.btime;
+    //var etime = req.query.etime;
+    var action_id = req.body.action_id;
+    var action_content = req.body.action_content;
+    var cid = req.body.cid;
+    var author = req.session.user_id;
+
+    if(cid == ''){
+        res.json({result : 'cid is empty'});
+        return false;
+    }
+    if(rdate == ''){
+        res.json({result : 'Date is empty'});
+        return false;
+    }
+    if(btime == ''){
+        res.json({result : 'Time is empty'});
+        return false;
+    }
+    if(action_id =='' || action_id == undefined){
+        res.json({result : 'Action is wrong'});
+        return false;
+    }
+    if(action_content == '' || action_content == undefined) {
+        res.json({result : 'Action content is empty'});
+        return false;
+    }
+
+    action_content = action_content.replace(/'/gi, "`");
+
+    var sql = "insert into report (cid, rdate, btime, action_id, action_content, author) values('" +
+        cid + "','" + rdate + "','" + btime + ":00','" + action_id + "','" + action_content + "','" + author + "')";
+    console.log(sql);
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            res.json({ result:'Inserting failure' });
+        }
+        var sql = "select id from report where cid='" + cid + "' and rdate='" + rdate + "' and btime='" + btime + ":00' and action_id='" + action_id + "'";
+        console.log(sql);
+
+        global.mysql.query(sql, function(err, rows) {
+            res.json({result: "success", note_id: rows[0].id});
+        })
+    })
+});
+
+// when updating new bottle, food, drink, potty, request, mood
+app.post('/edit-bottle', function(req, res){
+    var rdate = req.body.rdate;
+    var btime = req.body.btime;
+    var action_content = req.body.action_content;
+    var rid = req.body.rid;
+
+    if(rid == ''){ res.json({result : 'rid is empty'}); return false; }
+    if(rdate == ''){ res.json({result : 'Date is empty'}); return false; }
+    if(btime == ''){ res.json({result : 'Time is empty'}); return false; }
+    if(action_content == '' || action_content == undefined) {
+        res.json({result : 'Action content is empty'});
+        return false;
+    }
+
+    var sql = "update report set rdate='"+rdate+"',btime='"+btime+"',action_content='"+action_content+"'" +
+            " where id='"+rid+"'";
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            res.json({ result:'Updating failure' });
+        }
+        res.json({result: "success"});
+    })
+});
+
+// when inserting new bottle, food, drink, potty, request, mood
+app.post('/delete-bottle', function(req, res){
+    var rid = req.body.rid;
+
+    if(rid == ''){ res.json({result : 'rid is empty'}); return false; }
+
+    var sql = "delete from report where id='" + rid + "'";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            res.json({ result:'Deleting failure' });
+        }
+        res.json({result: "success"});
+    })
+});
+
+// when deleting existing nap
+app.get('/delete-nap', function(req, res){
+    var nid = req.query.id;
+
+    if(nid == ''){
+        res.json({result : 'nid is empty'});
+        return false;
+    }
+
+    var sql = "delete from report where id='" + nid + "' and action_id='2'";
+    console.log(sql);
+
+    global.mysql.query(sql, function(err, rows){
+        if(err){
+            console.log(err);
+            res.json({ result:'Deleting failure' });
+        }
+        res.json({result: "success"});
+    })
+});
+
+app.get('/chatting',function(req,res){
     var cid = req.session.child_id;
     var uid = req.session.user_id;
     var grade = req.session.grade;
@@ -524,6 +965,72 @@ app.get('/chatting/',function(req,res){
     }
 });
 
+app.get('/get-event', function(req, res){
+    var first = req.query.firstday, last = req.query.lastday;
+    var sql = "select mdate, mtime, event, note from events where mdate between '" + first + "' and '" + last + "' order by mdate";
+    global.mysql.query(sql, function(err, rows){
+        if (err) {
+            console.error(err);
+            throw err;
+        }
+        res.json(rows);
+    })
+});
+
+// when pressing TimeLine
+app.get('/timeline', function(req, res){
+    var nickname = req.session.nickname;
+    res.render('timeline',{nname : nickname});
+});
+
+// when getting reports for Timeline
+app.get('/get-report', function(req, res){
+    var today= new Date(),
+        stoday = today.getFullYear()+'-'+ (today.getMonth()+1)+'-'+today.getDate();
+
+    var week1 = today;
+    week1.setDate(today.getDate() - today.getDay());
+    var sweek1 = week1.getFullYear()+'-'+ (week1.getMonth()+1)+'-'+week1.getDate();
+
+    var cid = req.query.cid;
+
+    var sql = "SELECT a.id rid, child_name,cid, rdate, btime, action_id, " +
+        "action_content, action_note, author, a.imgsrc photo, b.imgsrc cphoto " +
+        "FROM report AS a " +
+        "LEFT JOIN childs AS b " +
+        "ON a.cid=b.child_id " +
+        "where (rdate between '" + sweek1 + "' and '" + stoday + "') and (cid='" + cid + "' or cid='0') " +
+        "ORDER BY a.id";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({data: err});
+        else    res.json({data : rows});
+    })
+});
+
+// when getting reports for Report
+app.get('/get-report-parent', function(req, res){
+    var cdate = req.query.cdate;
+    var cid = req.query.cid;
+    var today= new Date();
+    if (cdate > today) { res.json({data: "fail"}); return false;}
+    var sdate = cdate.getFullYear()+'-'+ (cdate.getMonth()+1)+'-'+cdate.getDate();
+
+    var sql = "SELECT a.id rid, child_name,cid, rdate, btime, action_id, " +
+        "action_content, action_note, author, a.imgsrc photo, b.imgsrc cphoto " +
+        "FROM report AS a " +
+        "LEFT JOIN childs AS b " +
+        "ON a.cid=b.child_id " +
+        "where rdate='" + sdate + "' and (cid='" + cid + "' or cid='0') " +
+        "ORDER BY a.id";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({data: err});
+        else    res.json({data : rows});
+    })
+});
+
+//
 // ---------------- start of group chatting server ----------------------
 
 var count = 0;
@@ -541,32 +1048,6 @@ io.sockets.on('connection',function(socket){
     socket.on('notify', function (data) {
         io.sockets.in('map').emit('notify', data);
     });
-
-    socket.on('get-event', function(data){
-        var first = data.firstday, last = data.lastday, nickname = data.to;
-        var sdate = "", stime = "", sevent = "";
-
-        var sql = "select mdate, mtime, event from events where mdate between '" + first + "' and '" + last + "' order by mdate";
-        global.mysql.query(sql, function(err, rows){
-            if (err) {
-                console.error(err);
-                throw err;
-            }
-            if(rows.length > 0){
-                var socket_id = rooms['events'].socket_ids[nickname];
-                if (socket_id != undefined) {
-                    for(i=0; i < rows.length; i++){
-                        var ss = new Date("" + rows[i].mdate);
-                        var n = ss.getFullYear() + "-" + (ss.getMonth()+1)+"-"+ss.getDate();
-                        data.date = n;
-                        data.time = rows[i].mtime;
-                        data.event= rows[i].event;
-                        io.to(socket_id).emit('broadcast_msg', data);
-                    }// if
-                }
-            }
-        })
-    })
 
     socket.on('joinroom',function(data) {
         console.log(data);
@@ -631,7 +1112,7 @@ io.sockets.on('connection',function(socket){
                     delete rooms[room].socket_ids[nickname];
             }// if
             if(room == 'Staff'){
-                data = {msg: nickname + ' was out.\n'};
+                data = {msg: nickname + ' was out.'};
                 io.sockets.in(room).emit('broadcast_msg', data);
                 io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
             }
@@ -645,13 +1126,13 @@ io.sockets.on('connection',function(socket){
         var nickname = data.nickname;
         var bdate = new Date(), edate = new Date();
 
-        if(during == "1week"){
+        if(during == "1"){
             bdate.setDate(bdate.getDate()-7);
             edate = new Date();
-        }else if(during=="2week"){
+        }else if(during=="2"){
             bdate.setDate(bdate.getDate()-14);
             edate.setDate(edate.getDate()-8);
-        }else if(during=="3week"){
+        }else if(during=="3"){
             bdate.setDate(bdate.getDate()-21);
             edate.setDate(edate.getDate()-15);
         }else{
@@ -663,7 +1144,8 @@ io.sockets.on('connection',function(socket){
         bstr = bdate.getFullYear() + "-" + (bdate.getMonth()+1) + "-" + bdate.getDate();
         estr = edate.getFullYear() + "-" + (edate.getMonth()+1) + "-" + edate.getDate();
 
-        var sql = "select msg from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "') order by id";
+        //var sql = "select sender, mdate,mtime,msg,imgsrc from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "') order by id";
+        var sql = "select sender, mdate,mtime,msg,imgsrc from message where (mdate between '" + bstr + "' and '" + estr + "') order by id";
 
         global.mysql.query(sql, function(err, rows){
             if (rows.length > 0){
@@ -672,8 +1154,12 @@ io.sockets.on('connection',function(socket){
                 if (socket_id != undefined) {
                     io.to(socket_id).emit('broadcast_msg', data);
                     for(i=0; i < rows.length; i++){
-                            data.msg = rows[i].msg;
-                            io.to(socket_id).emit('broadcast_msg', data);
+                        data.msg = rows[i].msg;
+                        data.sender = rows[i].sender;
+                        data.mdate = rows[i].mdate;
+                        data.mtime = rows[i].mtime;
+                        data.imgsrc = rows[i].imgsrc;
+                        io.to(socket_id).emit('broadcast_msg', data);
                     }// if
                 }
             }
@@ -683,24 +1169,27 @@ io.sockets.on('connection',function(socket){
     socket.on('send_msg',function(data){
         var room = socket.room;
         var nickname = socket.nickname;
+        var msg = data.msg;
 
         if(nickname != undefined && room != undefined ) {
             console.log('in send msg room is ' + room);
 
-            data.msg = nickname + ' : ' + data.msg;
+            var d = new Date();
+            var sdate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+            var stime = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+
+            data.sender = nickname;
+            data.mdate = sdate;
+            data.mtime = stime;
+            data.msg = msg;
             if (data.to == 'ALL') socket.broadcast.to(room).emit('broadcast_msg', data); // send to other clients except self
             else {
                 // whisper
                 var socket_id = rooms[room].socket_ids[data.to];
                 if (socket_id != undefined) {
-
-                    data.msg = data.to + ':' + data.msg;
                     io.to(socket_id).emit('broadcast_msg', data);
                 }// if
             }
-            var d = new Date();
-            var sdate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-            var stime = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
 
             // save msg into DB
             var sql = "insert into message (sender, reciever, mdate, mtime, msg, room)";
@@ -715,6 +1204,12 @@ io.sockets.on('connection',function(socket){
             socket.emit('broadcast_msg', data);
         }
     })
+// when upload photo
+    socket.on('send_photo',function(data){
+        var room = socket.room;
+        socket.broadcast.to(room).emit('broadcast_msg', data);
+        socket.emit('broadcast_msg', data);
+    });    //
 });    //
 
 // ---------------- end of group chatting server -------------------------

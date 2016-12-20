@@ -31,7 +31,7 @@
             <form id="photoForm" action="/uploadphoto" method="post" enctype="multipart/form-data">
                 <div id="div-photo">
                         <img id="photo" src="" width="150" height="150" >
-                    <input type="file" name="fileElem" id="fileElem" accept="image/*" onchange="handleFiles(this.files)">
+                    <input type="file" name="fileElem" id="fileElem" accept="image/*" capture="camera" onchange="handleFiles(this.files)">
                     <br>
                     <br>
 
@@ -43,7 +43,7 @@
     <div id="div-foot">
         <button id="btnProfile" onclick="location.href='/profile';"></button>
         <button id="btnReport" onclick="location.href='';"></button>
-        <button id="btnPhoneCall" onclick="location.href='';"></button>
+        <a href="tel:703-987-6037"><button id="btnPhoneCall"></button></a>
 
     </div>
 
