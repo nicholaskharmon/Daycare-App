@@ -36,5 +36,6 @@ exports.readSetting = function() {
     });
 }
 
+exports.URL = "http://192.168.3.148:8080/";
 
 this.readSetting();

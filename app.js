@@ -668,6 +668,7 @@ app.get('/save-event', function(req, res){
             var smsg = 'Event data was not saved. Retry later.';
             res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         }
+<<<<<<< HEAD
 
         res.json({ result: "success" });
     })
@@ -919,6 +920,12 @@ app.get('/delete-nap', function(req, res){
             res.json({ result:'Deleting failure' });
         }
         res.json({result: "success"});
+=======
+        var nm = req.session.nickname;
+        var grd = req.session.grade;
+
+        res.render('calendar', { nname: nm, grade: grd });
+>>>>>>> a4314e82caf530423930cd13f7d8202dfaf2c8ac
     })
 });
 
