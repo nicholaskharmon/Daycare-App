@@ -8,10 +8,11 @@
 
     <link rel='stylesheet' type="text/css" href='/stylesheets/childreport.css' />
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="/javascripts/jquery.backstretch.min.js"></script>
     <script src="/javascripts/jquery-ui-1.12.1.js"></script>
 
@@ -19,22 +20,13 @@
 
 <body >
 
-<!-- Form to notify OnMyWay Event  -->
-<div id="notify-dialog" title="Information" style="display: none;">
-    <form>
-        <fieldset>
-            <p class="validateTips"><%= nm %> is on Way.</p>
-            <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
-            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-        </fieldset>
-    </form>
-</div>
-
     <div id="div-head">
-        <div id="homebtn" onclick="location.href='/dashboard'" >
-            <i class="fa fa-angle-left" style="font-size:20px; padding-top:25px;">&nbsp;Back</i>
-        </div>
-        <h2 style="text-align:center">Report</h2>
+        <i class="fa fa-angle-left" style="font-size:24px; padding-top:25px;margin-left: 10px;color:red;" onclick="location.href='/dashboard'">&nbsp;Back</i>
+        <span style="text-align:center; margin-top: 0px;color:red;font-size:24px;margin-top: 20px;width:70%;display:inline-block;">Child Report</span>
+        <!--<div id="homebtn" >-->
+        <!--</div>-->
+        <!--<div style="text-align:center;display:inline-block;">-->
+        <!--</div>-->
     </div>
 
     <div id="div-date">
@@ -45,80 +37,61 @@
     </div>
 
     <div id="div-main" >
-        <ul id="msgs"></ul>
+        <div id="msgs"></div>
     </div>
 
     <script type="text/javascript">
         $.backstretch("/images/bg.png");
+        var month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var weeks = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-        var socket = io.connect("http://192.168.4.148:8080");
         var reportlist = [];
-        var cid = localStorage.getItem("cid");
-        var nm = "<%=nm%>";
-
-        socket.emit('joinroom',{room:'map', nickname: nm });
+        var uid = localStorage.getItem("cid");
+        var nm = localStorage.getItem("nickname");
+        var grade = localStorage.getItem("grade");
+        var curdate = new Date();
+        var today = new Date();
+        var week1 = new Date();
+        var cid;
+        week1.setDate(today.getDate() - today.getDay());
 
         $(document).ready(function() {
-            var curdate = new Date();
-            var today = new Date();
-            var week1 = today;
-            var month = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            var weeks = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-            week1.setDate(today.getDate() - today.getDay());
-
             // when select previous date
             $("#bprev").click(function(){
                 if(curdate > week1){
-                    console.log("current " + curdate);
-                    console.log("today " + today);
                     curdate.setDate(curdate.getDate()-1);
                     var sdate = weeks[curdate.getDay()] + " " + month[curdate.getMonth()] + " " + curdate.getDate();
                     $("#sdate").html(sdate);
-                    loadReports(cid, curdate);
+                    loadReports(cid, curdate.toISOString().split('T')[0]);
                 }
             })
 
             // when select next date
             $("#bnext").click(function(){
                 if(curdate < today){
-                    console.log("current " + curdate);
-                    console.log("today " + today);
                     curdate.setDate(curdate.getDate()+1);
                     var sdate = weeks[curdate.getDay()] + " " + month[curdate.getMonth()] + " " + curdate.getDate();
                     $("#sdate").html(sdate);
-                    loadReports(cid, curdate);
+                    loadReports(cid, curdate.toISOString().split('T')[0]);
                 }
             })
 
-            socket.on('notify', function(data){
-                var nickname = data.nickname;
-                // Error
-                console.log('Get notify');
-                var notify_dialog = $( "#notify-dialog" ).dialog({
-                    autoOpen: false,
-                    height: 200,
-                    width: 300,
-                    modal: true,
-                    buttons: {
-                        "Close": function(){ notify_dialog.dialog("close");}
+            $(window).on("load", function(){
+                var st = new Date();
+
+                $.ajax({ url:"/getChildList",type:"get",datatype:"JSON",
+                    success:function(res){
+                        var childlist = res;
+                        localStorage.setItem('cid', childlist[0].cid);
+                        cid = childlist[0].cid;
+                        var sdate = weeks[st.getDay()] + " " + month[st.getMonth()] + " " + st.getDate();
+                        $("#sdate").html(sdate);
+                        loadReports(cid, st.toISOString().split('T')[0]);
                     },
-                    close: function() {
-                        notify_form[0].reset();
-                        //food_Fields.removeClass( "ui-state-error" );
+                    error:function(xhr, status, error){
+                        console.log(error);
                     }
-                });
-
-                var notify_form = notify_dialog.find( "form" ).on( "submit", function( event ) {
-                    event.preventDefault();
-                });
-
-            });
-
-            $(window).load( function(){
-                console.log("today " + today);
-                var sdate = weeks[today.getDay()] + " " + month[today.getMonth()] + " " + today.getDate();
-                $("#sdate").html(sdate);
-                loadReports(cid, today);
+                })
             });
 
             function ISODateString(rdate){
@@ -128,103 +101,305 @@
             }
 
             function loadReports(cid, cdate){
+                var foodUrls = [];
+                var drinkUrls = [];
+                var reqUrls = [];
+                var moodUrls = [];
+                var pottyUrls = ["/images/icons/dry.png", "/images/icons/wet.png"];
+
+                $.ajax({ url: '/get-food-list', datatype: "JSON", async: false,
+                    success: function (res) { for(var i=0; i< res.length; i++) foodUrls.push(res[i].icon); },
+                    error: function (xhr, status, error) { console.log(error); }
+                });
+
+                $.ajax({ url: '/get-drink-list', datatype: "JSON", async: false,
+                    success: function (res) { for(var i=0; i< res.length; i++) drinkUrls.push(res[i].icon);},
+                    error: function (xhr, status, error) { console.log(error); }
+                });
+
+                $.ajax({ url: '/get-request-list', datatype: "JSON", async: false,
+                    success: function (res) { for(var i=0; i< res.length; i++) reqUrls.push(res[i].icon); },
+                    error: function (xhr, status, error) { console.log(error); }
+                });
+
+                $.ajax({ url: '/get-mood-list', datatype: "JSON", async: false,
+                    success: function (res) { for(var i=0; i< res.length; i++) moodUrls.push(res[i].icon); },
+                    error: function (xhr, status, error) { console.log(error); }
+                });
+
                 var ts = new Date();
-                var today = ts.getFullYear() + "-" + (ts.getMonth()+1) + "-" + ts.getDate();
+
                 $("#msgs").empty();
 
                 reportlist = [];
+                var rcid = 0;
+                // food and drink at morning and afternoon
+                // at morning
+                var foodsAM = [], foodsPM = [], mealtimeAM='', mealtimePM='';
+                var drinksAM = [], drinksPM = [];
+                var bottles = [], bottleTimes = [];
+                var naps = [];
+                var potties = [], pottyTimes = [];
+                var mood = "";
+                var requests = [];
+                var comments = [];
+                var photos = [], photo_notes = [];
+
                 $.ajax({
-                    url : "/get-report",
+                    url : "/get-report-parent",
                     type: "get",
                     data: {cid : cid, cdate : cdate},
                     datatype: "JSON",
                     success: function(res){
                         if(res != undefined) {
                             var rows = res.data;
-                            reportlist = rows;
-                            console.log(reportlist);
 
                             for (var i = 0; i < rows.length; i++) {
-                                var msg = "";
-                                var rid = rows[i].rid,
-                                    child_name = rows[i].child_name,
-                                    rdate = ISODateString(rows[i].rdate),
-                                    btime = rows[i].btime,
-                                    act_id = rows[i].action_id,
-                                    act_content = rows[i].action_content,
-                                    act_note = rows[i].action_note,
-                                    author = rows[i].author,
-                                    photo = rows[i].photo,
-                                    cphoto= rows[i].cphoto,
-                                    cid = rows[i].cid * 1;
 
-                                if (child_name == undefined) child_name = "";
-                                if (rdate == undefined) rdate = "";
-                                if (btime == undefined) btime = "";
-                                if (act_id == undefined) act_id = "0";
-                                if (act_content == undefined) act_content = "";
-                                if (act_note == undefined) act_note = "";
-                                if (author == undefined) author = "";
+                                var rid = rows[i].rid;
+                                var btime = new Date(rows[i].btime);
+                                var act_id = rows[i].action_id;
+                                var act_content = rows[i].action_content;
+                                var act_note = rows[i].action_note;
+                                var photo = rows[i].photo;
+                                var cphoto= rows[i].cphoto;
+                                rcid = rows[i].cid * 1;
+                                var tstr = (rows[i].btime).split(":");
+                                var bstr = ""; //tstr;
+                                if(tstr[0]*1 < 13) bstr = tstr[0]+":"+tstr[1];
+                                else bstr = (tstr[0]-12)+":"+tstr[1];
+                                if(tstr[0]*1 < 12) bstr += " AM";
+                                else  bstr += " PM";
+
                                 if (photo == undefined) photo = "";
                                 if (cphoto == undefined) cphoto = "";
 
-                                var stime = rdate + "  " + btime;
-
                                 // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
                                 switch (act_id * 1) {
-                                    case 1 :
-                                        msg = child_name + " arrived.";
+                                    case 1 : break;
+                                    case 2 : break;
+                                    case 3 : naps.push(bstr);
                                         break;
-                                    case 2 :
-                                        msg = child_name + " leaved.";
-                                        break;
-                                    case 3 :
-                                        msg = child_name + " sleeped.";
-                                        break;
-                                    case 4 :
-                                        msg = child_name + " waked up.";
-                                        break;
+                                    case 4 : break;
                                     case 5 :
-                                        msg = child_name + " was bottled " + act_content + "oz.";
+                                        if(act_content != "") {
+                                            bottles.push(act_content);
+                                            bottleTimes.push(bstr);
+                                        }
                                         break;
                                     case 6 :
-                                        msg = child_name + " ate " + act_content + ".";
+                                        if(btime.getHours() > 12){
+                                            $.merge(foodsAM, act_content.split(","));
+                                            mealtimeAM = bstr;
+                                        }else{
+                                            $.merge(foodsPM, act_content.split(","));
+                                            mealtimePM = bstr;
+                                        }
                                         break;
                                     case 7 :
-                                        msg = child_name + " drinked " + act_content + ".";
+                                        if(btime.getHours() > 12){
+                                            $.merge(drinksAM, act_content.split(","));
+                                            mealtimeAM = bstr;
+                                        }else{
+                                            $.merge(drinksPM, act_content.split(","));
+                                            mealtimePM = bstr;
+                                        }
                                         break;
-                                    case 8 :
-                                        msg = child_name + "'s diapper & potty is " + act_content + ".";
+                                    case 8 :    // potty
+                                        potties.push(act_content);
+                                        pottyTimes.push(bstr);
                                         break;
-                                    case 9 :
-                                        msg = child_name + "'s requests are " + act_content;
+                                    case 9 : $.merge(requests,act_content.split(","));
                                         break;
-                                    case 10:
-                                        msg = child_name + "'s mood is " + act_content + ".";
+                                    case 10: mood = act_content;
                                         break;
-                                    case 11:
-                                        msg = act_content;
+                                    case 11:    // photo
+//                                        photo_notes.push(act_content);
+//                                        photos.push(photo);
+                                        break;
+                                    case 12:    // comment
+                                       comments.push(act_content);
                                         break;
                                 }
+                            }
 
-                                var shtml = '<li style="width:100%;" id="item'+rid+'" rid="'+rid+'">' +
-                                        '<div class="msg">';
-//                                console.log(cid );
-                                if (cid == 0){
-                                    if(photo != "")
-                                        shtml += '<img id="photo" style="width:100%;" src="' + photo + '" >';
-                                }else{
-                                    if (cphoto != "")
-                                        shtml += '<img id="photo" src="' + cphoto + '" >';
+                            // disply reports
+                            // food
+                            var lim = 0, shtml = "", url = "";
+                            if(foodsAM.length > 0){
+                                shtml = '<div class="msg">';
+                                shtml += '<h4 style="text-indent:10px;color:red;">Ate :</h4>';
+
+                                shtml += '<div style="width:100%; height:60px;">';
+                                shtml += '<div class="pleft">';
+                                lim = (foodsAM.length > 5)? 5 :foodsAM.length;
+                                for(var i =0; i < lim; i++){
+                                    url = foodUrls[foodsAM[i]-1];
+                                    shtml += '<div class="cell" style="background-image: url('+url + ')"></div>';
                                 }
+                                lim = (lim + drinksAM.length > 5)? (5-lim) :drinksAM.length;
 
-                                shtml += '<span>' + msg + '</span><br>';
-                                shtml += '</div><br></li>';
-                                shtml += '<span style="float: right;margin-bottom: 10px;">' + stime + '</span>';
+                                for(var i =0; i < lim; i++){
+                                    url = drinkUrls[drinksAM[i]-1];
+                                    shtml += '<div class="cell" style="background-image: url('+url + ')"></div>';
+                                }
+                                shtml += '</div>';
+                                shtml += '<div class="pright">' + mealtimeAM + '</div>';
+                                shtml += '</div>';
+                            }
+                            if(foodsPM.length > 0){
+                                shtml = '<div width="100%">';
+                                if(foodsAM.length == 0) shtml += '<h4 style="text-indent:10px;color:red;">Ate :</h4>';
 
+                                shtml += '<div class="row" style="height:60px;margin:5px 10px;">';
+                                shtml += '<div class="pleft">';
+//                                    var lim = 4;
+                                lim = (foodsPM.length > 5)? 5 :foodsPM.length;
+                                for(var i =0; i < lim; i++){
+                                    url = foodUrls[foodsPM[i]-1];
+                                    shtml += '<div class="cell" style="background-image: url('+url + ')"></div>';
+                                }
+                                lim = (lim + drinksPM.length > 5)? (5-lim) :drinksPM.length;
+                                for(var i =0; i < drinksPM.length; i++){
+                                    url = drinkUrls[drinksPM[i]-1];
+                                    shtml += '<div class="cell" style="background-image: url('+url + ')"></div>';
+                                }
+                                shtml += '</div>';
+                                shtml += '<div class="pright">' + mealtimePM + '</div>';
+                                shtml += '</div>';
+                            }
+
+                            $('#msgs').append(shtml);
+
+                            // Milk
+                            if(bottles.length > 0) {
+                                shtml = '<div style="width:100%; margin-top:20px;">';
+                                for (var i = 0; i < bottles.length; i++) {
+                                    shtml += '<div class="row" style="height:30px;margin:5px 10px;">';
+                                    shtml += '<div class="div1">';
+                                    if (i == 0)
+                                        shtml += '<h4 style="text-indent:10px;color:red;margin-top: 0px;">Bottle Milk:</h4>';
+                                    shtml += '</div>';
+
+                                    shtml += '<div class="div2">';
+                                    shtml += bottles[i] + 'oz';
+                                    shtml += '</div>';
+
+                                    shtml += '<div class="div3">';
+                                    shtml += bottleTimes[i];
+                                    shtml += '</div>';
+                                    shtml += '</div>';
+                                }
+                                shtml += '</div>';
                                 $('#msgs').append(shtml);
+                            }
+                            // Nap
+                            if(naps.length > 0) {
+                                shtml = '<div style="width:100%; margin-top:20px;">';
+                                for (var i = 0; i < naps.length; i++) {
+                                    shtml += '<div class="row" style="height:30px;margin:5px 10px;">';
+                                    shtml += '<div class="div1">';
+                                    if (i == 0)
+                                        shtml += '<h4 style="text-indent:10px;color:red;margin-top: 0px;">Napped:</h4>';
+                                    shtml += '</div>';
 
-                                $("#msgs").animate({scrollTop: $(".msg:last").offset().top}, 100);
+                                    shtml += '<div class="div2">';
+                                    shtml += '  ';
+                                    shtml += '</div>';
+
+                                    shtml += '<div class="div3">';
+                                    shtml += naps[i];
+                                    shtml += '</div>';
+                                    shtml += '</div>';
+                                }
+                                shtml += '</div>';
+                                $('#msgs').append(shtml);
+                            }
+                            // Potty
+                            if(potties.length > 0) {
+                                shtml = '<div style="width:100%; margin-top:20px;">';
+                                for (var i = 0; i < potties.length; i++) {
+                                    shtml += '<div class="row" style="height:40px;margin:5px 10px;">';
+                                    shtml += '<div class="div1" style="height:40px;">';
+                                    if (i == 0)
+                                        shtml += '<h4 style="text-indent:10px;color:red;">Potty:</h4>';
+                                    shtml += '</div>';
+
+                                    shtml += '<div class="div2" style="height:40px;">';
+                                    var pp = potties[i].split(",");
+                                    for(var j=0; j< pp.length; j++){
+                                        url = pottyUrls[pp[j]-1];
+                                        shtml += '<div class="cell1" style=" background-image: url('+url + ')"></div>';
+                                    }
+
+                                    shtml += '</div>';
+
+                                    shtml += '<div class="div3" style="height:40px;padding-top:10px;">';
+                                    shtml += pottyTimes[i];
+                                    shtml += '</div>';
+                                    shtml += '</div>';
+                                }
+                                shtml += '</div>';
+                                $('#msgs').append(shtml);
+                            }
+                            // Mood & Request
+                            if(requests.length > 0 || mood != "") {
+                                shtml = '<div style="width:100%; margin-top:20px;">';
+                                shtml += '<div class="row" style="height:60px;margin:5px 10px;">';
+
+                                if(mood != ""){
+                                    shtml += '<div style="width:35%; height:50px;float:left;">';
+                                    shtml += '<h4 style="text-indent:10px;color:red;float:left;">Mood:&nbsp;</h4>';
+                                    url = moodUrls[mood-1];
+                                    shtml += '<div style="width:50px;height:50px;display:inline-block;float:left; background: url('+url + ') no-repeat center center"></div>';
+                                    shtml += '</div>';
+                                }
+
+                                if(requests.length > 0){
+                                    shtml += '<div style="width:65%; height:50px;float:right;">';
+                                    shtml += '<h4 style="text-indent:10px;color:red;float:left;">Requests:&nbsp;</h4>';
+                                    for(var j=0; j<requests.length; j++){
+                                        url = reqUrls[requests[j]-1];
+                                        shtml += '<div style="width:50px;height:50px;display:inline-block;float: left; background: url('+url + ') no-repeat center center"></div>';
+                                    }
+                                    shtml += '</div>';
+                                }
+                                shtml += '</div>';
+                                shtml += '</div>';
+                                $('#msgs').append(shtml);
+                            }
+                            // Photo
+/*                            if(photos.length > 0) {
+                                shtml = '<div style="width:100%; margin-top:20px;">';
+                                shtml += '<h4 style="text-indent:10px;color:red;">Photos:&nbsp;</h4>';
+                                for(var i=0; i<photos.length;i++)
+                                {
+                                    shtml += '<div class="row" style="margin:5px 10px;">';
+
+                                    shtml += '<div style="width:100%;">';
+                                    shtml += '<p style="width:100%;font-size:16px;color:red;text-align: center;padding:10px;">'+photo_notes[i]+ '</p>';
+
+                                    shtml += '<img src="'+photos[i]+'" style="width:100%;min-height:300px;" >';
+                                    shtml += '</div>';
+
+                                    shtml += '</div>';
+                                }
+                                shtml += '</div>';
+                                $('#msgs').append(shtml);
+                            }*/
+                            // Comment
+                            if(comments.length > 0) {
+                                shtml = '<div style="width:100%; margin-top:20px;margin-bottom: 80px;">';
+                                shtml += '<h4 style="text-indent:10px;color:red;">Comment:&nbsp;</h4>';
+                                for(var i=0; i<comments.length;i++)
+                                {
+                                    shtml += '<div class="row" style="margin:5px 10px;">';
+
+                                    shtml += '<p style="font-size:16px;color:red;text-align: left;padding:10px;">'+comments[i]+ '</p>';
+                                    shtml += '</div>';
+                                }
+                                shtml += '</div>';
+                                $('#msgs').append(shtml);
                             }
                         }
                     },

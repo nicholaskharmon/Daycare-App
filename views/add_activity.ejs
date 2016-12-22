@@ -12,7 +12,7 @@
 
 <script type="text/javascript">
     var childList = []; // container of childs informations
-    childList = sessionStorage.getItem('selectedCIDs').split(',');
+    childList = localStorage.getItem('selectedCIDs').split(',');
     var drinkList = [];
     var foodList = [];
     var names = [], imgpaths = [];
@@ -157,6 +157,25 @@
         });
 
         var request_form = request_dialog.find( "form" ).on( "submit", function( event ) {
+            event.preventDefault();
+        });
+
+        // drink
+        var drink_dialog = $( "#drink-dialog" ).dialog({
+            autoOpen: false,
+            modal: true,
+            buttons: {
+                Cancel: function() {
+                    drink_dialog.dialog( "close" );
+                },
+                "Save & Close": function(){ saveDrink();}
+            },
+            close: function() {
+                drink_form[0].reset();
+            }
+        });
+
+        var drink_form = drink_dialog.find( "form" ).on( "submit", function( event ) {
             event.preventDefault();
         });
 
@@ -523,8 +542,8 @@
                 var btime = potty_timer.val();
 
                 var action_content = "";
-                if($("#wet").prop( "checked")) action_content = "Wet";
-                else action_content = "Dry";
+                if($("#wet").prop( "checked")) action_content = "wet";
+                if($("#dry").prop( "checked")) action_content += ",dry";
 
                 for(i=0; i<childList.length; i++){
                     var cid = childList[i];
@@ -863,10 +882,10 @@
                 <table style="width:100%; border:0px;background-color:white">
                     <tr style="background-color:white">
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px"> <input type="radio" name="potty" id="wet" value="wet" checked>&nbsp;&nbsp;Wet</label>
+                            <label style="font-size: 18px"> <input type="checkbox" name="potty" id="wet" value="wet" checked>&nbsp;&nbsp;Wet</label>
                         </td>
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px"> <input type="radio" name="potty" id="dry" value="dry">&nbsp;&nbsp;Dry</label>
+                            <label style="font-size: 18px"> <input type="checkbox" name="potty" id="dry" value="dry">&nbsp;&nbsp;Dry</label>
                         </td>
                     </tr>
                 </table>
@@ -1211,7 +1230,7 @@
                 </li>
                 <li id="btn-comment" class="child_item">
                     <button class="tile pointable" style="background-image: url('');">
-                        Comment
+                        Note
                         <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>

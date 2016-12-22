@@ -242,3 +242,11 @@ th{
 	height:90px;
 	border-radius:5px;
 }
+
+.ul-activities button{
+    border-radius:10px;
+    background-color:rgba(136, 176,220,0.5);
+    color : navy;
+    font-weight: bold;
+    border-color: #afaff1;
+}

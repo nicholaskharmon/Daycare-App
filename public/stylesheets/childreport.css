@@ -16,7 +16,7 @@ h2{
     position:fixed;
     top:0px;
     left: 0px;
-    height:50px;
+    height:70px;
     padding:0px;
     width: 100%;
     background-color: rgba(234,238,154, 0.7);
@@ -24,7 +24,7 @@ h2{
 
 #div-date{
     position:fixed;
-    top:50px;
+    top:70px;
     left: 0px;
     height:50px;
     margin:10px 2%;
@@ -55,7 +55,7 @@ h2{
 }
 #div-main{
     position:fixed;
-    top : 120px;
+    top : 140px;
     margin : 0px 3%;
     width:94%;height:90%;
     background-color: rgba(255,255,255, 0.3);
@@ -119,4 +119,64 @@ li {
 	margin: 0px;
 	overflow-wrap: break-word;
 	background-color: white;
+}
+div .cell{
+    width : 16%;
+    height: 60px;
+    border: 1px;
+    border-radius:5px;
+    margin:5px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    display:inline-block;
+    float:left;
+}
+.pleft{
+    width:80%;
+    height:60px;
+    display:inline-block;
+    float:left;
+}
+.pright{
+    width:20%;
+    height:60px;
+    display:inline-block;
+    float:left;
+    font-size: 17px;
+    color:red;
+    padding-top: 20px;
+ }
+.div1{
+    width:35%;
+    height:30px;
+    display:inline-block;
+    float:left;
+    font-size: 20px;
+    color : red;
+}
+
+.div2{
+    width:45%;
+    height:30px;
+    display:inline-block;
+    float:left;
+    font-size: 20px;
+    color : red;
+}
+
+.div3{
+    width:20%;
+    height:30px;
+    display:inline-block;
+    float: right;
+    font-size: 17px;
+    color : red;
+}
+
+.cell1{
+    width:60px;height:40px;
+    display:inline-block;
+    float:left;
+    background-position:center center;
+    background-repeat:no-repeat;
 }

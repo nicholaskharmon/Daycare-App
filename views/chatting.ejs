@@ -222,7 +222,7 @@
             });
 
             $("#btnsearch").click(function(){
-                $("#during").slideDown(normal);
+                $("#during").slideDown(500);
             })
 
             $(".weeks").click(function(){
@@ -230,7 +230,7 @@
                     $('#msgs').empty();
                     socket.emit('select_during', {during: $(this).val(),room:rm, nickname:nm});
                 }
-                $("#during").slideUp(fast);
+                $("#during").slideUp(300);
             })
 
         })

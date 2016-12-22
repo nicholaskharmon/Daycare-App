@@ -15,9 +15,9 @@
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
 
-    sessionStorage.setItem('uid', uid);
-    sessionStorage.setItem('nickname', nm);
-    sessionStorage.setItem('grade', grd);
+    localStorage.setItem('uid', uid);
+    localStorage.setItem('nickname', nm);
+    localStorage.setItem('grade', grd);
 
     console.log('nickname='+nm + " grade="+grd);
 //    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});

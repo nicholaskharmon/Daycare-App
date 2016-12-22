@@ -1010,11 +1010,13 @@ app.get('/get-report', function(req, res){
 
 // when getting reports for Report
 app.get('/get-report-parent', function(req, res){
-    var cdate = req.query.cdate;
+    var cdate = new Date(req.query.cdate);
     var cid = req.query.cid;
     var today= new Date();
-    if (cdate > today) { res.json({data: "fail"}); return false;}
-    var sdate = cdate.getFullYear()+'-'+ (cdate.getMonth()+1)+'-'+cdate.getDate();
+    if (cdate > today) { res.json({data: "fail"}); return false;};
+
+    //var sdate = cdate.getFullYear()+'-'+ (cdate.getMonth()+1)+'-'+cdate.getDate();
+    var sdate = cdate.toISOString().split('T')[0];
 
     var sql = "SELECT a.id rid, child_name,cid, rdate, btime, action_id, " +
         "action_content, action_note, author, a.imgsrc photo, b.imgsrc cphoto " +
@@ -1030,6 +1032,37 @@ app.get('/get-report-parent', function(req, res){
     })
 });
 
+app.get("/get-food-list", function(req, res){
+    var sql = "select food, icon from foods order by id";
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({result:"failure"});
+        else res.json(rows);
+    })
+})
+
+app.get("/get-drink-list", function(req, res){
+    var sql = "select icon from drinks order by id";
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({result:"failure"});
+        else res.json(rows);
+    })
+})
+
+app.get("/get-request-list", function(req, res){
+    var sql = "select icon from requests order by id";
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({result:"failure"});
+        else res.json(rows);
+    })
+})
+
+app.get("/get-mood-list", function(req, res){
+    var sql = "select icon from moods order by id";
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({result:"failure"});
+        else res.json(rows);
+    })
+})
 //
 // ---------------- start of group chatting server ----------------------
 

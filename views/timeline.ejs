@@ -6,12 +6,14 @@
 
     <title>Daycare</title>
 
-    <link rel='stylesheet' type="text/css" href='/stylesheets/timeline.css' />
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel='stylesheet' type="text/css" href='/stylesheets/timeline.css' />
 
-    <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/jquery.backstretch.min.js"></script>
     <script src="/javascripts/jquery-ui-1.12.1.js"></script>
 
@@ -273,11 +275,15 @@
 
     <div id="div-head">
         <div id="homebtn" onclick="location.href='/dashboard'" >
-            <i class="fa fa-angle-left" style="font-size:20px; padding-top:25px;">&nbsp;Back</i>
+            <i class="fa fa-angle-left" style="font-size:24px; padding-top:20px;">&nbsp;Back</i>
         </div>
-        <div id="btnsearch" style="float:right;margin-right:20px;color:red;">
-            <i class="fa fa-group" style="font-size:20px; padding-top:25px;float:right;"></i>
-            <ul id="namerole"> </ul>
+        <div id="menu1" style="float:right;margin-right:20px;color:red;">
+            <div id="btnsearch">
+                <span class="glyphicon glyphicon-user" style="font-size:20px" ></span>
+            </div>
+            <div id="dropdown" style="display:none;">
+            <ul id="namerole" > </ul>
+            </div>
         </div>
 
         <h2 style="text-align:center">Timeline</h2>
@@ -420,7 +426,10 @@
 
                                 $("#namerole").append(shtml);
                                 $("#list"+cid).on('click', function(){
-                                    $("#namerole").slideUp(300);
+//                                    $("#dropdown").css("display","none");
+//                                    event.preventDefault();
+                                    $("#dropdown").slideUp(100);
+//                                    $("#namerole").hide(500);
 
                                     $("#msgs").empty();
                                     loadReports($(this).val());
@@ -1219,8 +1228,8 @@
             }
             // when click search button
             $("#btnsearch").click(function(){
-               // $("#namerole").css("display", "block");
-                $("#namerole").slideDown(300);
+//                $("#namerole").css("display", "block");
+                $("#dropdown").slideDown(1000);
             })
 
         })
