@@ -7,7 +7,7 @@
     <title>Daycare</title>
 
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
-    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel='stylesheet' type="text/css" href='/stylesheets/timeline.css' />
 
@@ -317,8 +317,30 @@
         var reportlist = [];
         var drinkList = [];
         var foodList = [];
+        var gcid = -1;
 
         socket.emit('joinroom',{room:'map', nickname:nm});
+        // select photo, upload it
+        $("#send").click(function(){
+            var selector = $("#photo-selector");
+
+            if(selector[0].files && selector[0].files[0]){
+                var formData = new FormData();
+                formData.append("comment", $("input[id=msgbox]").val());
+                formData.append("photo", selector[0].files[0]);
+
+                $.ajax({
+                    url: '/upload-report-Photo',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    type: 'POST',
+                    success: function(data){
+                        loadReports(gcid);
+                    }
+                });
+            }
+        })
 
         $(document).ready(function() {
             var timer = $("#timer"),
@@ -334,73 +356,10 @@
                     request_Fields = $([]).add("#diapers").add($("#dry")).add($("#disposable")),
                     mood_Fields = $([]).add(potty_timer).add("#focused").add("#friendly").add("#fussy").add("#happy").add("#hyper").add("#boy").add($("#sick")).add($("#misbeahaving")).add($("#needy"));
 
-            // select photo, upload it
-            $("#send").click(function(){
-                var selector = $("#photo-selector");
 
-                if(selector[0].files && selector[0].files[0]){
-                    var formData = new FormData();
-                    formData.append("comment", $("input[id=msgbox]").val());
-                    formData.append("photo", selector[0].files[0]);
-
-                    $.ajax({
-                        url: '/upload-report-Photo',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        type: 'POST',
-                        success: function(data){
-                            loadReports(localStorage.getItem('cid'));
-                        }
-                    });
-                }
-            })
-
-            $("#addphoto").click(function(){
-                $("#file-wraper").click();
-            })
-
-            $("#msgbox").keyup(function (event) {
-                if (event.which == 13) {
-                    var d = new Date();
-                    var txt = $('#msgbox').val();
-                    socket.emit('send_msg', {to: $('#to').val(), msg: txt});
-                    $('#msgbox').val('');
-                }
-            });
-
-            $("#send").click(function () {
-                var d = new Date();
-                var txt = $('#msgbox').val();
-                socket.emit('send_msg', {to: $('#to').val(), msg: txt});
-                $('#msgbox').val('');
-            });
-
-            socket.on('notify', function(data){
-                var nickname = data.nickname;
-                // Error
-                console.log('Get notify');
-                var notify_dialog = $( "#notify-dialog" ).dialog({
-                    autoOpen: false,
-                    height: 200,
-                    width: 300,
-                    modal: true,
-                    buttons: {
-                        "Close": function(){ notify_dialog.dialog("close");}
-                    },
-                    close: function() {
-                        notify_form[0].reset();
-                        //food_Fields.removeClass( "ui-state-error" );
-                    }
-                });
-
-                var notify_form = notify_dialog.find( "form" ).on( "submit", function( event ) {
-                    event.preventDefault();
-                });
-
-            });
 
             $(window).load( function(){
+//                alert(1);
                 loadChildlist();
             });
 
@@ -413,7 +372,7 @@
                         childlist = res;
 
                         if(childlist.length == 1){
-                            localStorage.setItem('cid', childlist[0].cid);
+                            gcid =  childlist[0].cid;
                             loadReports(childlist[0].cid);
                         }else{
                             var shtml='';
@@ -426,14 +385,11 @@
 
                                 $("#namerole").append(shtml);
                                 $("#list"+cid).on('click', function(){
-//                                    $("#dropdown").css("display","none");
-//                                    event.preventDefault();
                                     $("#dropdown").slideUp(100);
-//                                    $("#namerole").hide(500);
 
                                     $("#msgs").empty();
                                     loadReports($(this).val());
-                                    localStorage.setItem('cid', $(this).val());
+                                    gcid = $(this).val();
                                 })
                             }
                         }
