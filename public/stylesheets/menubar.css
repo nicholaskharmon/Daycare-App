@@ -1,0 +1,80 @@
+.tp-navbar {
+    width:100%;
+    background-color:#F2F2F2;
+    padding:0px 0px;
+    margin:0px;
+}
+
+.tp-navbar-inner {
+    max-width:940px;
+    padding-left:0px;
+    padding-right:0px;
+    margin:0px auto 0px auto;
+    background-image: none !important;
+    background-repeat: none !important;
+    background-color:transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+.tp-brand {
+    font-size:26px !important;
+    margin-top:-3px !important;
+}
+
+.tp-tad {
+    margin-top:-12px;
+}
+
+.tp-nav {
+    font-size:22px;
+}
+
+#login-button{
+    color:#FFF;
+    font-size:16px;
+}
+
+
+@media only screen
+and (min-device-width : 320px)
+and (max-device-width : 568px)
+and (orientation : portrait) {
+
+    .section-first {
+        padding-top: 65px !important;
+    }
+
+    .tp-nav {
+        font-size:45px;
+    }
+    #login-button{
+        color:#FFF;
+        font-size:40px;
+        line-height: normal;
+        padding: 6px 14px;
+        margin-bottom: 4px;
+    }
+    .navbar .nav>li>a {
+        padding: 14px 36px !important;
+        line-height: 36px !important;
+    }
+
+    a.anchor {
+        top: -120px;
+    }
+    .mobile-hide {
+        display: none !important;
+    }
+}
+
+
+.tp-nav .dropdown-menu {
+    text-align:left;
+    font-size:13px;
+}
+
+.tp-caret {
+    border-top-color:#333 !important;
+    border-bottom-color:#333 !important;
+}
