@@ -28,23 +28,6 @@ body {
     width : 100%;
 }
 
-/*#homebtn{*/
-    /*width:30px;height:30px;*/
-    /*background-position: left center;*/
-    /*background-repeat: no-repeat;*/
-    /*background-image: url('/images/home.png');*/
-    /*float:left;*/
-    /*margin-top:20px;*/
-/*}*/
-
-/*#settingbtn{*/
-    /*width:30px;height:30px;*/
-    /*background-position: left center;*/
-    /*background-repeat: no-repeat;*/
-    /*background-image: url('/images/add.png');*/
-    /*float:right;*/
-    /*margin-top:20px;*/
-/*}*/
 #btnsearch{
     float:right;
     width:30px;
@@ -54,10 +37,13 @@ body {
 
 #word{
     float:right;
-    width:120px;
+    width:130px;
     height:30px;
     text-indent: 10px;
     font-size: 14px;
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    border-radius:5px;
 }
 
 #div-calendar{

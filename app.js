@@ -431,51 +431,58 @@ app.post('/saveProfile', function(req, res) {
 
 // when user answer is right, register user
 app.post('/saveuser', signup.saveUser);
-
+// when click profile button in admin-dashboard
+app.get('/select-profile', function(req, res){
+    res.render('select_child_profile');
+})
 // when press button<profile>, show page<Profile>
 app.get('/profile', function(req, res){
     var ipath = req.query.imgsrc;
+    var cid = req.query.cid;
+
     var nm = req.session.nickname;
     var grd = req.session.grade;
     var uid = req.session.user_id;
 
-    global.mysql.query("select child_id from users where user_id='" + uid + "'", function(err, rows) {
-        if (err) {
-            console.error(err);
-            throw err;
-        }
-        console.log(rows);
-
-        var chid = rows[0].child_id;
-        global.mysql.query("select * from childs where child_id='" + chid + "'", function(err, rows) {
-            if (err) {
-                console.error(err);
-                throw err;
-            }
-            console.log(rows);
-
-            res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
-
+    if(cid == undefined || cid == ''){
+        global.mysql.query("select child_id from users where user_id='" + uid + "'", function(err, rows) {
+            if (err) { console.error(err); throw err; }
+            global.mysql.query("select * from childs where child_id='" + rows[0].child_id + "'", function(err, rows) {
+                if (err) { console.error(err); throw err; }
+                res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
+            })
         })
-    })
+    }else{
+        global.mysql.query("select * from childs where child_id='" + cid + "'", function(err, rows) {
+            if (err) { console.error(err); throw err; }
+            res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
+        })
+    }
 });
+
+// when press button <Add activity in admin dashboard>
+app.get("/admin-activity", function(req, res){
+    res.render("select_child_activity");
+})
 
 // when press button <Add activity>
 app.get("/add-activity", function(req, res){
     var userid = req.session.user_id;
-    //res.render("report", {uid : userid});
     res.render("add_activity", {uid : userid});
 })
 
 // when press button <Report>
-app.get("/report", function(req, res){
+app.get("/user-report", function(req, res){
     var nname = req.session.nickname;
+    var cid = req.query.cid;
 
-    if(req.session.grade == 3){
-        res.render("child_report", {nm : nname});
-    } else{
-        res.render("admin_childlist", {nm : nname});
-    }
+    res.render("child_report", {nm : nname});
+})
+
+// when press button <Report>
+app.get("/admin-report", function(req, res){
+    var nname = req.session.nickname;
+    res.render("select_child_report", {nm : nname});
 })
 
 // when press button<signup>, show page<signup>
@@ -525,7 +532,10 @@ app.get('/dashboard', function(req, res){
 
     console.log("nicname=" + nickname+"  grade="+grade);
 
-    res.render('dashboard', { title: 'DayCare', nname: nickname, grade: grade, uid: uid});
+    if(grade < 3)
+        res.render('admin_dashboard', { title: 'DayCare', nname: nickname, grade: grade, uid: uid});
+    else
+        res.render('parent_dashboard', { title: 'DayCare', nname: nickname, grade: grade, uid: uid});
 });
 
 // when click calendar in dashboard
@@ -549,7 +559,14 @@ app.get('/map', function(req, res){
 
     res.render('location-sharing',{nname: nickname});
 });
-
+// when get Foodlist from table foods
+app.get('/getfoodlist',function(req, res){
+    var sql = "select food,icon from foods order by id";
+    global.mysql.query(sql, function(err,rows){
+        if(err) res.json({result:err});
+        else res.json(rows);
+    })
+})
 // when get childList
 app.get('/getChildList', function(req, res){
     var uid = req.session.user_id;
@@ -668,8 +685,6 @@ app.get('/save-event', function(req, res){
             var smsg = 'Event data was not saved. Retry later.';
             res.render('errorMsg', { title:'Daycare',hd:'Data Saving Error', msg:smsg, url:'/calendar', btnname:'To Calendar' });
         }
-<<<<<<< HEAD
-
         res.json({ result: "success" });
     })
 });
@@ -920,12 +935,6 @@ app.get('/delete-nap', function(req, res){
             res.json({ result:'Deleting failure' });
         }
         res.json({result: "success"});
-=======
-        var nm = req.session.nickname;
-        var grd = req.session.grade;
-
-        res.render('calendar', { nname: nm, grade: grd });
->>>>>>> a4314e82caf530423930cd13f7d8202dfaf2c8ac
     })
 });
 

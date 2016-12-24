@@ -23,10 +23,6 @@
     <div id="div-head">
         <i class="fa fa-angle-left" style="font-size:24px; padding-top:25px;margin-left: 10px;color:red;" onclick="location.href='/dashboard'">&nbsp;Back</i>
         <span style="text-align:center; margin-top: 0px;color:red;font-size:24px;margin-top: 20px;width:70%;display:inline-block;">Child Report</span>
-        <!--<div id="homebtn" >-->
-        <!--</div>-->
-        <!--<div style="text-align:center;display:inline-block;">-->
-        <!--</div>-->
     </div>
 
     <div id="div-date">
@@ -105,6 +101,7 @@
                 success: function(res){
                     if(res != undefined) {
                         var rows = res.data;
+                        console.log(rows);
 
                         for (var i = 0; i < rows.length; i++) {
 
@@ -381,23 +378,22 @@
         })
 
         $(document).ready(function() {
-
-//            $(window).on("load", function(){
             var st = new Date();
             var sdate = weeks[st.getDay()] + " " + month[st.getMonth()] + " " + st.getDate();
             $("#sdate").html(sdate);
 
-            $.ajax({ url:"/getChildList",type:"get",datatype:"JSON",
-                success:function(res){
-                    var childlist = res;
-                    cid = childlist[0].cid;
-                    loadReports(cid, st.toISOString().split('T')[0]);
-                },
-                error:function(xhr, status, error){
-                    console.log(error);
+            $.urlParam = function(name){
+                var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+                if (results==null){
+                    return null;
                 }
-            })
-//            });
+                else{
+                    return results[1] || 0;
+                }
+            }
+
+            cid = $.urlParam('cid');
+            loadReports(cid, st.toISOString().split('T')[0]);
         })
     </script>
 </body>

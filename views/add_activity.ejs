@@ -1,39 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>Sunshine and Sprout Daycare</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel='stylesheet' type="text/css" href='/stylesheets/add_activity.css' />
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
-	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 </head>
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
 <script src="/javascripts/jquery-ui-1.12.1.js"></script>
 <!--<script src="/socket.io/socket.io.js"></script>-->
 
 <script type="text/javascript">
-    var childList = []; // container of childs informations
-    childList = localStorage.getItem('selectedCIDs').split(',');
-    var drinkList = [];
-    var foodList = [];
-    var names = [], imgpaths = [];
-    //    var socket = io.connect("http://192.168.4.148:8080");
 
     $(document).ready(function() {
-        <!--var nm = '<%//=nname%>';-->
-        <!--var grd = '<%//=grade%>';-->
-        <!--console.log('nickname='+nm + " grade="+grd);-->
-        <!--socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});-->
-
-        <!--socket.on('notify', function (data) {-->
-            <!--$('#msg').text(data.msg + " is on way.");-->
-            <!--$('#notify').attr({'style':'display:block;background-color:#eaee9a'});-->
-            <!--socket.emit('location', data);-->
-        <!--});-->
-
-        var selectedCIDs = [];
+        var childList = []; // container of childs informations
+        childList = localStorage.getItem('selectedCIDs').split(',');
+        var drinkList = [];
+        var foodList = [];
+        var names = [], imgpaths = [];
         var activityFlag = 0;
         // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food,
         // 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo, 12:Comment
+        if(childList.length == 0)
+            alert('No selected children. Select child.');
+        loadChildData(childList);
+        initFoodTable();
+
+        $('#div-child-list').css('margin-left', ($(window).width() - 255)/2);
+
         var timer = $("#timer"),
                 bottle_timer = $("#bottle-timer"),
                 bottle_num = $("#bottle-num"),
@@ -46,14 +44,13 @@
                 potty_Fields = $([]).add(potty_timer).add($("#wet")).add($("#dry")),
                 request_Fields = $([]).add("#diapers").add($("#dry")).add($("#disposable")),
                 mood_Fields = $([]).add(potty_timer).add("#focused").add("#friendly").add("#fussy").add("#happy").add("#hyper").add("#boy").add($("#sick")).add($("#misbeahaving")).add($("#needy"));
-
         var timer_dialog = $( "#timer-dialog" ).dialog({
             autoOpen: false,
             height: 270,
             width: 300,
             modal: true,
             buttons: {
-//                    "Delete": function(){ deleteNote(nid);},
+    //                    "Delete": function(){ deleteNote(nid);},
                 Cancel: function() {
                     timer_dialog.dialog( "close" );
                 },
@@ -75,7 +72,7 @@
             width: 300,
             modal: true,
             buttons: {
-//                    "Delete": function(){ deleteNote(nid);},
+    //                    "Delete": function(){ deleteNote(nid);},
                 Cancel: function() {
                     bottle_dialog.dialog( "close" );
                 },
@@ -98,7 +95,7 @@
             width: 400,
             modal: true,
             buttons: {
-//                    "Delete": function(){ deleteNote(nid);},
+    //                    "Delete": function(){ deleteNote(nid);},
                 Cancel: function() {
                     mood_dialog.dialog( "close" );
                 },
@@ -121,7 +118,7 @@
             width: 300,
             modal: true,
             buttons: {
-//                    "Delete": function(){ deleteNote(nid);},
+    //                    "Delete": function(){ deleteNote(nid);},
                 Cancel: function() {
                     potty_dialog.dialog( "close" );
                 },
@@ -144,7 +141,7 @@
             width: 300,
             modal: true,
             buttons: {
-//                    "Delete": function(){ deleteNote(nid);},
+    //                    "Delete": function(){ deleteNote(nid);},
                 Cancel: function() {
                     request_dialog.dialog( "close" );
                 },
@@ -198,21 +195,10 @@
             event.preventDefault();
         });
 
-        $("#photo-selector").change(function(){
-            var selector = $("#photo-selector");
-            if(selector[0].files && selector[0].files[0]){
-                var reader = new FileReader();
-                reader.readAsDataURL(selector[0].files[0]);
-                reader.onload = function (e) {
-                    $('#photo').attr('src', e.target.result);
-                }
-            }
-        })
-
         // photo
         var photo_dialog = $( "#photo-dialog" ).dialog({
             autoOpen: false,
-//            height:350,
+    //            height:350,
             width: 320,
             modal: true,
             buttons: {
@@ -223,7 +209,7 @@
             },
             close: function() {
                 photo_form[0].reset();
-//                photo_Fields.removeClass( "ui-state-error" );
+    //                photo_Fields.removeClass( "ui-state-error" );
             }
         });
 
@@ -237,7 +223,7 @@
             width: 450,
             modal: true,
             buttons: {
-//                    "Delete": function(){ deleteNote(nid);},
+    //                    "Delete": function(){ deleteNote(nid);},
                 Cancel: function() {
                     food_dialog.dialog( "close" );
                 },
@@ -253,59 +239,48 @@
             event.preventDefault();
         });
 
+
         function currentDate(){
             var ndate = new Date();
             return ndate.getFullYear() + '-' + (ndate.getMonth()+1) + '-' + ndate.getDate();
         }
         // upload photo
         function savePhoto() {
-            var valid = true;
-//            timer_Fields.removeClass( "ui-state-error" );
-
             if(childList.length == 0){
                 alert('No selected cildren. Select child.');
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var selector = $("#photo-selector");
+            // insert note in DB
+            var selector = $("#photo-selector");
 
-                if(selector[0].files && selector[0].files[0]){
-                    var formData = new FormData();
-                    var cont = $("#photo-note").val();
-                    var btime = ISOtimeformat();
-                    var imgpath = selector[0].files[0];
-                    formData.append("comment", cont);
-                    formData.append("btime", btime);
-                    formData.append("photo", imgpath);
+            if(selector[0].files && selector[0].files[0]){
+                var formData = new FormData();
+                var cont = $("#photo-note").val();
+                var btime = ISOtimeformat();
+                var imgpath = selector[0].files[0];
+                formData.append("comment", cont);
+                formData.append("btime", btime);
+                formData.append("photo", imgpath);
 
-                    console.log(cont);
-
-                    $.ajax({
-                        url: '/new-Photo',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        type: 'POST',
-                        success: function(data){
-                            console.log("photo upload success");
-                            imgpath = data.imgsrc;
-                            add_action("photo", btime, cont, activityFlag, imgpath);
-                        },
-                        error: function (xhr, status, error) {
-                            console.log("photo upload Failure");
-                        }
-                    });
-                }
-                photo_dialog.dialog( "close" );
+                $.ajax({
+                    url: '/new-Photo', data: formData, processData: false,
+                    contentType: false, type: 'POST',
+                    success: function(data){
+                        console.log("photo upload success");
+                        imgpath = data.imgsrc;
+                        add_action("photo", btime, cont, activityFlag, imgpath);
+                    },
+                    error: function (xhr, status, error) {
+                        console.log("photo upload Failure");
+                    }
+                });
             }
-            return valid;
+            photo_dialog.dialog( "close" );
         }
 
         // Arrive, leave, sleep, wakeup   server:/new-note
         function saveTime() {
-            var valid = true;
             timer_Fields.removeClass( "ui-state-error" );
 
             if(childList.length == 0){
@@ -313,31 +288,27 @@
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
-                var btime = timer.val();
-                <!--var author = '<%=uid%>'; -->
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
+            // insert note in DB
+            var rdate = currentDate();
+            var btime = timer.val();
+            <!--var author = '<%=uid%>'; -->
+            for(i=0; i<childList.length; i++){
+                var cid = childList[i];
 
-                    $.ajax({
-                        url: "/new-note",
-                        data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag},
-                        type:"post",
-                        dataType: "JSON",
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                add_action(names[i], btime, '', activityFlag, imgpaths[i]);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                }
-                timer_dialog.dialog( "close" );
+                $.ajax({
+                    url: "/new-note",
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag},
+                    type:"post",
+                    dataType: "JSON",
+                    success: function (data) {
+                        // add note in report
+                        if(data.result == 'success'){}
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], btime, '', activityFlag, imgpaths[i]);
             }
-            return valid;
+            timer_dialog.dialog( "close" );
         }
         // Comment server:new-bottle
         function saveComment() {
@@ -351,19 +322,15 @@
             var btime = $("#comment-timer").val();
             var cont = $("#comment-note").val();
 
-            for(i=0; i<childList.length; i++){
+            for(var i=0; i<childList.length; i++){
                 var cid = childList[i];
                 $.ajax({
-                    url: "/new-bottle",
-                    type:"post",
+                    url: "/new-bottle", type:"post",
                     data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:cont},
                     dataType: "JSON", // option
                     success: function (data) {
                         // add note in report
-                        if(data.result == 'success'){
-//                            console.log(names[i]);
-//                            console.log(imgpaths[i]);
-                        }
+                        if(data.result == 'success'){}
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
@@ -373,7 +340,6 @@
         }
         // Bottle server:new-bottle
         function saveBottle() {
-            var valid = true;
             bottle_Fields.removeClass( "ui-state-error" );
 
             if(childList.length == 0){
@@ -381,72 +347,57 @@
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
-                var btime = bottle_timer.val();
-                var action_content = bottle_num.val();
+            // insert note in DB
+            var rdate = currentDate();
+            var btime = bottle_timer.val();
+            var action_content = bottle_num.val();
 
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
-                    $.ajax({
-                        url: "/new-bottle",
-                        type:"post",
-                        data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
-                        dataType: "JSON", // option
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                //loadNotes(cid, rdate);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                    add_action(names[i], btime, action_content + ' oz', activityFlag, imgpaths[i]);
-                }
-                bottle_dialog.dialog( "close" );
+            for(i=0; i<childList.length; i++){
+                var cid = childList[i];
+                $.ajax({
+                    url: "/new-bottle", type:"post", dataType: "JSON", // option
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
+                    success: function (data) {
+                        // add note in report
+                        if(data.result == 'success'){
+                            //loadNotes(cid, rdate);
+                        }
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], btime, action_content + ' oz', activityFlag, imgpaths[i]);
             }
-            return valid;
+            bottle_dialog.dialog( "close" );
         }
         // Food server:new-bottle
         function saveFood() {
-            var valid = true;
-
             if(childList.length == 0){
                 alert('No selected cildren. Select child.');
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
-                var btime = ISOtimeformat();
-                var action_content = foodList.join();
+            // insert note in DB
+            var rdate = currentDate();
+            var btime = ISOtimeformat();
+            var action_content = foodList.join();
 
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
-                    $.ajax({
-                        url: "/new-bottle",
-                        type:"post",
-                        data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
-                        dataType: "JSON", // option
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                //loadNotes(cid, rdate);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                    add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
-                }
-                food_dialog.dialog( "close" );
+            for(var i=0; i<childList.length; i++){
+                var cid = childList[i];
+                $.ajax({
+                    url: "/new-bottle", type:"post", dataType: "JSON", // option
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
+                    success: function (data) {
+                        // add note in report
+                        if(data.result == 'success'){}
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
             }
-            return valid;
+            food_dialog.dialog( "close" );
         }
         // Drink server:new-bottle
         function saveDrink() {
-            var valid = true;
             drink_Fields.removeClass( "ui-state-error" );
 
             if(childList.length == 0){
@@ -454,36 +405,28 @@
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
-                var btime = drink_timer.val();
-                var action_content = drinkList.join();
+            // insert note in DB
+            var rdate = currentDate();
+            var btime = drink_timer.val();
+            var action_content = drinkList.join();
 
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
-                    $.ajax({
-                        url: "/new-bottle",
-                        type:"post",
-                        data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
-                        dataType: "JSON", // option
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                //loadNotes(cid, rdate);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                    add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
-                }
-                drink_dialog.dialog( "close" );
+            for(i=0; i<childList.length; i++){
+                var cid = childList[i];
+                $.ajax({
+                    url: "/new-bottle", type:"post", dataType: "JSON", // option
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
+                    success: function (data) {
+                        // add note in report
+                        if(data.result == 'success'){}
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
             }
-            return valid;
+            drink_dialog.dialog( "close" );
         }
         // Mood server:new-bottle
         function saveMood() {
-            var valid = true;
             mood_Fields.removeClass( "ui-state-error" );
 
             if(childList.length == 0){
@@ -491,44 +434,40 @@
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
-                var btime = mood_timer.val();
-                var action_content = "";
-                if($("#focused").prop( "checked")) action_content = "focused";
-                if($("#friendly").prop( "checked")) action_content = "friendly";
-                if($("#fussy").prop( "checked")) action_content = "fussy";
-                if($("#happy").prop( "checked")) action_content = "happy";
-                if($("#hyper").prop( "checked")) action_content = "hyper";
-                if($("#sick").prop( "checked")) action_content = "sick";
-                if($("#misbeahaving").prop( "checked")) action_content = "misbeahaving";
-                if($("#needy").prop( "checked")) action_content = "needy";
+            // insert note in DB
+            var rdate = currentDate();
+            var btime = mood_timer.val();
+            var action_content = "";
+            if($("#focused").prop( "checked")) action_content = "1";
+            if($("#friendly").prop( "checked")) action_content = "2";
+            if($("#fussy").prop( "checked")) action_content = "3";
+            if($("#happy").prop( "checked")) action_content = "4";
+            if($("#hyper").prop( "checked")) action_content = "5";
+            if($("#sick").prop( "checked")) action_content = "6";
+            if($("#misbeahaving").prop( "checked")) action_content = "7";
+            if($("#needy").prop( "checked")) action_content = "8";
 
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
-                    $.ajax({
-                        url: "/new-bottle",
-                        type:"post",
-                        data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
-                        dataType: "JSON", // option
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                //loadNotes(cid, rdate);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                    add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
-                }
-                mood_dialog.dialog( "close" );
+            for(i=0; i<childList.length; i++){
+                var cid = childList[i];
+                $.ajax({
+                    url: "/new-bottle",
+                    type:"post",
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
+                    dataType: "JSON", // option
+                    success: function (data) {
+                        // add note in report
+                        if(data.result == 'success'){
+                            //loadNotes(cid, rdate);
+                        }
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
             }
-            return valid;
+            mood_dialog.dialog( "close" );
         }
         // Potty server:new-bottle
         function savePotty() {
-            var valid = true;
             potty_Fields.removeClass( "ui-state-error" );
 
             if(childList.length == 0){
@@ -536,35 +475,28 @@
                 return false;
             }
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
-                var btime = potty_timer.val();
+            // insert note in DB
+            var rdate = currentDate();
+            var btime = potty_timer.val();
 
-                var action_content = "";
-                if($("#wet").prop( "checked")) action_content = "wet";
-                if($("#dry").prop( "checked")) action_content += ",dry";
+            var action_content = "";
+            if($("#wet").prop( "checked")) action_content = "1";
+            if($("#dry").prop( "checked")) action_content += ",2";
 
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
-                    $.ajax({
-                        url: "/new-bottle",
-                        type:"post",
-                        data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
-                        dataType: "JSON", // option
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                //loadNotes(cid, rdate);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                    add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
-                }
-                potty_dialog.dialog( "close" );
+            for(i=0; i<childList.length; i++){
+                var cid = childList[i];
+                $.ajax({
+                    url: "/new-bottle", type:"post", dataType: "JSON", // option
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
+                    success: function (data) {
+                        // add note in report
+                        if(data.result == 'success'){}
+                    },
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
             }
-            return valid;
+            potty_dialog.dialog( "close" );
         }
         // Request server:new-bottle
         function saveRequest() {
@@ -576,40 +508,63 @@
                 return false;
             }
             var requestList = [];
+            // insert note in DB
+            var rdate = currentDate();
 
-            if ( valid ) {
-                // insert note in DB
-                var rdate = currentDate();
+            if($("#diapers").prop( "checked"))      requestList.push("1");
+            if($("#dry").prop( "checked"))          requestList.push("2");
+            if($("#disposable").prop( "checked"))   requestList.push("3");
+            var action_content = requestList.join();
 
-                if($("#diapers").prop( "checked"))      requestList.push("Diapers");
-                if($("#dry").prop( "checked"))          requestList.push("Dry");
-                if($("#disposable").prop( "checked"))   requestList.push("Disposable Bibs");
-                var action_content = requestList.join();
-
-                for(i=0; i<childList.length; i++){
-                    var cid = childList[i];
-                    $.ajax({
-                        url: "/new-bottle",
-                        type:"post",
-                        data:{cid:cid, rdate:rdate, btime:'00:00:00',action_id:activityFlag, action_content:action_content},
-                        dataType: "JSON", // option
-                        success: function (data) {
-                            // add note in report
-                            if(data.result == 'success'){
-                                //loadNotes(cid, rdate);
-                            }
-                        },
-                        error: function (xhr, status, error) {	alert("error");	}
-                    });
-                    add_action(names[i], rdate, action_content, activityFlag, imgpaths[i]);
-                }
-                request_dialog.dialog( "close" );
+            for(i=0; i<childList.length; i++){
+                var cid = childList[i];
+                $.ajax({
+                    url: "/new-bottle", type:"post",dataType: "JSON", // option
+                    data:{cid:cid, rdate:rdate, btime:'00:00:00',action_id:activityFlag, action_content:action_content},
+                    success: function (data) {},
+                    error: function (xhr, status, error) {	alert("error");	}
+                });
+                add_action(names[i], rdate, action_content, activityFlag, imgpaths[i]);
             }
-            return valid;
+            request_dialog.dialog( "close" );
         }
 
         function hide(){
             $('#notify').attr({'style':'display:none'});
+        }
+
+        function initFoodTable(){
+            $.ajax({
+                url:"/getfoodlist", type:"get", dataType:"JSON",
+                success:function(data){
+                    var foodtable = $("#foodtable");
+                    var food1 = "", icon1='', food2='', icon2='';
+                    var shtml = "";
+                    for(var i=0; i<data.length; i+=2){
+                        food1 = data[i].food; icon1 = data[i].icon;
+                        if (icon1==undefined) icon1 = '';
+
+                        if(i+1 == data.length) {
+                            food2 = ''; icon2 = '';
+                        }else{
+                            food2 = data[i+1].food; icon2 = data[i+1].icon;
+                            if (icon2==undefined) icon2 = '';
+                        }
+
+                        shtml =  '<tr class="list">';
+                        shtml += '<td class="foodcell" style="background-image:url('+icon1+');" fval="'+ i +'">';
+                        shtml += food1;
+                        shtml += '</td>';
+                        shtml += '<td class="foodcell" style="background-image:url('+icon2+');" fval="'+ (i+1) +'">';
+                        shtml += food2;
+                        shtml += '</td>';
+                        shtml += '</tr>';
+
+                        foodtable.append(shtml);
+                    }
+                },
+                error:function(xhr, status, error) { alert("error") }
+            })
         }
 
         function loadChildData(cidList){
@@ -623,46 +578,39 @@
                     var childData = data;
                     if (childData != undefined) {
                         for (var i = 0; i < childData.length; i++) {
-                            names.push(childData[i].cname);
+                            var namepart = (childData[i].cname).trim().split(' ');
+                            var name = namepart[0] + ' ' + namepart[1].substr(0,1).toUpperCase() + '.';
+
+                            names.push(name);
                             imgpaths.push(childData[i].imgsrc);
+                            $('.dropdown-menu').append('<li style="height:20px; text-indent: 10px;">'+ name +'</li>')
                         }
 
-                        $("#childname").text(names.join(", "));
-                        $("#child-photo").attr("src", imgpaths[0]);
+                        if(childData.length == 1) {
+                            $("#childname").html(names[0]);
+                            $("#div-photoline").height(100);
+                            $(".caret").hide();
+                            $("#child-photo").attr("src", imgpaths[0]);
+                        }else {
+                            $(".caret").show();
+                            $("#div-photoline").height(50);
+                            $("#childname").html(childData.length + " Children");
+                            $("#child-photo").attr("src", '/images/group1Asset 1.png');
+                        }
+                        console.log(names);
                     }
                 },
-                error: function (xhr, status, error) {
-                    alert("error")
-                }
+                error: function (xhr, status, error) { alert("error") }
             })
         }
-
-        $(window).load(function () {
-            if(childList.length == 0)
-                alert('No selected children. Select child.');
-            loadChildData(childList);
-        });
-
-        $("#foodtable td").click(function(){
-            var food = $(this).text().trim();
-            if (foodList.indexOf(food) < 0){
-                foodList.push(food);
-                $(this).css("color", "#f00");
-            }else{
-                $(this).css("color", "#000");
-                foodList.splice(foodList.indexOf(food), 1);
-            }
-        })
 
         function ISOtimeformat(){
             var ndate = new Date();
             var tstr = ndate.getHours() + ":";
             if(ndate.getHours() < 10) tstr = "0" + tstr;
-            if(ndate.getMinutes() < 10){
-                tstr = tstr.concat("0", ndate.getMinutes());
-            }else{
-                tstr = tstr.concat(ndate.getMinutes());
-            }
+            if(ndate.getMinutes() < 10) tstr = tstr.concat("0", ndate.getMinutes());
+            else                        tstr = tstr.concat(ndate.getMinutes());
+
             return tstr;
         }
 
@@ -672,6 +620,77 @@
                 tips.removeClass( "ui-state-highlight", 1500 );
             }, 500 );
         }
+        // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
+        function add_action(sname, stime, scont, act_id, simgurl){
+            var cont = "";
+            switch(act_id * 1){
+                case 1: cont = sname + " arrived.";     break;
+                case 2: cont = sname + " leaved.";      break;
+                case 3: cont = sname + " sleeped.";     break;
+                case 4: cont = sname + " waked up.";    break;
+                case 5: cont = sname + " feed " + scont + " of bottle.";    break;
+                case 6: cont = sname + " ate " + scont;             break;
+                case 7: cont = sname + " drinked " + scont;         break;
+                case 8: cont = sname + " diapper&potty " + scont;   break;
+                case 9: cont = sname + " request: " + scont;        break;
+                case 10: cont = sname + " was " + scont;            break;
+                case 11: cont = scont; break;
+                case 12: cont = scont; break;
+            }
+            var row = '<tr class="list" style="text-align: left">' +
+                    '<td class="cell" style="width:50px;">'+
+                    '<img width="50" height="50" src="' + simgurl + '">' +
+                    '</td>' +
+                    '<td class="cell">' + cont +'</td>' +
+                    '<td class="cell" width="80px">' + stime + '</td>' +
+                    '</tr>';
+    //            console.log(row);
+            $("#summary").append(row);
+        }
+
+
+        $("#bottle-plus").click(function(){
+            var old = parseFloat(bottle_num.val());
+            if(old < 99) bottle_num.val(old + 1);
+        });
+
+        $("#bottle-minus").click(function(){
+            var old = parseFloat(bottle_num.val());
+            if(old > 0) bottle_num.val(old - 1);
+        });
+
+        $("#foodtable td").click(function(){
+            var food = $(this).attr('fval');
+            if(food == undefined) return;
+            if (foodList.indexOf(food) < 0){
+                foodList.push(food);
+                $(this).css("color", "#f00");
+            }else{
+                $(this).css("color", "#000");
+                foodList.splice(foodList.indexOf(food), 1);
+            }
+        })
+
+        $("#drinkTable input").click(function() {
+            var drink = $(this).val();
+            if ($(this).is(":checked")) {
+                if (drinkList.indexOf(drink) < 0) drinkList.push(drink);
+            } else {
+                drinkList.splice(drinkList.indexOf(drink), 1);
+            }
+            console.log(drinkList);
+        })
+        $("#photo-selector").change(function(){
+            var selector = $("#photo-selector");
+            if(selector[0].files && selector[0].files[0]){
+                var reader = new FileReader();
+                reader.readAsDataURL(selector[0].files[0]);
+                reader.onload = function (e) {
+                    $('#photo').attr('src', e.target.result);
+                }
+            }
+        })
+
         // when press button Arrive
         $("#btn-arrive").click(function(){
             timer.val(ISOtimeformat());
@@ -760,52 +779,6 @@
             comment_dialog.dialog("open");
             activityFlag = "12";
         })
-
-        $("#bottle-plus").click(function(){
-            var old = parseFloat(bottle_num.val());
-            if(old < 99) bottle_num.val(old + 1);
-        });
-
-        $("#bottle-minus").click(function(){
-            var old = parseFloat(bottle_num.val());
-            if(old > 0) bottle_num.val(old - 1);
-        });
-
-        $("#drinkTable input").click(function() {
-            var drink = $(this).val();
-            if ($(this).is(":checked")) {
-                if (drinkList.indexOf(drink) < 0) drinkList.push(drink);
-            } else {
-                drinkList.splice(drinkList.indexOf(drink), 1);
-            }
-        })
-// 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
-        function add_action(sname, stime, scont, act_id, simgurl){
-            var cont = "";
-            switch(act_id * 1){
-                case 1: cont = sname + " arrived.";     break;
-                case 2: cont = sname + " leaved.";      break;
-                case 3: cont = sname + " sleeped.";     break;
-                case 4: cont = sname + " waked up.";    break;
-                case 5: cont = sname + " feed " + scont + " of bottle.";    break;
-                case 6: cont = sname + " ate " + scont;             break;
-                case 7: cont = sname + " drinked " + scont;         break;
-                case 8: cont = sname + " diapper&potty " + scont;   break;
-                case 9: cont = sname + " request: " + scont;        break;
-                case 10: cont = sname + " was " + scont;            break;
-                case 11: cont = scont; break;
-                case 12: cont = scont; break;
-            }
-            var row = '<tr class="list" style="text-align: left">' +
-                            '<td class="cell" style="width:50px;">'+
-                                '<img width="50" height="50" src="' + simgurl + '">' +
-                            '</td>' +
-                            '<td class="cell">' + cont +'</td>' +
-                            '<td class="cell" width="80px">' + stime + '</td>' +
-                      '</tr>';
-//            console.log(row);
-            $("#summary").append(row);
-        }
     })
 
 </script>
@@ -850,18 +823,18 @@
                 <table style="width:100%; border:0px;background-color:white" id="drinkTable">
                     <tr style="background-color:white;padding-bottom: 0px">
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px"> <input type="checkbox" id="milk"  value="milk"> &nbsp;&nbsp;Milk </label>
+                            <label style="font-size: 18px"> <input type="checkbox" id="milk"  value="1"> &nbsp;&nbsp;Milk </label>
                         </td>
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px;"> <input type="checkbox" id="water" value="water">&nbsp;&nbsp;Water</label>
+                            <label style="font-size: 18px;"> <input type="checkbox" id="water" value="2">&nbsp;&nbsp;Water</label>
                         </td>
                     </tr>
                     <tr style="background-color:white;padding-bottom: 0px">
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px"> <input type="checkbox" id="juice" value="juice">&nbsp;&nbsp;Juice</label>
+                            <label style="font-size: 18px"> <input type="checkbox" id="juice" value="3">&nbsp;&nbsp;Juice</label>
                         </td>
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px;"> <input type="checkbox" id="other" value="other">&nbsp;&nbsp;Other</label>
+                            <label style="font-size: 18px;"> <input type="checkbox" id="other" value="4">&nbsp;&nbsp;Other</label>
                         </td>
                     </tr>
                 </table>
@@ -937,126 +910,6 @@
         <fieldset>
             <div>
                 <table style="width:100%; border:0;background-color:white" id="foodtable">
-                    <tr class="list">
-                        <td class="foodcell" width="50%" style="background-image:url('');">
-                            Animal Crackers
-                        </td>
-                        <td class="foodcell" width="50%" style="background-image:url('');">
-                            Apple
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" width="50%" style="background:url('') no-repeat left center;">
-                            Apple Sauce
-                        </td>
-                        <td class="foodcell" width="50%" style="background:url('') no-repeat left center;">
-                            Bagel
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Banana
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Barley
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Bread
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Carrots & Peas
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Cereal
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Cheerios
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Chicken Nuggets
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Chicken Soup
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Chickpeas
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Corn
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Crackers
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Cucumber
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Grill Cheese
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Lentils
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Mix Veggies
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Noodles
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Oatmeal
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Orange
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Pear
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Pretzel
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Quinoa
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Rice
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Sweet Potato
-                        </td>
-                        <td class="foodcell" style="background-image:url('');">
-                            Toast-Jelly
-                        </td>
-                    </tr>
-                    <tr class="list">
-                        <td class="foodcell" style="background-image:url('');">
-                            Tuna
-                        </td>
-                        <td class="foodcell">
-
-                        </td>
-                    </tr>
                 </table>
             </div>
             <!-- Allow form submission with keyboard without duplicating the dialog button -->
@@ -1151,14 +1004,24 @@
 		<button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
 		<br>
 	</div>
+    <div id="div-head" style="text-align: center;">
+        <i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>
+        <!--<i class="fa fa-plus" onclick="location.href='/add-activity'"></i>-->
+        <h3 style="display:inline-block;">Add Activities</h3>
+    </div>
 	<div id="div-main">
-        <div id="div-title">
-            <img id="btnback" src="/images/home.png">
-            <h2>Add Activity</h2>
-        </div>
-        <div id="div-head">
-            <img id="child-photo" src="">
-            <h2 id="childname">Child</h2>
+        <div id="div-photoline">
+            <div id="div-photo">
+                <img id="child-photo" src="">
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown" style="display:inline-block">
+                    <span id="childname"></span><br>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                </ul>
+            </div>
         </div>
 		<div id = "div-child-list" >
 			<ul class = "ul-activities" >
@@ -1249,12 +1112,6 @@
             <th style="background-color: white;text-align: center " colspan="3">Summary</th>
         </tr>
     </table>
-</div>
-
-<div id="div-foot">
-	<!--<button id="btnProfile" onclick="location.href='/profile?imgsrc=none';"></button>-->
-	<!--<button id="btnReport" onclick="location.href='/report';"></button>-->
-	<!--<a href="tel:703-987-6037"><button id="btnPhoneCall"></button></a>-->
 </div>
 
 </body>

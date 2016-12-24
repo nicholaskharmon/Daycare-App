@@ -4,21 +4,44 @@ html {
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
+    height:100%;
 }
 
 body{
   height:100%;
   margin:0px;
   font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
+    background: transparent;
 }
-
-h2{
+.btn-link{
+    color:navy;
+    font-size:20px;
+}
+h3{
+    margin-top:10px;
+    font-size:24px;
   text-align: center;
 }
+
+.fa-angle-left{
+    padding-top:10px;
+    color:navy;
+    margin-left: 20px;
+    float:left;
+}
+
+.dropdown{
+    min-height: 50px;
+    display: inline-block;}
 
 #div-head, #div-foot, #div-main, #div-title, #div-child-list{
 	width : 100%;
   color: #000066;
+}
+
+#div-head{
+    height : 50px;
+    background-color:rgba(231, 246, 113, 0.5);
 }
 
 button{
@@ -33,7 +56,7 @@ button{
 }
 
 td.cell{
-	height : 40px;
+	height : 60px;
 	vertical-align:middle;
 	padding : 5px; 
 	background-position: center center;
@@ -43,11 +66,12 @@ td.cell{
 td.foodcell{
     width : 50%;
     background: no-repeat left center;
-    text-indent: 50px;
+    background-size: 40px;
+    padding-left: 60px;
 }
 
 tr.list{
-	height : 40px;
+	height : 60px;
 	background-color : #faf285;
 }
 
@@ -61,11 +85,8 @@ th{
 }
 
 #div-main{
-  margin-left: 5%;
-  margin-right: 5%;
-  padding-bottom:130px;
-  vertical-align:middle;
-  width : 90%;
+	margin-top:20px;
+	vertical-align:middle;
 }
 
 #btnback{
@@ -74,60 +95,44 @@ th{
 	float:left;
 }
 
-#child-photo{
-	width : 100px;
-	height: 100px;
-	float:left;
+#childname{
+    margin-left:20px;
+    display:inline-block;
 }
 
-#div-head{
+#child-photo{
+	max-width : 100px;
+	max-height: 100px;
+}
+
+#div-photo{
+    width: 100px;
+    max-height: 100px;
+    border: 1px;
+    display: inline-block;
+    margin-left: 20px;
+    float: left;
+}
+
+#div-photoline{
   height : 100px;
 }
-
-#div-foot{
-  background-color: #fafcf9;
-  margin: 0px;
-  /*margin-left: 0px;*/
-  vertical-align: bottom;
-  bottom: 0;
-  position: fixed;
-  text-align:center;
-  width : 100%;
+.btn .caret {
+    margin-left: 20px;
 }
-
+.caret {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 20px;
+    vertical-align: top;
+    border-top: 10px dashed;
+    /*border-top: 4px solid\9;*/
+    border-right: 10px solid transparent;
+    border-left: 10px solid transparent;
+}
 #div-body{
-  min-height:100%;
-}
-
-#div-main{
-  margin-top:15%;
-  height:85%;
-}
-
-#btnProfile,#btnReport,#btnPhoneCall {
-  padding:0px;
-  background-color: #fafcf9;
-  width: 80px;
-  height: 80px;
-  margin-top : 7px;
-  border : 0px;
-}
-
-#btnProfile {
-  background-image: url("/images/profile.png");
-  float: left;
-  margin-left: 20px;
-}
-
-#btnReport{
-  background-image: url("/images/report.png");
-  display:inline-block;
-}
-
-#btnPhoneCall{
-  background-image: url("/images/phone.png");
-  float : right;
-  margin-right: 20px;
+  /*min-height:100%;*/
 }
 
 .fill {
@@ -248,5 +253,7 @@ th{
     background-color:rgba(136, 176,220,0.5);
     color : navy;
     font-weight: bold;
-    border-color: #afaff1;
+    border-color: #d4d4f1;
 }
+
+.ul-activities{padding-left: 0px;}

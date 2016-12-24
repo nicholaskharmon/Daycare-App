@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Sunshine and Sprout Daycare</title>
-    <link rel='stylesheet' type="text/css" href='/stylesheets/dashboard.css' />
+    <link rel='stylesheet' type="text/css" href='/stylesheets/parent_dashboard.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
 </head>
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
@@ -44,9 +44,16 @@
         return true;
     }
 
-//    function hide(){
-//        $('#notify').attr({'style':'display:none'});
-//    }
+    $(document).ready(function() {
+        $('#btnReport').click(function(){
+            $.ajax({
+                url: "/getChildList", type:'get', datatype:'JSON',
+                success:function(data){
+                    location.href='/user-report?cid=' + data[0].cid;
+                }
+            })
+        })
+    })
 
 </script>
 <body>
@@ -74,7 +81,7 @@
     </div>
     <div id="div-foot">
         <button id="btnProfile" onclick="location.href='/profile?imgsrc=none';"></button>
-        <button id="btnReport" onclick="location.href='/report';"></button>
+        <button id="btnReport" ></button>
         <a href="tel:703-987-6037"><button id="btnPhoneCall"></button></a>
     </div>
 

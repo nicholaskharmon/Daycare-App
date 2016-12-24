@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sunshine and Sprout Daycare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+	<link rel='stylesheet' type="text/css" href='/stylesheets/select_child_report.css' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<script src="/javascripts/jquery-1.11.0.min.js"></script>
+
+<script type="text/javascript">
+    var childList = []; // container of childs informations
+    var selectedCID = '';
+
+    function hide(){
+        $('#notify').attr({'style':'display:none'});
+    }
+
+    function loadChildList(){
+        $.ajax({
+            url : "/getChildList",
+            dataType : "JSON",
+            success : function(data){
+                console.log(data);
+                childList = data;
+
+                var ul_childs = $(".ul-childs");
+
+                if(childList != undefined){
+                    ul_childs.empty();
+
+                    for(i = 0; i < childList.length; i++){
+                        var cid = childList[i].cid;
+                        ul_childs.append(
+                            '<li id="' + cid + '" class="child_item">' +
+                                '<div class="tile pointable" style="background-image: url(' + childList[i].imgsrc + ');">' +
+                                    '<div  style="height:100%">' +
+
+                                        '<div class="fill inside-border tile-menu-border" style="display:none;" id="cbd-' + cid + '"></div>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="note mask" >' +
+                                    '<span id="cname-' + cid + '">' + childList[i].child_name + '</span>' +
+                                '</div>' +
+                            '</li>'
+                        );
+                        // event when click photo
+                        $("#"+ childList[i].cid).on("click", function(){
+                            selectedCID = $(this).attr('id');
+                            location.href = "/user-report?cid=" + selectedCID;
+                        });
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("error")
+            }
+        })
+    }
+
+    $(document).ready(function() {
+        loadChildList();
+    })
+
+</script>
+<body>
+<div id="div-body">
+	<div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+		<br>
+		<h3 style="text-align: center" id="msg"></h3>
+		<button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+		<br>
+	</div>
+    <div id="div-head">
+        <i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>
+        <i class="fa fa-search" style="font-size:25px;" onclick="location.href=''"></i>
+        <h2>Select Child Report</h2>
+    </div>
+
+    <div id="div-main">
+		<div id = "div-child-list" >
+			<ul class = "ul-childs" >
+
+            </ul>
+		</div>
+		<br>
+	</div>
+	<br>
+</div>
+
+</body>
+</html>
