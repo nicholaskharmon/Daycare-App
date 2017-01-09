@@ -2,35 +2,38 @@
 <html>
 <head>
     <title>Sunshine and Sprout Daycare</title>
-    <link rel='stylesheet' type="text/css" href='/stylesheets/calendar.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel='stylesheet' type="text/css" href='/stylesheets/calendar.css' />
 </head>
 <script src="/socket.io/socket.io.js"></script>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
 <script src="/javascripts/jquery-ui-1.12.1.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <script type="text/javascript">
 
-    var socket = io.connect("http://192.168.4.148:8080");
+//    var socket = io.connect("http://192.168.3.148:8080");
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
-    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+//    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+//
+//    socket.on('notify', function (data) {
+//        $('#msg').text(data.msg + " is on way.");
+//        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
+//        socket.emit('location', data);
+//    });
 
-    socket.on('notify', function (data) {
-        $('#msg').text(data.msg + " is on way.");
-        $('#notify').attr({'style':'display:block;background-color:#eaee9a'});
-        socket.emit('location', data);
-    });
-
+    var row_even = true;
     var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
 
     $(document).ready(function() {
 
         var onmywayDown = false;
-
-        $("#word").width($(document).width()-200);
+        $("#word").width($("#search").width()-40);
 
         function onmyway(){
             if (!onmywayDown){
@@ -41,7 +44,7 @@
                 $('#btnOnMyWay').attr({'style': 'background-image  : url("/images/myway.png")'})
             }
 
-            socket.emit('notify', { msg: nm});
+//            socket.emit('notify', { msg: nm});
             location.href="/map";
             return true;
         }
@@ -68,9 +71,8 @@
             var today = vdate.getDate();
 
             var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            var smonth = months[month];
 
-            $("#smonth").html(year + "  " + smonth);
+            $("#smonth").html(months[month]);
 
             var first = new Date(year, month, 1, 0, 0, 0, 0);
             var firstday = first.getDay();
@@ -95,21 +97,22 @@
                 var id = (first.getMonth()+1) + '-' + first.getDate();
 
                 if(cc.toDateString() == first.toDateString()){
-                    $(".days").append('<li id="today">' + date + "</li>");
+                    $(".days").append('<li><div id="today">' + date + "<div></li>");
                 }else if(i < firstday || i >= (firstday + days)) {
-                    $(".days").append('<li class="prevday"' + ' id="'+ id + '">' + date + "</li>");
+                    $(".days").append('<li><div class="prevday"' + ' id="'+ id + '">' + date + "</div></li>");
                 }else{
-                    $(".days").append('<li id="' + id + '">' + date + "</li>");
+                    $(".days").append('<li><div id="' + id + '">' + date + "</div></li>");
                 }
                 first.setDate(date + 1);
             }
-            $("#today").attr({"style" : "padding:0px 5px;background: #5193bf; color: white !important"});
-            $(".prevday").attr({"style" : "color:#8db4ce"});
+            $("#today").attr({"style" : "background: none; border:2px solid #fb9528;padding:5 0 0 0;"});//ea7b04
+//            $("#today").attr({"style" : "background: #5193bf; color: white !important"});//ea7b04
+            $(".prevday").attr({"style" : "color:#8acf98"});
 
             if(weeks == 5){
-                $('#div-list').attr({"style" : "padding-top:330px"});
+                $('#div-list').attr({"style" : "padding-top:340px"});
             }else{
-                $('#div-list').attr({"style" : "padding-top:350px"});
+                $('#div-list').attr({"style" : "padding-top:360px"});
             }
         }
 
@@ -142,18 +145,14 @@
             $(".event-list").empty();
 
             $.ajax({
-                url : surl,
-                dataType:"JSON", // option
+                url : surl,  dataType:"JSON", // option
                 success : function(data) {
                     for(i=0; i<data.length - 1;i++){
                         var flag = 0;
-                        var stime = data[i].mtime;
-                        var sdate = data[i].mdate;
-                        var scont = data[i].event;
-                        var snote = data[i].note;
+                        var stime = data[i].mtime, sdate = data[i].mdate;
+                        var scont = data[i].event, snote = data[i].note;
                         var sd = "";
 
-//                        var contents = "";
                         if( sdate != undefined) {
                             var ss = new Date(sdate);
                             if (ss.getMonth() != month) flag = 1;
@@ -167,14 +166,11 @@
                         if(scont == undefined) scont = "";
                         if(snote == undefined) snote = "";
 
-                        add_event(sdate, stime, scont, snote, flag)
-                        $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
-
+                        add_event(sdate, stime, scont, snote, flag, i);
+                        $('#'+sd).attr({'style': 'background-color:#f4777c;color:white;'})
                     }
                 },
-                error : function(xhr, status, error) {
-                    alert("error");
-                }
+                error : function(xhr, status, error) { console.log(error); }
             });
         }
 
@@ -195,7 +191,7 @@
             loadEvent(currentmonth);
         })
 
-        function add_event(sdate, stime, scont, snote, flag){
+        function add_event(sdate, stime, scont, snote, flag, id){
             var shortMonth = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
             var sday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
             var ss = sdate.split('-');
@@ -205,18 +201,44 @@
             var yy = ss[0], mm = ss[1]*1 - 1;
             var smm = shortMonth[mm];
             var sst = sday[day] + " " + stime;
-            var sdd = '<span style="font-size:18px">' + dd +'</span>';
-            if (flag ) sdd = '<span style="font-size:18px">' + smm + ' ' + dd + '</span>';
-//            if (flag ) sdd = '<span style="font-size:12px">' + smm +'</span>' + '<br>' + sdd ;
+            var sdd = '<span style="font-size:16px">' + dd +'</span>';
+            if (flag ) sdd = '<span style="font-size:16px">' + smm + ' ' + dd + '</span>';
 
-            var row = '<tr class="list" style="text-align: center">' +
-                    '<td class="cell" style="width:80px;">'+ sdd + '</td>' +
-                    '<td class="cell" colspan="2" style="font-size:12px">' +
+            var bgcolor = '';
+
+            if(row_even) bgcolor = '#5292be'; else bgcolor = '#7bbfe9';
+
+            row_even = !row_even;
+
+            var row = '<div style="background-color:' + bgcolor + ';">' +
+                    '<div id="collapseBtn'+id+'" class="row btn visible-xs-block visible-sm-block"  data-toggle="collapse" data-target="#collapse-'+id+'">'+
+                     // date
+                    '<div class="col-sm-2 col-xs-3">' + sdd + '</div>' +
+                     // event
+                    '<div class="col-sm-8 col-xs-7">'+
                     '<span style="font-size:16px">' + scont +'</span><br>' +
                     '<span style="font-size:12px">' + sst +'</span>' +
-                    '</td>' +
-                    '</tr>';
+                    '</div>' +
+                     // arrow icon
+                    '<div class="col-sm-2 col-xs-2">' +
+                    '<i class="fa fa-caret-right" style="font-size:36px"></i>'+
+                    '</div>' +
+                    '</div>' +
+                     // event note
+                    '<div class="collapse" id="collapse-'+id+'">'+ snote +
+                        '<span style="width:100%;">Note : Note for Test</span>'+
+                    '</div>'
+
             $(".event-list").append(row);
+
+            $("#collapseBtn"+id).on("click", function(){
+                var arrow = $(this).find("i");
+                if(arrow.attr("class") == "fa fa-caret-right") {
+                    arrow.attr("class","fa fa-caret-down");
+                }else{
+                    arrow.attr("class","fa fa-caret-right");
+                }
+            })
         }
         // Error
         var error_dialog = $( "#error-dialog" ).dialog({
@@ -286,6 +308,7 @@
 </script>
 
 <body >
+<div class="container">
 <!-- Form to add Note  -->
 <div id="error-dialog" title="Information" style="display: none;z-index: 9999;">
     <form>
@@ -298,52 +321,59 @@
 </div>
 
 <div id="div-head">
-        <div id="div-title">
+    <div id="div-title">
 
-            <ul class="nav">
-                <li class="nav-item"><a href="/dashboard">Home</a></li>
-                <li class="nav-item" id="new"><a href="/event-setting">New</a></li>
-                <li class="nav-item" id="search">
-                    <img id="btnsearch" src="/images/search-a.png">
+        <ul class="nav">
+            <li class="nav-item" id="home"><a href="/dashboard"><img src="/images/backbtn2.png" style="width:30px;height:30px;"></a></li>
+            <li class="nav-item" id="new"><a href="/event-setting"><img src="/images/plus.png"></a></li>
+            <li class="nav-item" id="search">
+                <div id="searchbox">
                     <input type="text" id="word">
-                </li>
-            </ul>
-        </div>
+                    <img id="btnsearch" src="/images/magnifier.png" style="float:right">
+                </div>
 
-        <div  id="div-calendar" class ="div-calendar">
-            <div class="month">
-                <ul>
-                    <li class="prev"><</li>
-                    <li class="next">></li>
-                    <li id="smonth" style="text-align:center">  </li>
-                </ul>
-            </div>
-
-            <ul class="weekdays">
-                <li>Sun</li>
-                <li>Mon</li>
-                <li>Tue</li>
-                <li>Wed</li>
-                <li>Thu</li>
-                <li>Fri</li>
-                <li>Sat</li>
-            </ul>
-
-            <ul class="days"></ul>
-        </div>
-
-        <div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
-            <br>
-            <h3 style="text-align: center" id="msg"></h3>
-            <button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
-            <br>
-        </div>
+                <!--<img id="btnsearch" src="/images/search-a.png">-->
+            </li>
+        </ul>
     </div>
 
-    <div id="div-list">
-        <table class="event-list"></table>
-
+    <div class="month">
+        <ul>
+            <li class="prev"><i class="fa fa-angle-left" style="font-size:30px;color:#42b15b"></i></li>
+            <li class="next"><i class="fa fa-angle-right" style="font-size:30px;color:#42b15b"></i></li>
+            <li id="smonth" >  </li>
+        </ul>
     </div>
 
+    <div  id="div-calendar" class ="div-calendar">
+        <ul class="weekdays">
+            <li>Sun</li>
+            <li>Mon</li>
+            <li>Tue</li>
+            <li>Wed</li>
+            <li>Thu</li>
+            <li>Fri</li>
+            <li>Sat</li>
+        </ul>
+
+        <ul class="days"></ul>
+    </div>
+
+    <div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+        <br>
+        <h3 style="text-align: center" id="msg"></h3>
+        <button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+        <br>
+    </div>
+</div>
+
+<div id="div-list">
+    <!--<table class="event-list"></table>-->
+    <div class="event-list"></div>
+
+</div>
+
+</div>
 </body>
+
 </html>

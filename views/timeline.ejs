@@ -310,7 +310,7 @@
     <script type="text/javascript">
         $.backstretch("/images/bg.png");
 
-        var socket = io.connect("http://192.168.4.148:8080");
+        var socket = io.connect("http://192.168.3.148:8080");
         var nm = '<%=nname%>';
         var count = 0;
         var childlist = [];
@@ -356,10 +356,10 @@
                     request_Fields = $([]).add("#diapers").add($("#dry")).add($("#disposable")),
                     mood_Fields = $([]).add(potty_timer).add("#focused").add("#friendly").add("#fussy").add("#happy").add("#hyper").add("#boy").add($("#sick")).add($("#misbeahaving")).add($("#needy"));
 
+            var pottyAct = ['Wet', 'Dry'];
 
 
             $(window).load( function(){
-//                alert(1);
                 loadChildlist();
             });
 
@@ -506,7 +506,7 @@
                                         msg = child_name + " drinked " + act_content + ".";
                                         break;
                                     case 8 :
-                                        msg = child_name + "'s diapper & potty is " + act_content + ".";
+                                        msg = child_name + "'s diapper is " + act_content + ".";
                                         break;
                                     case 9 :
                                         msg = child_name + "'s requests are " + act_content;

@@ -5,18 +5,32 @@ html {
   -o-background-size: cover;
   background-size: cover;
     height:100%;
+	/*font-family:*/
+/*!* 1 *! -apple-system, BlinkMacSystemFont,*/
+/*!* 2 *! "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",*/
+/*!* 3 *! "Helvetica Neue", sans-serif;*/
 }
 
 body{
   height:100%;
   margin:0px;
-  font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
-    background: transparent;
+  font: 16px "SF UI Display", "Lucida Grande", Helvetica, Arial, sans-serif;
+  background: transparent;
 }
+
+#btnBack{
+    width:30px;
+    height:30px;
+    float:left;
+    margin-top:10px;
+    margin-left:10px;
+}
+
 .btn-link{
-    color:navy;
+    color:#3E8ACC;
     font-size:20px;
 }
+
 h3{
     margin-top:10px;
     font-size:24px;
@@ -25,7 +39,7 @@ h3{
 
 .fa-angle-left{
     padding-top:10px;
-    color:navy;
+    color:#3E8ACC;
     margin-left: 20px;
     float:left;
 }
@@ -36,12 +50,18 @@ h3{
 
 #div-head, #div-foot, #div-main, #div-title, #div-child-list{
 	width : 100%;
-  color: #000066;
+  color: #3E8ACC;
 }
+
+.ui-dialog-titlebar, .ui-button{
+    background-color: #3e8acc;
+    color:white;
+ }
 
 #div-head{
     height : 50px;
-    background-color:rgba(231, 246, 113, 0.5);
+    /*background-color:rgba(231, 246, 113, 0.5);*/
+    background-color:white;
 }
 
 button{
@@ -55,9 +75,22 @@ button{
 	float : left;
 }
 
+#summary{color:white;}
+#summary th{color:#3E8ACC;}
+
+#summary tr.list{
+    height : 60px;
+    background-color : #2e7dcd;
+}
+
+#summary tr:nth-child(even){
+    background-color : #4f90d4;
+}
+
 td.cell{
 	height : 60px;
 	vertical-align:middle;
+    text-align: center;
 	padding : 5px; 
 	background-position: center center;
     background-repeat: no-repeat;
@@ -66,23 +99,24 @@ td.cell{
 td.foodcell{
     width : 50%;
     background: no-repeat left center;
-    background-size: 40px;
     padding-left: 60px;
 }
 
 tr.list{
-	height : 60px;
-	background-color : #faf285;
+    height : 60px;
+    background-color : #2e7dcd;
 }
 
 tr:nth-child(even){
-	background-color : #a7dde8;
+    background-color : #4f90d4;
 }
 
 th{
 	vertical-align:middle;
 	background-color : white;
 }
+
+td{border-bottom: 1px solid white;}
 
 #div-main{
 	margin-top:20px;
@@ -103,6 +137,8 @@ th{
 #child-photo{
 	max-width : 100px;
 	max-height: 100px;
+    border-radius:50%;
+    border: 3px solid #3E8ACC;
 }
 
 #div-photo{
@@ -117,6 +153,23 @@ th{
 #div-photoline{
   height : 100px;
 }
+
+#div-picture{
+	width:100%;height:260px;
+	border : 1px solid #aaa;
+	border-radius : 3px;
+	text-align:center;
+	padding: 3px;
+    background-color: #e5e5e5
+}
+
+#groupcheck{
+	margin-top: 15px;
+    margin-bottom: 15px;
+    width: 20px;
+    height: 20px;
+}
+
 .btn .caret {
     margin-left: 20px;
 }
@@ -130,46 +183,6 @@ th{
     /*border-top: 4px solid\9;*/
     border-right: 10px solid transparent;
     border-left: 10px solid transparent;
-}
-#div-body{
-  /*min-height:100%;*/
-}
-
-.fill {
-    width: 100%;
-    height: 100%;
-}
-
-.inside-border {
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-}
-
-.tile-menu {
-    min-height: 100%;
-    min-width: 100%;
-    position: absolute;
-    z-index: 1;
-    top: 0;
-    right: auto;
-    left: 100%;
-    color: white;
-    background-color: #DDD;
-    text-align: center;
-    border: 1px solid #999;
-}
-.note {
-    text-align: center;
-    white-space: nowrap;
-    color: white;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    font-size: 100%;
-    padding: 0px 2px;
-}
-.mask {
-    background-image: url('/images/mask-60.png');
 }
 
 .tile {
@@ -186,27 +199,26 @@ th{
     background-position:center center; 
 }
 
-.tile-menu-border {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    border: 3px solid #FBB450;
-	height:100%;
+.fill {
+    width: 100%;
+    height: 100%;
 }
 
-.tile img {
-    padding: 0px;
-    min-width: 130px;
+.inside-border {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
 }
-.tile-small img {
-    padding: 0px;
-    min-width: 80px;
+
+.tile-menu-border {
+    /*position: absolute;*/
+    position: relative;
+    top: 0px;
+    left: 0px;
+    border: 4px solid #3E8ACC; /* blue */
+    border-radius:50%;
 }
-.tile-small .name {
-    text-align: center;
-    white-space: nowrap;
-    padding-bottom: 0px;
-}
+
 .pointable {
     cursor: pointer
 }
@@ -220,14 +232,13 @@ th{
     padding: 5px;
     padding-left: 5px;
 }
-#photo-dialog{
-	width:320px;
-	height:360px;
-}
+
 #photo{
 	max-width:100%;
-	max-height:100%
-	/* height:260px; */
+	max-height:100%;
+	border: 0px solid;
+	vertical-align:middle;
+	display:inline-block;
 }
 #photo-selector{
 	margin-top:10px;
@@ -256,4 +267,18 @@ th{
     border-color: #d4d4f1;
 }
 
-.ul-activities{padding-left: 0px;}
+.ul-activities{ padding-left: 0px;}
+
+.ui-dialog-title{ text-align:center; }
+
+.ui-dialog-titlebar-close{ border : none; }
+
+.ui-dialog { padding: 0px;}
+
+input[type=time]{ text-align : center; width:100%;height:40px;}
+
+.ui-button .ui-icon {
+    background-image: url(images/ui-icons_ffffff_256x240.png);
+}
+
+

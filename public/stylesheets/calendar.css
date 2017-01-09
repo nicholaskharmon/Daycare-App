@@ -7,6 +7,10 @@ body {
     background-color: #5193bf;
 }
 
+.container{
+    padding:0px;
+}
+
 #div-head{
     width:100%;
     position:fixed;
@@ -18,14 +22,26 @@ body {
 }
 
 #div-title {
-    height: 65px;
+    height: 70px;
     background-color: #eaee9a;
-    color : #ff2f42;
+    border-bottom: 1px solid #d0d56b;
 }
 
+#home, #new{ width:15%; }
+
+img{cursor: pointer;}
+
 #div-list{
-    padding-top: 350px;
+    padding-top: 360px;
     width : 100%;
+    color: white;
+}
+
+div.row.btn{
+    margin:0px;
+    padding-left:0px;
+    padding-right:0px;
+    border-bottom: 2px solid white;
 }
 
 #btnsearch{
@@ -33,28 +49,36 @@ body {
     width:30px;
     height:30px;
     margin-left:5px;
+    cursor: pointer;
+}
+
+#searchbox{
+    border-radius: 15px;
+    background-color: white;
+    height: 32px;
+    border: 1px solid #d8d704;
 }
 
 #word{
-    float:right;
-    width:130px;
+    float:left;
     height:30px;
-    text-indent: 10px;
+    text-indent: 15px;
     font-size: 14px;
-    -webkit-border-radius:5px;
-    -moz-border-radius:5px;
-    border-radius:5px;
+    border-radius: 15px;
+    border: 1px;
+    outline: none;
 }
 
 #div-calendar{
-    background-color: #d8e3aa;
+    background-color: #c6dbf0;
     padding : 0px 10px;
 }
 
 .month {
-    padding: 20px 25px 5px 25px;
+    padding: 10px 25px 10px 25px;
     width: 100%;
-    color: #d34e2c;
+    color: #42b15b;
+    background-color: #eaeb7f;
 }
 
 .month ul {
@@ -67,22 +91,24 @@ body {
     text-transform: uppercase;
     letter-spacing: 3px;
 }
-.month #smonth{float:none;}
+.month #smonth{
+    float:none;
+    padding-top: 5px;
+    text-align: center;
+}
+
 .month .prev {
     float: left;
-    /*padding-top: 10px;*/
 }
 
 .month .next {
     float: right;
-    /*padding-top: 10px;*/
 }
 
 .weekdays {
-    color:#3581d5;
+    color:#4cb366;
     margin: 0;
     padding: 10px 0;
-    background-color: #d8e3aa;
 }
 
 .weekdays li {
@@ -93,8 +119,7 @@ body {
 
 .days {
     padding: 10px 0;
-    color:#3581d5;
-    background-color: #d8e3aa;
+    color:#4cb366;
     margin: 0;
 }
 
@@ -102,10 +127,20 @@ body {
     list-style-type: none;
     display: inline-block;
     width: 14%;
-    text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     font-size:14px;
 }
+
+.days li div{
+    width : 25px;
+    height: 25px;
+    border-radius:50%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top : 5px;
+    text-align: center;
+}
+
 .event-list{
     width : 100%;
     list-style-type: none;
@@ -147,13 +182,9 @@ tr:nth-child(even){
     float: left;
 }
 
-.nav-item a {
-    display: block;
-    color: red;
+.nav>li>a {
     text-align: center;
-    padding: 35px 16px 10px 16px;
-    text-decoration: none;
-    font-size: 18px;
+    padding: 20px 0px 0px 0px;
 }
 
 .nav-item a:hover{
@@ -161,13 +192,27 @@ tr:nth-child(even){
     color:white;
 }
 
-/*.nav-item a.active {*/
-    /*color: white;*/
-    /*background-color: #4CAF50;*/
-/*}*/
+.collapse{
+    width : 100%;
+    min-height:30px;
+    background-color: #94b5d4;
+    border-bottom:2px solid white;
+    padding:10px 20px;
+    /*text-align: center;*/
+}
+
+.btn{
+    border-radius: 0px;
+}
+
+.btn.focus, .btn:focus, .btn:hover {
+    color: white !important;
+    text-decoration: none;
+}
 #search{
+    width:70%;
     float:right;
-    padding-top: 25px
+    padding-top: 20px;
 }
 #new{float:right;}
 

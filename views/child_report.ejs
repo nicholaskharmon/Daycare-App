@@ -49,29 +49,49 @@
         week1.setDate(today.getDate() - today.getDay());
 
         function loadReports(cid, cdate){
-            var foodUrls = [];
-            var drinkUrls = [];
-            var reqUrls = [];
-            var moodUrls = [];
+            var foodUrls = [], foods = [];
+            var drinkUrls = [], drinks = [];
+            var reqUrls = [], reqs = [];
+            var moodUrls = [], moods = [];
             var pottyUrls = ["/images/icons/dry.png", "/images/icons/wet.png"];
 
             $.ajax({ url: '/get-food-list', datatype: "JSON", async: false,
-                success: function (res) { for(var i=0; i< res.length; i++) foodUrls.push(res[i].icon); },
+                success: function (res) {
+                    for(var i=0; i< res.length; i++) {
+                        foodUrls.push(res[i].icon);
+                        foods.push(res[i].food);
+                    }
+                },
                 error: function (xhr, status, error) { console.log(error); }
             });
 
             $.ajax({ url: '/get-drink-list', datatype: "JSON", async: false,
-                success: function (res) { for(var i=0; i< res.length; i++) drinkUrls.push(res[i].icon);},
+                success: function (res) {
+                    for(var i=0; i< res.length; i++){
+                        drinkUrls.push(res[i].icon);
+                        drinks.push(res[i].drink);
+                    }
+                },
                 error: function (xhr, status, error) { console.log(error); }
             });
 
             $.ajax({ url: '/get-request-list', datatype: "JSON", async: false,
-                success: function (res) { for(var i=0; i< res.length; i++) reqUrls.push(res[i].icon); },
+                success: function (res) {
+                    for(var i=0; i< res.length; i++) {
+                        reqUrls.push(res[i].icon);
+                        reqs.push(res[i].reqname);
+                    }
+                },
                 error: function (xhr, status, error) { console.log(error); }
             });
 
             $.ajax({ url: '/get-mood-list', datatype: "JSON", async: false,
-                success: function (res) { for(var i=0; i< res.length; i++) moodUrls.push(res[i].icon); },
+                success: function (res) {
+                    for(var i=0; i< res.length; i++) {
+                        moodUrls.push(res[i].icon);
+                        moods.push(res[i].mood);
+                    }
+                },
                 error: function (xhr, status, error) { console.log(error); }
             });
 
@@ -88,6 +108,7 @@
             var bottles = [], bottleTimes = [];
             var naps = [];
             var potties = [], pottyTimes = [];
+            var diapers = [], diaperTimes = [];
             var mood = "";
             var requests = [];
             var comments = [];
@@ -115,8 +136,8 @@
                             rcid = rows[i].cid * 1;
                             var tstr = (rows[i].btime).split(":");
                             var bstr = ""; //tstr;
-                            if(tstr[0]*1 < 13) bstr = tstr[0]+":"+tstr[1];
-                            else bstr = (tstr[0]-12)+":"+tstr[1];
+                            if(tstr[0]*1 < 13) bstr = tstr[0]*1+":"+tstr[1]*1;
+                            else bstr = (tstr[0]-12)+":"+tstr[1]*1;
                             if(tstr[0]*1 < 12) bstr += " AM";
                             else  bstr += " PM";
 
@@ -154,9 +175,9 @@
                                         mealtimePM = bstr;
                                     }
                                     break;
-                                case 8 :    // potty
-                                    potties.push(act_content);
-                                    pottyTimes.push(bstr);
+                                case 8 :    // diaper
+                                    diapers.push(act_content);
+                                    diaperTimes.push(bstr);
                                     break;
                                 case 9 : $.merge(requests,act_content.split(","));
                                     break;
@@ -169,6 +190,10 @@
                                 case 12:    // comment
                                     comments.push(act_content);
                                     break;
+                                case 13:    // potties
+                                    potties.push(act_content);
+                                    pottyTimes.push(bstr);
+                                    break;
                             }
                         }
 
@@ -177,7 +202,7 @@
                         var lim = 0, shtml = "", url = "";
                         if(foodsAM.length > 0){
                             shtml = '<div class="msg">';
-                            shtml += '<h4 style="text-indent:10px;color:red;">Ate :</h4>';
+                            shtml += '<h4 style="text-indent:10px;color:red;">Today I Ate :</h4>';
 
                             shtml += '<div style="width:100%; height:60px;">';
                             shtml += '<div class="pleft">';
@@ -198,7 +223,7 @@
                         }
                         if(foodsPM.length > 0){
                             shtml = '<div width="100%">';
-                            if(foodsAM.length == 0) shtml += '<h4 style="text-indent:10px;color:red;">Ate :</h4>';
+                            if(foodsAM.length == 0) shtml += '<h4 style="text-indent:10px;color:red;">Today I Ate :</h4>';
 
                             shtml += '<div class="row" style="height:60px;margin:5px 10px;">';
                             shtml += '<div class="pleft">';
@@ -291,29 +316,54 @@
                             shtml += '</div>';
                             $('#msgs').append(shtml);
                         }
-                        // Mood & Request
-                        if(requests.length > 0 || mood != "") {
+                        // Diaper
+                        if(diapers.length > 0) {
                             shtml = '<div style="width:100%; margin-top:20px;">';
-                            shtml += '<div class="row" style="height:60px;margin:5px 10px;">';
-
-                            if(mood != ""){
-                                shtml += '<div style="width:35%; height:50px;float:left;">';
-                                shtml += '<h4 style="text-indent:10px;color:red;float:left;">Mood:&nbsp;</h4>';
-                                url = moodUrls[mood-1];
-                                shtml += '<div style="width:50px;height:50px;display:inline-block;float:left; background: url('+url + ') no-repeat center center"></div>';
+                            for (var i = 0; i < diapers.length; i++) {
+                                shtml += '<div class="row" style="height:40px;margin:5px 10px;">';
+                                shtml += '<div class="div1" style="height:40px;">';
+                                if (i == 0)
+                                    shtml += '<h4 style="text-indent:10px;color:red;">Diaper:</h4>';
                                 shtml += '</div>';
-                            }
 
-                            if(requests.length > 0){
-                                shtml += '<div style="width:65%; height:50px;float:right;">';
-                                shtml += '<h4 style="text-indent:10px;color:red;float:left;">Requests:&nbsp;</h4>';
-                                for(var j=0; j<requests.length; j++){
-                                    url = reqUrls[requests[j]-1];
-                                    shtml += '<div style="width:50px;height:50px;display:inline-block;float: left; background: url('+url + ') no-repeat center center"></div>';
+                                shtml += '<div class="div2" style="height:40px;">';
+                                var pp = diapers[i].split(",");
+                                for(var j=0; j< pp.length; j++){
+                                    url = pottyUrls[pp[j]-1];
+                                    shtml += '<div class="cell1" style=" background-image: url('+url + ')"></div>';
                                 }
+                                shtml += '</div>';
+                                shtml += '<div class="div3" style="height:40px;padding-top:10px;">';
+                                shtml += diaperTimes[i];
+                                shtml += '</div>';
                                 shtml += '</div>';
                             }
                             shtml += '</div>';
+                            $('#msgs').append(shtml);
+                        }
+                        // Mood
+                        if(mood != "") {
+                            shtml = '<div style="width:100%; margin-top:20px;height:60px;margin:5px 10px;font-size: 17px;">';
+//                            shtml += '<div class="row" style="">';
+
+                            shtml += '<span style="text-indent:10px;color:red;float:left;">Mood:&nbsp;</span>';
+                            url = moodUrls[mood-1];
+                            shtml += '<div style="width:50px;height:50px;display:inline-block;float:left; background: url('+url + ') no-repeat center center"></div>';
+
+//                            shtml += '</div>';
+                            shtml += '</div>';
+                            $('#msgs').append(shtml);
+                        }
+                        // Request
+                        if(requests.length > 0) {
+                            shtml = '<div style="width:100%; margin-top:20px;height:60px;margin:5px 10px;font-size: 17px;">';
+                            shtml += '<span style="text-indent:10px;color:red;float:left;">Requests:&nbsp;</span>';
+                            for(var j=0; j<requests.length; j++){
+                                url = reqUrls[requests[j]-1];
+                                shtml += '<div style="width:50px;height:50px;display:inline-block;float: left; background: url('+url + ') no-repeat center center"></div>';
+
+                            }
+
                             shtml += '</div>';
                             $('#msgs').append(shtml);
                         }
@@ -350,6 +400,7 @@
                             shtml += '</div>';
                             $('#msgs').append(shtml);
                         }
+                        $('#msgs').append('<div style="width:100%;height:120px"></div>');
                     }
                 },
                 error: function(xhr, status, error){

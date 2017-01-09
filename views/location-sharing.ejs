@@ -59,7 +59,7 @@
         // Setup Socket IO
         // ================================
         //var socket = io.connect('http://ec2-54-147-229-234.compute-1.amazonaws.com:8080');
-        var socket = io.connect('http://192.168.4.148:8080');
+        var socket = io.connect('http://192.168.3.148:8080');
         var nname = '<%=nname%>';
         console.log(nname);
         socket.emit('joinroom',{room:'map', nickname: nname});

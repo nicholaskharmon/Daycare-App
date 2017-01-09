@@ -28,6 +28,16 @@ var FacebookStrategy  =     require('passport-facebook').Strategy;
 var session           =     require('express-session');
 //--------------
 
+// for mail-sending
+var nodemailer = require('nodemailer');
+var generator = require('xoauth2').createXOAuth2Generator({
+    user: 'iceberg198819@gmail.com',
+    clientID: '235649864040-3cvic98rl7cjpjooasei2kj20apl995e.apps.googleusercontent.com',
+    clientSecret: 'Y9nrwSgHJqvAd5H51HVk9v4_',
+    refreshToken: '1/BiK9J7K6IDp6sG054s0oGjWopZxjDWf_TBitxC1rWVU',
+    accessToken: 'ya29.Ci_JAyHIhwfyn5PzzjUtuO9qlfTkgzPT0XHQlu6-rqikrtrxh_fLUVHi7FoOSrqYJw'
+});
+
 var app = express();
 
 /*** Normalize a port into a number, string, or false. */
@@ -100,6 +110,7 @@ server.on('listening', onListening);
 // start socket server
 var io = require('socket.io').listen(server);
 
+// mail server
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -206,7 +217,47 @@ app.use('/api', restapi);
 // when press button<login>, check user information
 app.post('/verifyuser', verifyuser.verify);
 // when user answer is right, send SMS
-app.post('/sendSMS', sendSMS.changePWD);
+//app.post('/sendSMS', sendSMS.changePWD);
+
+app.post('/sendSMS', function(req, res){
+
+// listen for token updates
+// you probably want to store these to a db
+    generator.on('token', function(token){
+        generator = require('xoauth2').createXOAuth2Generator({
+            user: 'iceberg198819@gmail.com',
+            clientID: '235649864040-3cvic98rl7cjpjooasei2kj20apl995e.apps.googleusercontent.com',
+            clientSecret: 'Y9nrwSgHJqvAd5H51HVk9v4_',
+            refreshToken: token.refreshToken
+        });
+        console.log('New token for %s: %s', token.user, token.accessToken);
+    });
+
+
+// login
+    var transporter = nodemailer.createTransport(({
+        service: 'gmail',
+        auth: {
+            xoauth2: generator
+        }
+    }));
+
+// setup e-mail data with unicode symbols
+    var mailOptions = {
+        from: '"Yu Yang" <iceberg198819@gmail.com>', // sender address
+        to: '<gross0109414@yandex.com>', // list of receivers
+        subject: 'Hello Yu Yang', // Subject line
+        text: 'Did you recieve my invitation mail? Please send your answer.', // plaintext body
+        html: '<b>Thanks and regards</b>' // html body
+    };
+
+// send mail with defined transport object
+    transporter.sendMail(mailOptions, function(error, info){
+        if(error){
+            return console.log(error);
+        }
+        console.log('Message sent: ' + info.response);
+    });});
 
 app.get('/selectPhoto', function(req, res){
     res.render('selectPhoto', { title: 'DayCare' });
@@ -219,19 +270,25 @@ app.post('/uploadPhoto', function(req, res) {
     form.keepExtensions = true;
     form.maxFieldsSize = 2 * 1024 * 1024;
 
+    var cid;
     // parse a file upload
     form.parse(req, function(err, fields, files) {
         //res.writeHead(200, {'content-type': 'text/plain'});
         //res.write('Upload received :\n');
         //res.end(util.inspect({fields: fields, files: files}));
     });
+
+    form.on('field',function(name,value){
+        if(name == "cid"){ cid = value;};
+    });
+
     form.on('end', function(fields, files) {
         /* Temporary location of our uploaded file */
         var temp_path = path.basename(this.openedFiles[0].path);
         req.session.photopath = temp_path;
         /* The file name of the uploaded file */
         var file_name = this.openedFiles[0].name;
-        var cid = req.session.child_id;
+        if(cid == undefined ) cid = req.session.child_id;
 
         if(cid) {   // when uploading completed, changed imgsrc of DB according child_id
             var sql = "update childs set imgsrc='/uploads/" + temp_path + "' where child_id='" + cid + "'";
@@ -242,7 +299,7 @@ app.post('/uploadPhoto', function(req, res) {
                 }
             })
         }
-        return res.redirect('/profile?imgsrc=' + temp_path);
+        res.json({imgsrc : '/uploads/' +temp_path});
     });
 })
 
@@ -335,129 +392,245 @@ app.post('/upload-report-Photo', function(req, res) {
     });
 })
 
-// When saving Profile
-app.post('/saveProfile', function(req, res) {
+// When updating child Profile in admin side
+app.post('/update-child-data', function(req, res) {
     console.log(req);
-    var imgpath = req.body.imgpath;
-    var cname = req.body.cname;
-    var birthday = req.body.birthday;
-    var address = req.body.address;
-    var weight = req.body.weight;
-    var cheight = req.body.cheight;
-    var allergy = req.body.allergy;
-    var medication = req.body.medication;
-    var sibling = req.body.sibling;
-    var cid = req.session.child_id;
-    var uid = req.session.user_id;
+    var imgpath     = req.body.imgpath;
+    var cname       = req.body.name;
+    var nickname    = req.body.nickname;
+    var gender      = req.body.gender;
+    var birthday    = req.body.birthday;
+    var address     = req.body.address;
+    var city        = req.body.city;
+    var state       = req.body.state;
+    var zipcode     = req.body.zipcode;
+    var firstattend = req.body.firstattend;
+    var lastattend  = req.body.lastattend;
+    var tuition     = req.body.tuition;
+    var weight      = req.body.weight;
+    var cheight     = req.body.height;
+    var cid = req.body.cid;
 
-    // parse the incoming request containing the form data
-    //form.parse(req);
+    // if can not find user, show message
+    var sql = "update childs set child_name='" + cname + "', ";
+    sql += "nickname='" +nickname + "', gender='" +gender+ "',";
+    sql += " birthday='" + birthday + "', address='" + address + "',";
+    sql += " city='" + city + "', state='" + state + "',";
+    sql += " zipcode='" + zipcode + "', firstattend='" + firstattend + "',";
+    sql += " lastattend='" + lastattend + "', tuition='" + tuition + "',";
+    sql += " weight='" + weight + "', height='" + cheight + "',";
+    sql += " imgsrc='" + imgpath + "'";
+    sql += " where child_id='" + cid + "'";
 
-    var sql = "select * from childs where child_id='" + cid + "'";
+    global.mysql.query(sql, function (err, rows) {
+        if (err) { console.error(err); res.json({result:err}); }
+        res.json({result : "success"});
+    });
+});
 
-    global.mysql.query(sql, function(err, rows) {
-        if (err) {
-            console.error(err);
-            throw err;
+// When updating child Profile in admin side
+app.post('/get-child-data', function(req, res) {
+    console.log(req);
+    var cid = req.body.cid;
+
+    // if can not find user, show message
+    var sql = "select child_name,nickname,gender,birthday,address,city," +
+        "state,zipcode,firstattend,lastattend,tuition,weight,height,imgsrc " +
+        " from childs where child_id='" + cid + "'";
+
+    global.mysql.query(sql, function (err, rows) {
+        if (err) { console.error(err); res.json({result:err}); }
+        else res.json(rows);
+    });
+});
+
+// update child emergancy action from server side
+app.post('/update-emergency', function(req, res){
+    var cid = req.body.cid, emerg = req.body.emerg, kind = req.body.kind;
+    var sql = "insert into child_emergency (child_id, emer_id, emer_item) " +
+        " value('" + cid + "','" + kind + "','" + emerg + "')";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err) {
+            console.log(err); res.json({result : err})
+        }else{
+            res.json({result : "success"});
         }
-        //res.json(rows);
+    })
+})
 
-        var cnt = rows.length;
+// delete child emergancy action from server side
+app.post('/delete-emergency', function(req, res){
+    var cid = req.body.cid;
+    var sql = " delete from child_emergency where child_id='" + cid + "'";
 
-        if (cnt > 0) {// update data
-            // if can not find user, show message
-            var sql = "update childs set child_name='" + cname + "', ";
-            sql += " birthday='" + birthday + "', address='" + address + "',";
-            sql += " weight='" + weight + "', height='" + cheight + "',";
-            sql += " allergies='" + allergy + "', ";
-
-            if (medication == 'on') {  sql += " medication='1', "; }
-            else                    {  sql += " medication='0', "; }
-
-            if (sibling == 'on') {  sql += " sibling='1', "; }
-            else                 {  sql += " sibling='0', "; }
-            sql += "'" + imgpath + "'";
-
-            sql += " where child_id='" + cid + "'";
-
-            global.mysql.query(sql, function (err, rows) {
-                if (err) {
-                    console.error(err);
-                    //throw err;
-                }
-            });
-            return res.redirect('/profile');
+    global.mysql.query(sql, function(err, rows){
+        if(err) {
+            console.log(err); res.json({result : err})
+        }else{
+            res.json({result:'success'});
         }
-        else {
-            // if correct account, register user and redirect to next page
-            var sql = "insert into childs (child_name,birthday,address,weight,height,allergies,medication,sibling,imgsrc) ";
-            sql += " values('" + cname + "','" + birthday + "','" + address + "',";
-            sql += "'" + weight + "','" + cheight + "','" + allergy + "',";
-            if (medication == 'on') { sql += "'1',"; }
-            else {                    sql += "'0',"; }
+    })
+})
 
-            if (sibling == 'on') { sql += "'1',"; }
-            else {                 sql += "'0',"; }
-            sql += "'" + imgpath + "')";
+// get child emergancy action from server side
+app.post('/get-emergency', function(req, res){
+    var cid = req.body.cid, kind = req.body.kind;
+    var sql = "select emer_item from child_emergency where child_id='" + cid + "' and emer_id='" +kind+ "'";
 
-            global.mysql.query(sql, function (err, rows) {
-                if (err) {
-                    console.error(err);
-                    //return res.redirect('/change_pwd_error');
-                    //throw err;
-                } else {
-                    sql = "select child_id from childs where child_name='" + cname + "' and birthday='" + birthday + "' and address='" + address + "'";
-                    global.mysql.query(sql, function (err, rows) {
-                        if (err) {
-                            console.error(err);
-                        } else {
-                            var ncid = rows[0].child_id;
-                            sql = "update users set child_id='" + ncid + "' where user_id='" + uid + "'";
-                            global.mysql.query(sql, function (err, rows) {
-                                if (err) {
-                                    console.error(err);
-                                }else{
-                                    req.session.child_id = ncid;
-                                    return res.redirect('/profile');
-                                }
-                            })
-                        }
-                    })
-                }
+    global.mysql.query(sql, function(err, rows){
+        if(err) { console.log(err); res.json({result : err}) }
+        else res.json(rows);
+    })
+})
+
+// get user data from sercer side
+app.post('/get-parent-data',function(req, res){
+    var cid = req.body.cid, gender = req.body.gender;
+
+    var sql = "select * from users where child_id='"  + cid + "' and gender='" + gender + "'";
+    global.mysql.query(sql,function(err, rows){
+        if(err) res.json({result:err});
+        else res.json(rows);
+    })
+})
+
+// when change user data from sercer side
+app.post('/update-parent-data',function(req, res){
+    var cid = req.body.cid, gender = req.body.gender,
+        name = req.body.name, phonenumber = req.body.phone,
+        address = req.body.address, city = req.body.city,
+        state = req.body.state, zipcode = req.body.zipcode,
+        employer = req.body.employer, workphone = req.body.workphone,
+        workaddress = req.body.workaddress, workcity = req.body.workcity,
+        workstate = req.body.workstate, workzip = req.body.workzip;
+
+    var sql = "update users set user_name='" + name + "',phonenumber='" + phonenumber + "'," +
+        "address='" + address + "',city='" + city + "',state='" + state + "',zipcode='" + zipcode + "'," +
+        "employer='" + employer + "',workphone='" + workphone + "',workaddress='" + workaddress + "'," +
+        "workcity='" + workcity + "',workstate='" + workstate + "',workzipcode='" + workzip + "'" +
+        " where child_id='"  + cid + "' and gender='" + gender + "'";
+    global.mysql.query(sql,function(err, rows){
+        if(err) res.json({result:err});
+        else res.json({result:'success'});
+    })
+})
+
+// when save child's doctor data
+app.post('/save-doctor-data', function(req, res){
+    var cid = req.body.cid, name = req.body.name,
+        phone = req.body.phone, address = req.body.address,
+        city = req.body.city, state = req.body.state,
+        zipcode = req.body.zipcode, medical = req.body.medical,
+        insure_number = req.body.insure_number;
+    var sql = "select child_id from child_doctor where child_id='" + cid + "'";
+    global.mysql.query(sql, function(err, rows){
+        if(rows.length > 0){
+            sql = "update child_doctor set name='" + name + "', " +
+                "phone='" + phone + "', address='" + address + "', city='" + city + "', " +
+                "state=" + state + ",zipcode='" + zipcode + "', medical='" + medical + "', " +
+                "insure_number='" + insure_number + "' where child_id='" + cid + "'";
+            global.mysql.query(sql, function(err, rows){
+                if(err) res.json({result:err});
+                else res.json({result:'success'});
+            })
+        }else{
+            sql = "insert into child_doctor (child_id,name,phone,address,city,state,zipcode,medical,insure_number) " +
+                " value('"+ cid + "','" + name + "','" + phone + "','" + address + "','" + city + "'," +
+                "'" + state + "','" + zipcode + "','" + medical + "','" + insure_number + "')";
+            global.mysql.query(sql, function(err, rows){
+                if(err) res.json({result:err});
+                else res.json({result:'success'});
             })
         }
     })
-});
+})
+
+// get child's doctor's data
+app.post('/get-doctor-data', function(req, res){
+    var cid = req.body.cid;
+    var sql = "select * from child_doctor where child_id='" + cid + "'";
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({result:err});
+        else res.json(rows);
+    })
+})
+
+// when save child's emergency contact 1
+app.post('/save-emcontact-data', function(req, res){
+    var cid = req.body.cid, kind = req.body.kind, name = req.body.name,
+        phone = req.body.phone, address = req.body.address, city = req.body.city,
+        state = req.body.state, zipcode = req.body.zipcode, relation = req.body.relation;
+
+    // check if existing
+    var sql = "select child_id from child_emergency_contact where child_id='" + cid + "' and kind='" + kind + "'";
+
+    global.mysql.query(sql, function(err, rows){
+        if(err) res.json({result:err});
+        else if (rows.length > 0){   // when exist, update
+            sql = "update child_emergency_contact set name='" + name + "',phone='" + phone + "' " +
+                ",address='" + address + "',city='" + city + "',state='" + state + "' " +
+                ",zipcode='" + zipcode + "',relation='" + relation + "' " +
+                " where child_id='" + cid + "' and kind='" + kind + "'";
+            global.mysql.query(sql, function(err, rows){
+                if(err){ res.json({result: err}); return}
+                else res.json({result:'success'});
+            })
+        }else{   // when not exist, insert
+            sql = "insert into child_emergency_contact (child_id,kind,name,phone,address,city,state,zipcode,relation) " +
+                " value('"+ cid +"','" + kind +"','" +name +"','" +phone +"','" +address +"','" +city +"','" +state +"','" +zipcode +"','" +relation+"')";
+            global.mysql.query(sql, function(err, rows){
+                if(err){ res.json({result: err}); return}
+                else res.json({result:'success'});
+            })
+        }
+    })
+})
+
+// when save child's emergency contact 1
+app.post('/get-emcontact-data', function(req, res){
+    var cid = req.body.cid, kind = req.body.kind;
+    // check if existing
+    var sql = "select * from child_emergency_contact where child_id='" + cid + "' and kind='" + kind + "'";
+
+    global.mysql.query(sql, function(err, rows){
+            if(err){ res.json({result: err}); return}
+            else res.json(rows);
+    })
+})
 
 // when user answer is right, register user
 app.post('/saveuser', signup.saveUser);
+
 // when click profile button in admin-dashboard
 app.get('/select-profile', function(req, res){
     res.render('select_child_profile');
 })
+
 // when press button<profile>, show page<Profile>
 app.get('/profile', function(req, res){
-    var ipath = req.query.imgsrc;
+//    var ipath = req.query.imgsrc;
     var cid = req.query.cid;
-
-    var nm = req.session.nickname;
-    var grd = req.session.grade;
-    var uid = req.session.user_id;
-
-    if(cid == undefined || cid == ''){
-        global.mysql.query("select child_id from users where user_id='" + uid + "'", function(err, rows) {
-            if (err) { console.error(err); throw err; }
-            global.mysql.query("select * from childs where child_id='" + rows[0].child_id + "'", function(err, rows) {
-                if (err) { console.error(err); throw err; }
-                res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
-            })
-        })
-    }else{
-        global.mysql.query("select * from childs where child_id='" + cid + "'", function(err, rows) {
-            if (err) { console.error(err); throw err; }
-            res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
-        })
-    }
+    //
+    //var nm = req.session.nickname;
+    //var grd = req.session.grade;
+    //var uid = req.session.user_id;
+    //
+    //if(cid == undefined || cid == ''){
+    //    global.mysql.query("select child_id from users where user_id='" + uid + "'", function(err, rows) {
+    //        if (err) { console.error(err); throw err; }
+    //        global.mysql.query("select * from childs where child_id='" + rows[0].child_id + "'", function(err, rows) {
+    //            if (err) { console.error(err); throw err; }
+    //            res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
+    //        })
+    //    })
+    //}else{
+    //    global.mysql.query("select * from childs where child_id='" + cid + "'", function(err, rows) {
+    //        if (err) { console.error(err); throw err; }
+    //        res.render('profile', { cdata : rows, nname: nm, grade : grd, imgpath : ipath });
+    //    })
+    //}
+    res.render('profile', {cid: cid});
 });
 
 // when press button <Add activity in admin dashboard>
@@ -530,8 +703,8 @@ app.get('/dashboard', function(req, res){
     var grade  = req.session.grade;
     var uid = req.session.user_id;
 
-    console.log("nicname=" + nickname+"  grade="+grade);
-
+    //console.log("nicname=" + nickname+"  grade="+grade);
+    //
     if(grade < 3)
         res.render('admin_dashboard', { title: 'DayCare', nname: nickname, grade: grade, uid: uid});
     else
@@ -757,7 +930,7 @@ app.post('/new-note', function(req, res){
     })
 });
 
-// when inserting new note :action_id 1= arrive, 2=leave, 3=sleep, 4=wakeup
+// save new photo and return  url
 app.post('/new-photo', function(req, res){
     var form = new formidable.IncomingForm();
     form.uploadDir = path.join(__dirname, '/public/uploads');
@@ -768,12 +941,12 @@ app.post('/new-photo', function(req, res){
     form.parse(req, function(err, fields, files) {
     });
 
-    var comment = "";
-    var st = "";
+    var comment = "", st = "", groupcheck = true;
 
     form.on('field',function(name,value){
         if(name == "comment"){ comment = value;};
         if(name == "btime"){ st = value;};
+        if(name == "group"){ groupcheck = value;};
         console.log('normal field / name = '+name+' , value = '+value);
     });
 
@@ -783,30 +956,28 @@ app.post('/new-photo', function(req, res){
         req.session.photopath = temp_path;
         /* The file name of the uploaded file */
 //        var file_name = this.openedFiles[0].name;
-        var nm = req.session.user_id;
-        var nd = new Date();
-        var sd = nd.getFullYear() + "-" + (nd.getMonth()+1) + "-" + nd.getDate();
-
-        if(nm) {   // when uploading completed, changed imgsrc of DB according child_id
-            var sql = "insert into report (cid,action_id,action_content,author, rdate,btime,imgsrc) " +
-                "value('0','11','" + comment + "','" + nm+"','"+sd+"','"+st+"','/uploads/" + temp_path + "')";
-            global.mysql.query(sql, function (err, rows) {
-                if (err) {
-                    console.error(err);
-                    res.json({state : "False"});
-                }
-                res.json({
-                    state : "success",
-                    author: nm,
-                    rdate : sd,
-                    btime : st,
-                    cid   : '0',
-                    action_id: nm,
-                    imgsrc: '/uploads/' + temp_path
-                });
-            })
-        }
+        res.json({
+            state : "success",
+            imgsrc: '/uploads/' + temp_path
+        });
     });
+});
+
+// when inserting new note :action_id 1= arrive, 2=leave, 3=sleep, 4=wakeup
+app.post('/new-photo-register', function(req, res){
+    var cid = req.body.cid,     btime = req.body.btime;
+    var author = req.session.user_id, bdate = req.body.bdate;
+    var cont = req.body.cont,   url = req.body.url;
+
+    var sql = "insert into report (cid,action_id,action_content,author, rdate,btime,imgsrc) " +
+        "value('"+cid+"','11','" + cont + "','" + author+"','"+bdate+"','"+btime+"','" + url + "')";
+    global.mysql.query(sql, function (err, rows) {
+        if (err) {
+            console.error(err);
+            res.json({state : "False"});
+        }
+        res.json({ state : "success"  });
+    })
 });
 
 // when deleting existing note
@@ -938,19 +1109,31 @@ app.get('/delete-nap', function(req, res){
     })
 });
 
+app.get('/select-chat',function(req,res){
+    var nickname = req.session.nickname;
+    res.render('select_chatting',{room:'Staff', nname : nickname});
+});
+
 app.get('/chatting',function(req,res){
     var cid = req.session.child_id;
     var uid = req.session.user_id;
     var grade = req.session.grade;
     var nickname = req.session.nickname;
     var roomname;
+    //******** in case of admin
+    var nm = req.query.nname;
+    var rname = req.query.room;
+    var vcid = req.query.cid;
+    //*****************************
 
     if(nickname== undefined){
-        var shd = "Not Signed in yet.";
-        var smsg = "Please SignIn.";
-        var surl = "/";
-        var sbtnname = "Return to Login Page";
-        res.render('errorMsg', { title:'DayCare', hd:shd, msg:smsg, url:surl, btnname:sbtnname });
+        res.render('errorMsg',
+            { title: 'DayCare',
+                hd : "Not Signed in yet.",
+                msg: "Please SignIn.",
+                url: "/",
+                btnname:"Return to Login Page"
+            });
         return;
     }
 
@@ -967,19 +1150,39 @@ app.get('/chatting',function(req,res){
                 }
 
                 var childname = rows[0].child_name;
-                console.log('room name is : Staff   nickname=' + nickname);
+                var ss = childname.split(' ');
+                childname = ss[0].charAt(0).toUpperCase() + ss[0].substring(1);
 
-                roomname = childname + ' Family';
+                if(ss.length > 1) // get child name as Lenon G. from lenono gay
+                    childname += ' ' + ss[1].charAt(0).toUpperCase()+'.';
 
-                res.render('chatting',{room:'Staff', nname : nickname});
+                console.log('room name is : ' + childname + 'nickname=' + nickname);
+
+                roomname = childname + ' Chat';
+
+                res.render('parent_chatting',{room:roomname, nname : nickname, cid:cid});
             })
         }
     } else {
-        roomname = 'Staffs';
-        console.log('room name is : staff   nickname='+nickname);
-        res.render('chatting',{room: 'Staff', nname: nickname});
+        res.render('admin_chatting',{room: rname, nname: nm, cid:vcid});
     }
 });
+
+// get phonenumber of father and mother of child
+app.get('/get-phone-number/:cid', function(req, res){
+    var cid = req.params.cid;
+    console.log("child_id="+cid);
+    var sql = "SELECT phonenumber, gender FROM users WHERE child_id='" + cid + "'";
+    global.mysql.query(sql, function(err, rows){
+        console.log(rows);
+        for(var i=0; i< rows.length; i++){
+            var fnum = '', mnum = '';
+            if(rows[i].gender == 'f') fnum = rows[i].phonenumber;
+            if(rows[i].gender == 'm') mnum = rows[i].phonenumber;
+        }
+        res.json({fatherNumber: fnum, motherNumber:mnum});
+    })
+})
 
 app.get('/get-event', function(req, res){
     var first = req.query.firstday, last = req.query.lastday;
@@ -1057,7 +1260,7 @@ app.get("/get-food-list", function(req, res){
 })
 
 app.get("/get-drink-list", function(req, res){
-    var sql = "select icon from drinks order by id";
+    var sql = "select drink, icon from drinks order by id";
     global.mysql.query(sql, function(err, rows){
         if(err) res.json({result:"failure"});
         else res.json(rows);
@@ -1065,7 +1268,7 @@ app.get("/get-drink-list", function(req, res){
 })
 
 app.get("/get-request-list", function(req, res){
-    var sql = "select icon from requests order by id";
+    var sql = "select reqname, icon from requests order by id";
     global.mysql.query(sql, function(err, rows){
         if(err) res.json({result:"failure"});
         else res.json(rows);
@@ -1073,21 +1276,88 @@ app.get("/get-request-list", function(req, res){
 })
 
 app.get("/get-mood-list", function(req, res){
-    var sql = "select icon from moods order by id";
+    var sql = "select mood,icon from moods order by id";
     global.mysql.query(sql, function(err, rows){
         if(err) res.json({result:"failure"});
         else res.json(rows);
     })
 })
+// get user's child's photo url
+app.get('/get-child-photo/:user',function(req, res){
+    var user = req.params.user;
+    if(user==undefined || user == '') {
+        res.json({msg: ''});
+    }else{
+        var sql = "SELECT imgsrc FROM childs AS a " +
+            ", (SELECT child_id FROM users WHERE nickname='" + user + "') AS b" +
+            " WHERE a.`child_id`=b.`child_id`";
+        global.mysql.query(sql, function(err, rows){
+            if(rows.length > 0) res.json({url: rows[0].imgsrc});
+            else res.json({url:''});
+        })
+    }
+})
+// get user's last messsage
+app.get('/getLastMsg',function(req, res){
+    var nickname = req.query.nickname;
+    var cid = req.query.cid;
+    if(nickname==undefined || nickname == '') {
+        res.json({msg: ''});
+    }else{
+        var sql = "select id from message where sender='" + nickname + "' and in_out='1' order by id desc limit 0,1";
+        global.mysql.query(sql, function(err, rows){
+            if(rows.length == 0) res.json({msg: 'Error'});
+            else {
+                var lastID = rows[0].id;
+                sql = "select count(id) cnt from message where sender='" + nickname + "' and in_out='0' and id>='" + lastID + "'";
+                global.mysql.query(sql, function(err, rows){
+                    console.log(rows[0].cnt);
+                    res.json({msg: rows[0].cnt, cid:cid });
+                })
+            }
+        })
+    }
+})
+
+// get surename and user_id
+app.post('/getSureName', function(req, res){
+    var nickname = req.body.nickname;
+    var sql = "select user_name from users where nickname='" + nickname + "'";
+    global.mysql.query(sql, function(err, rows){
+        console.log(rows);
+        res.json(rows);
+    })
+})
 //
+app.post('/select_during', function(req, res){ //{during: $('#during').val()});
+    var during = req.body.during;
+    var bdate = new Date(), edate = new Date();
+
+    during = during * 1;
+    bdate.setDate(bdate.getDate()-(during + 1)*7 );
+    edate.setDate(edate.getDate()-during * 7);
+
+    var bstr = "";
+    var estr = "";
+    bstr = bdate.getFullYear() + "-" + (bdate.getMonth()+1) + "-" + bdate.getDate();
+    estr = edate.getFullYear() + "-" + (edate.getMonth()+1) + "-" + edate.getDate();
+
+    //var sql = "select sender, mdate,mtime,msg,imgsrc from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "') order by id";
+    var sql = "select sender, mdate,mtime,msg,imgsrc from message where (mdate between '" + bstr + "' and '" + estr + "') order by id";
+
+    global.mysql.query(sql, function(err, rows){
+        if (rows.length > 0){ res.json(rows) };
+    })
+})
+
+
+
 // ---------------- start of group chatting server ----------------------
 
 var count = 0;
 var rooms = [];
 
 io.sockets.on('connection',function(socket){
-    console.log('a user connected');
-
     // when moving position
     socket.on('location', function (data) {
         io.sockets.in('map').emit('location', data);
@@ -1104,33 +1374,62 @@ io.sockets.on('connection',function(socket){
         socket.join(data.room);
 
         var room = data.room;
+        var cid = data.cid;
+
         //var nickname = 'guest-'+count;
         var nickname = data.nickname;
 
         socket.room = room;
         socket.nickname = nickname;
+        socket.cid = cid;
 
         socket.emit('changename', {nickname: nickname});
 
+        var dt = new Date();
+        var sdate = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate();
+        var stime = dt.getHours() + ":" + dt.getMinutes()+":00";
+
         // Create Room
-        if (rooms[room] == undefined || rooms.length == 0) {
+        if (rooms[room] == undefined) {
             console.log('room create :' + room);
             rooms[room] = new Object();
             rooms[room].socket_ids = new Object();
+
+            // record room-open-time into db
+            var sql = "insert into message (sender, mdate, mtime, room, in_out)";
+            sql += " values('" + nickname + "','" + sdate + "','" +
+                    stime + "','" + room + "','1')";
+
+            global.mysql.query(sql, function (err, rows) {
+                if (err) { console.error(err);}
+            })
         }
         // Store current user's nickname and socket.id to MAP
+        rooms[room].cid = cid;
         rooms[room].socket_ids[nickname] = socket.id;
 
-        // broad cast join message
-        if (room == 'Staff'){
-            data = {msg: nickname + ' entered in room ' + room + '.\n'};
-           io.sockets.in(room).emit('broadcast_msg', data);
-        }
+        // broadcast join message
+        data = { msg: nickname + ' entered in room ' + room + '.'};
+        io.sockets.in(room).emit('broadcast_msg', data);
 
-        // broadcast changed user list in the room
         io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
-        count++;
+
+        if(room != 'Staff') // when parent creates a room, inform it to staff
+            io.sockets.in('Staff').emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
     });
+
+    socket.on('get-room-user-list',function(){
+        var roomnames = Object.keys(rooms); // namelist of all rooms
+        var usernames = [];
+        var cids = [];  // for getting phonenumber
+        for (var i=0; i<roomnames.length; i++){
+            var ur = Object.keys(rooms[roomnames[i]].socket_ids); // all nicknames in that room
+            console.log(ur);
+            usernames.push(ur);
+            cids.push(rooms[roomnames[i]].cid);
+        }
+        io.sockets.in('Staff').emit('roomuserlist', {rooms: roomnames, users:usernames, cids:cids});
+    })
 
     socket.on('changename',function(data){
         var room = socket.room;
@@ -1149,71 +1448,44 @@ io.sockets.on('connection',function(socket){
 
     socket.on('disconnect',function(data){
         var room = socket.room;
+        var nickname = socket.nickname;
+        console.log("disconnect room=" + room + " nickname="+nickname);
 
         if(room != undefined && rooms[room] != undefined){
 
-            var nickname = socket.nickname;
             console.log('nickname ' + nickname + ' has been disconnected\n');
             // broad cast <out room> message
             if (nickname != undefined) {
                 if (rooms[room].socket_ids != undefined
-                    && rooms[room].socket_ids[nickname] != undefined)
+                    && rooms[room].socket_ids[nickname] != undefined){
                     delete rooms[room].socket_ids[nickname];
-            }// if
-            if(room == 'Staff'){
-                data = {msg: nickname + ' was out.'};
-                io.sockets.in(room).emit('broadcast_msg', data);
-                io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
-            }
 
+                    var dt = new Date();
+                    var sdate = dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate();
+                    var stime = dt.getHours()+':'+dt.getMinutes()+':00';
+
+                    // record room-out-time into db
+                    var sql = "insert into message (sender, mdate, mtime, room, in_out)";
+                    sql += " values('" + nickname + "','" + sdate + "','" +
+                        stime + "','" + room + "','2')";
+
+                    global.mysql.query(sql, function (err, rows) {
+                        if (err) { console.error(err);}
+                    })
+
+                }
+
+            }// if
+           // if(room == 'Staff'){
+            data = {msg: nickname + ' was out.'};
+            io.sockets.in(room).emit('broadcast_msg', data);
+            io.sockets.in(room).emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+
+            if(room != 'Staff') // when parent creates a room, inform it to staff
+                io.sockets.in('Staff').emit('userlist', {users: Object.keys(rooms[room].socket_ids)});
+         //   }
         }
     });
-
-    socket.on('select_during', function(data){//{during: $('#during').val()});
-        var during = data.during;
-        var room = data.room;
-        var nickname = data.nickname;
-        var bdate = new Date(), edate = new Date();
-
-        if(during == "1"){
-            bdate.setDate(bdate.getDate()-7);
-            edate = new Date();
-        }else if(during=="2"){
-            bdate.setDate(bdate.getDate()-14);
-            edate.setDate(edate.getDate()-8);
-        }else if(during=="3"){
-            bdate.setDate(bdate.getDate()-21);
-            edate.setDate(edate.getDate()-15);
-        }else{
-            bdate.setDate(bdate.getDate()-30);
-            edate.setDate(edate.getDate()-22);
-        }
-        var bstr = "";
-        var estr = "";
-        bstr = bdate.getFullYear() + "-" + (bdate.getMonth()+1) + "-" + bdate.getDate();
-        estr = edate.getFullYear() + "-" + (edate.getMonth()+1) + "-" + edate.getDate();
-
-        //var sql = "select sender, mdate,mtime,msg,imgsrc from message where room='" + room +"' and (mdate between '" + bstr + "' and '" + estr + "') order by id";
-        var sql = "select sender, mdate,mtime,msg,imgsrc from message where (mdate between '" + bstr + "' and '" + estr + "') order by id";
-
-        global.mysql.query(sql, function(err, rows){
-            if (rows.length > 0){
-                data.msg = "Messages( " + bstr + " ~ " + estr + " )\n";
-                var socket_id = rooms[room].socket_ids[nickname];
-                if (socket_id != undefined) {
-                    io.to(socket_id).emit('broadcast_msg', data);
-                    for(i=0; i < rows.length; i++){
-                        data.msg = rows[i].msg;
-                        data.sender = rows[i].sender;
-                        data.mdate = rows[i].mdate;
-                        data.mtime = rows[i].mtime;
-                        data.imgsrc = rows[i].imgsrc;
-                        io.to(socket_id).emit('broadcast_msg', data);
-                    }// if
-                }
-            }
-        })
-    })
 
     socket.on('send_msg',function(data){
         var room = socket.room;
@@ -1231,12 +1503,14 @@ io.sockets.on('connection',function(socket){
             data.mdate = sdate;
             data.mtime = stime;
             data.msg = msg;
-            if (data.to == 'ALL') socket.broadcast.to(room).emit('broadcast_msg', data); // send to other clients except self
+            if (data.to == 'ALL')
+                socket.broadcast.to(room).emit('broadcast_msg', data); // send to other clients except self
             else {
                 // whisper
-                var socket_id = rooms[room].socket_ids[data.to];
+                socket_id = rooms[room].socket_ids[data.to];
                 if (socket_id != undefined) {
                     io.to(socket_id).emit('broadcast_msg', data);
+                    //io.sockets.socket(socket_id).emit('broadcast_msg', data);
                 }// if
             }
 
@@ -1246,9 +1520,7 @@ io.sockets.on('connection',function(socket){
             sql += sdate + "','" + stime + "','" + data.msg + "','" + room + "')";
 
             global.mysql.query(sql, function (err, rows) {
-                if (err) {
-                    console.error(err);
-                }
+                if (err) { console.error(err);}
             })
             socket.emit('broadcast_msg', data);
         }

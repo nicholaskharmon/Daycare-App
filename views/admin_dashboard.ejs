@@ -11,7 +11,7 @@
 <script src="/socket.io/socket.io.js"></script>
 
 <script type="text/javascript">
-    var socket = io.connect("http://192.168.4.148:8080");
+    var socket = io.connect("http://192.168.3.148:8080");
 
     var uid = '<%=uid%>';
     var nm = '<%=nname%>';
@@ -57,7 +57,8 @@
                     <button id="btnTimeLine" onclick="location.href='/timeline';"></button>
                 </div>
                 <div class="col-xs-4">
-                    <button id="btnMessenger" onclick="location.href='/chatting';"></button>
+                    <!--<button id="btnMessenger" onclick="location.href='/chatting';"></button>-->
+                    <button id="btnMessenger" onclick="location.href='/select-chat';"></button>
                 </div>
             </div>
             <div class="row">

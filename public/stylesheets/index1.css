@@ -19,33 +19,16 @@ input {
   text-indent: 10px;
 }
 
-#div-email,#div-pwd, #verify,#signup, #fbLogin{
+#div-email,#div-pwd, #verify, #repairPWD, #signup, #fbLogin{
     width:290px;
     height:40px;
-    margin:15px auto 0px auto;
+    margin:10px auto 0px auto;
     color : white;
     background-color: #ff9179;
     text-align: center;
-    padding-top: 5px;
-    font-size: 25px;
+    padding-top: 10px;
+    font-size: 20px;
     border-radius: 5px;
-    font-family: font92720;
-}
-#signup{
-    background-color: #4c8ccc;
-}
-
-#repairPWD{
-    width:100%;
-    text-align: center;
-    margin-top:20px;
-}
-
-a{
-    color:white;
-    text-decoration-line: none;
-    font-size:20px;
-    font-family: font92720;
 }
 
 #div-email{
@@ -66,22 +49,11 @@ a{
     background-color: #3469af;
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-    transition: background-color 5000s ease-in-out 0s;
-}
-
 #email, #pwd {
     width : 220px;
     height: 30px;
-    border: none;
+    border:none;
     margin-left: 50px;
     text-indent: 10px;
     border-radius: 3px;
-    background: transparent;
-    color: #4c8ccc;
-    font-size:20px;
 }
-

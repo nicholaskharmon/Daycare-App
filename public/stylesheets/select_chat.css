@@ -1,0 +1,100 @@
+html{
+}
+
+body{
+    /*background: url("/images/bg.png") no-repeat top center fixed !important;*/
+    /*-webkit-background-size: cover;*/
+    /*-moz-background-size: cover;*/
+    /*-o-background-size: cover;*/
+    /*background-size: cover;*/
+    /*background-attachment: fixed;*/
+    margin:0px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    margin:0px;
+    max-height: 100%;
+}
+
+h2{
+    margin:0px;
+    color: navy;
+}
+
+#div-head{
+    position:fixed;
+    top:0px;
+    height:50px;
+    padding:0px;
+    width: 100%;
+    background-color: #eaee9a;
+}
+
+#homebtn{
+    height:30px;
+    float:left;
+    margin-left:10px;
+    color:navy;
+    font-size:22px;
+    margin-top:10px;
+}
+
+#div-main{
+  margin:90px 5% 90px 5%;
+  width:90%;height:70%;
+}
+
+.msg{
+    background-color: rgba(243,243,156,0.6);
+    padding:5px;
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    border-radius:5px;
+    box-shadow: 5px 5px 5px #888;
+    margin-right:15px;
+}
+
+.stime{
+  font-size:10px;
+  padding: 10px;
+}
+
+#msgs{
+    width:100%; border:none; height:100%;
+    padding : 0px;
+    overflow-y: scroll;
+}
+
+ul {
+    list-style-type: none;
+}
+
+#msgs li {
+    width:100%;
+    margin: 0px;
+    padding-left:0px;
+    overflow-x: hidden;
+    font-size : 18px;
+}
+#msgs img{
+    width:100px;
+    height:100px;
+    margin:5px;
+    display:inline-block;
+}
+#msgs td{
+   vertical-align:middle;
+    height:55px;
+    font-size: 18px;
+    color:navy;
+}
+.div-note{
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+#div-to{
+    height:30px;
+    width:30%;
+    float:left;
+    margin-left:10px;
+    display: none;
+}

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sunshine and Sprout Daycare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+	<link rel='stylesheet' type="text/css" href='/stylesheets/select_chatting.css' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+<div id="div-body">
+	<div id="notify" style="display: none;width:100%; height:250px;background-color:#00b7ff;">
+		<br>
+		<h3 style="text-align: center" id="msg"></h3>
+		<button onclick="hide();" style="width:20%;height:30px;margin-left: 40%;">Close</button>
+		<br>
+	</div>
+
+    <div id="div-head">
+        <img id="backBtn" src="/images/backbtn_blue.png" onclick="window.history.back();">
+        <!--<i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>-->
+        <h2>Select Chat</h2>
+    </div>
+
+    <div id="div-main">
+		<div id = "div-child-list" >
+			<ul class = "ul-childs" style="padding-left: 0px;">
+
+            </ul>
+		</div>
+		<br>
+	</div>
+	<br>
+</div>
+
+<script type="text/javascript">
+    var childList = []; // container of childs informations
+    var selectedCID = '';
+
+    var socket = io.connect("http://192.168.3.148:8080");
+    var nm = '<%=nname%>';
+    var rm = '<%=room%>';
+    var count = 0;
+    /* items : array that contains information of roomName, userName and childID
+     structure: [[roomname, nickname, cid],...]
+     example: [[roomname1, user1_1, cid1],[roomname1, user1_2, cid1],
+     [roomname2, user2_1, cid2],...,[roomname2, user2_4, cid2],
+     [roomname3, user3_1, cid3],...,[roomname3, user3_5, cid3]]
+     * */
+    var items = []; // Array of array [roomname, username, photourl]
+
+//    console.log('room is '+rm+'. name is ' + nm);
+    socket.emit('joinroom',{room:'Staff', nickname:nm});
+
+    socket.on('userlist', function(){
+        socket.emit('get-room-user-list');
+    })
+
+    socket.on('roomuserlist', function (data) {
+        items = [];
+//        console.log(data);
+        var rooms = data.rooms;
+        var cids = data.cids;
+
+//        console.log(rooms);
+//        console.log(cids);
+
+        for(var i=0; i<rooms.length; i++){
+            var users = data.users;
+            for(var j=0; j<users[i].length; j++){
+                if(rooms[i]=='Staff') continue;
+                var item = [];
+                item.push(rooms[i]);
+                item.push(users[i][j]);
+                item.push(cids[i]);
+                items.push(item);
+            }
+        }
+//        console.log(items);
+
+        var markCircles = $('.mark-circle');
+//        console.log(markCircles);
+        $.each(markCircles, function(key, val){
+            $(val).html('');
+            $(val).parent().css("display","none");
+        })
+//        console.log(items);
+        for (var i = 0; i < items.length; i++) {
+            if(items[i][1] == nm) continue;
+            // get number of messages of each user using messenger from server
+            $.ajax({
+                url:'/getLastMsg', data:{nickname:items[i][1],cid:items[i][2]},
+                type:'get', datatype:'JSON', async:false,
+                success:function(data){
+//                    console.log(data);
+                    var cnt = data.msg, cid = data.cid;
+                    var oldcnt = $("#mark-"+cid).html(); // when father and mother are in chatting room, sum their number of msgs.
+                    if(oldcnt == '' || oldcnt == undefined) oldcnt = 0;
+                    else oldcnt = oldcnt * 1;
+                    $("#mark-"+cid).parent().css("display","block");
+                    $("#mark-"+cid).html(cnt*1 + oldcnt);
+                }
+            })
+        }
+    });
+
+    socket.on('broadcast_msg', function (data) {
+        var ind = items.indexOf(data.sender);
+        $('#user' + ind).text(data.msg);
+    })
+
+    function hide(){
+        $('#notify').attr({'style':'display:none'});
+    }
+
+    function loadChildList(){
+        $.ajax({
+            url : "/getChildList",
+            dataType : "JSON",
+            success : function(data){
+                console.log(data);
+                childList = data;
+
+                var ul_childs = $(".ul-childs");
+
+                if(childList != undefined){
+                    ul_childs.empty();
+
+                    for(var i = 0; i < childList.length; i++){
+                        var cid = childList[i].cid;
+                        var namepart = (childList[i].child_name).trim().split(' ');
+                        var name = namepart[0].substr(0,1).toUpperCase() + namepart[0].substr(1);
+                        if(namepart.length > 1)
+                            name += " " + namepart[1].substr(0,1).toUpperCase() + ".";
+                        ul_childs.append(
+                                '<li id="child-' + cid + '" class="child_item" cid="'+ cid +'">' +
+                                '<div class="tile pointable" id="pframe-' + cid + '">' +
+                                '<img class="photo" src="'+ childList[i].imgsrc +'">' +
+                                '<div class="mark">' +
+                                '<span class="mark-circle" id="mark-'+ cid +'">' + cid + '</span>' +
+                                '</div>' +
+                                '</div>' +
+                                '<div class="note mask" >' +
+                                '<span id="cname-' + cid + '">' + name + '</span>' +
+                                '</div>' +
+                                '</li>'
+                        );
+                        // event when click photo
+                        $("#child-"+ cid).on("click", function(){
+                            var cid = $(this).attr('cid');
+                            var room = '';
+//                            alert(cid);
+                            if($('#mark-'+cid).parent().css('display')=='none') return;
+                            $.each(items, function(ind, val){
+                                console.log(val);
+                                if(val[2]== cid) {room = val[0]; return false;}
+                            })
+                            console.log('cid-'+cid+' room-'+room);
+                            location.href ='/chatting?room='+ room +'&nname=' + nm + '&cid=' + cid;
+                        });
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("error")
+            }
+        })
+    }
+
+    $(document).ready(function() {
+        $("#div-main").css("margin-left", ($(document).width() % 100)/2);
+
+        loadChildList();
+    })
+
+</script>
+
+</body>
+</html>

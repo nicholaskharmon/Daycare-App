@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Daycare</title>
+
+    <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel='stylesheet' type="text/css" href='/stylesheets/parent_chatting.css' />
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/jquery.backstretch.min.js"></script>
+    <script src="/javascripts/jquery-ui-1.12.1.js"></script>
+
+</head>
+<body >
+
+<!-- Form to notify OnMyWay Event  -->
+<div id="notify-dialog" title="Information" style="display: none;">
+    <form>
+        <fieldset>
+            <p class="validateTips"><%= nname %> is on Way.</p>
+            <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
+            <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+        </fieldset>
+    </form>
+</div>
+
+    <div id="div-head" style="text-align: center;">
+        <!--<div style="width:100%; height:25px;">-->
+        <div id="homebtn" onclick="location.href='/dashboard'" >
+            <i class="fa fa-angle-left" style="font-size:30px;float: left;" onclick="location.href='/dashboard'"></i>
+             &nbsp;Home
+        </div>
+
+        <div id="div-to">
+            <select id="to" style="height:25px; width:100%">
+                <option value="ALL">ALL</option>
+            </select>
+        </div>
+
+        <div style="float:right;margin-right:10px;margin-top: 10px;">
+            <div id="btnsearch" style="width:30px;height:30px;float:right;
+            background-image: url(/images/search-b.png);"></div>
+            <ul id="during" style="display: none;">
+                <!--<option value="">Review</option>-->
+                <li class="weeks" value="1week">~ 7 days ago</li>
+                <li class="weeks" value="2week">8 days ago ~ 14 days ago</li>
+                <li class="weeks" value="3week">15 days ago ~ 21 days ago</li>
+                <li class="weeks" value="4week">22 days ago ~ 30 days ago</li>
+            </ul>
+        </div>
+        <h2 style="text-align:center;display:inline-block;margin-top: 10px;"><%=room%></h2>
+        <!--</div>-->
+    </div>
+
+    <div id="div-main" >
+        <ul id="msgs"></ul>
+        <!--<textarea id="msgs"></textarea>-->
+    </div>
+
+    <div id="div-bottom">
+        <div id="addphoto"></div>
+        <div id="phonecall"></div>
+        <div id="send">Send</div>
+        <input type="text" id="msgbox"/>
+    </div>
+
+    <div id="add-tip" style="width:162px;height:139px;display:none">
+        <form id="photoUploadForm" action="/upload-msg-photo" method="post">
+        <label id="file-wraper" for="photo-selector">
+            <input id="photo-selector" name="photo-selector" type="file"  accept="image/*" capture="camera">
+        </label>
+        </form>
+    </div>
+
+    <div id="phone-modal" title="Call" style="display: none;">
+        <form>
+            <fieldset>
+                <div id="div-father">
+                    <h4>Father</h4>
+                    <div style="height:40px;background: url('/images/office-phone-icon.png') no-repeat center center">
+                        <a href="tel:703-987-6037" id="father-number"></a>
+                    </div>
+                </div>
+                <div id="div-mother">
+                    <h4>Mother</h4>
+                    <div style="height:40px;background: url('/images/office-phone-icon.png') no-repeat center center">
+                        <a href="tel:703-987-6037" id="mother-number"></a>
+                    </div>
+                </div>
+                <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+        </form>
+    </div>
+
+
+<script type="text/javascript">
+        $.backstretch("/images/bg.png");
+
+        var socket = io.connect("http://192.168.3.148:8080");
+        var nm = '<%=nname%>';
+        var rm = '<%=room%>';
+        var cid = '<%=cid%>';
+        var count = 0;
+
+        console.log('room is '+rm+'. name is ' + nm);
+        socket.emit('joinroom',{room:rm, nickname:nm, cid:cid});
+//        socket.emit('joinroom',{room:'map', nickname:nm});
+        // comment
+        var phone_dialog = $( "#phone-modal" ).dialog({
+            autoOpen: false,
+            modal: true,
+            close: function() {
+                phone_form[0].reset();
+            }
+        });
+
+        var phone_form = phone_dialog.find( "form" ).on( "submit", function( event ) {
+            event.preventDefault();
+        });
+
+        $(document).ready(function() {
+            // get father & mother's phone number
+            $.ajax({
+                url:'/get-phone-number/'+cid, type:'get', datatype:'JSON',
+                success:function(data){
+                    console.log(data);
+                    var fnum = data.fatherNumber;
+                    var mnum = data.motherNumber;
+
+                    if(fnum == undefined) fnum = '';
+                    if(mnum == undefined) mnum = '';
+
+                    $('#mother-number').attr("href", "tel:" + mnum);
+                    $('#father-number').attr("href", "tel:" + fnum);
+                }
+            })
+
+            // select photo, upload it
+            $("#photo-selector").change(function(e){
+                var selector = $("#photo-selector");
+
+                if(selector[0].files && selector[0].files[0]){
+                    var data = new FormData();
+                    $.each(selector[0].files, function(i, file) {
+                        data.append('file-' + i, file);
+                    });
+
+                    $.ajax({
+                        url: '/upload-msg-Photo', type: "post",dataType: "JSON",
+                        data: data,
+                        // cache: false,
+                        processData: false,
+                        contentType: false,
+                        success: function(data, textStatus, jqXHR) {
+                            console.log('upload complete');
+                            socket.emit('send_photo', data);
+                        //    alert(data);
+                        }, error: function(jqXHR, textStatus, errorThrown) {}
+                    });
+                }
+            })
+
+            $("#phonecall").click(function(){
+                phone_dialog.dialog("open");
+            })
+
+            $("#addphoto").click(function(){
+                $("#file-wraper").click();
+            })
+
+            //=========  chatting code
+            $("#during").change(function () {
+                if($('#during').val() != ''){
+                    $('#msgs').empty();
+                    count = 0;
+                    socket.emit('select_during', {during: $('#during').val(),room:'Staff', nickname:nm});
+                }
+            });
+
+            $("#msgbox").keyup(function (event) {
+                if (event.which == 13) {
+                    var d = new Date();
+                    var txt = $('#msgbox').val();
+                    socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                    $('#msgbox').val('');
+                }
+            });
+
+            $("#send").click(function () {
+                var d = new Date();
+                var txt = $('#msgbox').val();
+                socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                $('#msgbox').val('');
+            });
+
+            socket.on('new', function (data) {
+                console.log(data.nickname);
+                $('#nickname').val(data.nickname);
+            });
+
+            // when new user enter or user change name, change <To> list
+            socket.on('userlist', function (data) {
+                var users = data.users;
+                console.log(users);
+                $('#to').empty().append('<option value="ALL">ALL</option>');
+                for (var i = 0; i < data.users.length; i++) {
+                    $('#to').append('<option value="' + users[i] + '">' + users[i] + '</option>');
+                }
+            });
+
+            socket.on('notify', function(data){
+                var nickname = data.nickname;
+                // Error
+                console.log('Get notify');
+                var notify_dialog = $( "#notify-dialog" ).dialog({
+                    autoOpen: false,
+                    height: 200,
+                    width: 300,
+                    modal: true,
+                    buttons: {
+                        "Close": function(){ notify_dialog.dialog("close");}
+                    },
+                    close: function() {
+                        notify_form[0].reset();
+                        //food_Fields.removeClass( "ui-state-error" );
+                    }
+                });
+
+                var notify_form = notify_dialog.find( "form" ).on( "submit", function( event ) {
+                    event.preventDefault();
+                });
+
+            })
+
+            socket.on('broadcast_msg', function (data) {
+                var direction, align;
+                var msg = data.msg;
+                var sender = data.sender;
+                var sd = data.mdate;
+                var mdate = "";
+                if(sd != undefined && sd != ""){
+                    var d = new Date(sd);
+                    mdate = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+                }
+                var mtime = data.mtime;
+                var imgsrc = data.imgsrc;
+
+                if(msg == undefined) msg = "";
+                if(mdate == undefined) mdate = "";
+                if(mtime == undefined) mtime = "";
+
+                if(sender != nm) {
+                    direction = "float:left;";
+                    align = "text-align:left;";
+                }
+                else {
+                    direction = "float:right;";
+                    align = "text-align:right;";
+                }
+                if(sender != undefined && sender != nm) msg = sender + ":" + msg;
+
+                var shtml = '<li style="width:100%;">' +
+                        '<div class="msg" style="width:80%;' + direction + '">'+
+                        '<span>'+msg +'</span><br>';
+                if(imgsrc != undefined && imgsrc !="")
+                    shtml += '<img id="photo" style="width:100%" src="'+ imgsrc +'" >';
+
+                shtml += '</div><br>' +
+                        '<span class= "stime" style="width:80%;' + align + direction + '">' +
+                        mdate + " " + mtime + '</span>'+
+                        '</li>';
+                $('#msgs').append(shtml );
+                $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
+            });
+
+            $("#btnsearch").click(function(){
+                $("#during").slideDown(500);
+            })
+
+            $(".weeks").click(function(){
+                if($(this).val() != ''){
+                    $('#msgs').empty();
+                    socket.emit('select_during', {during: $(this).val(),room:rm, nickname:nm});
+                }
+                $("#during").slideUp(300);
+            })
+
+        })
+    </script>
+</body>
+</html>

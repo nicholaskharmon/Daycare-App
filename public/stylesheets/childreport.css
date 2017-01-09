@@ -145,6 +145,7 @@ div .cell{
     font-size: 17px;
     color:red;
     padding-top: 20px;
+    text-align: right;
  }
 .div1{
     width:35%;
@@ -156,7 +157,7 @@ div .cell{
 }
 
 .div2{
-    width:45%;
+    width:40%;
     height:30px;
     display:inline-block;
     float:left;
@@ -165,12 +166,13 @@ div .cell{
 }
 
 .div3{
-    width:20%;
+    width:25%;
     height:30px;
     display:inline-block;
     float: right;
     font-size: 17px;
     color : red;
+    text-align: right;
 }
 
 .cell1{

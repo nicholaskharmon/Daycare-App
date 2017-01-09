@@ -3,7 +3,6 @@
 <head>
 	<title>Sunshine and Sprout Daycare</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel='stylesheet' type="text/css" href='/stylesheets/select_child_activity.css' />
 </head>
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
@@ -31,16 +30,21 @@
 
                     for(i = 0; i < childList.length; i++){
                         var cid = childList[i].cid;
+                        var namepart = (childList[i].child_name).trim().split(' ');
+                        var name = namepart[0].substr(0,1).toUpperCase() + namepart[0].substr(1);
+                        if(namepart.length > 1)
+                            name += " " + namepart[1].substr(0,1).toUpperCase() + ".";
+
                         ul_childs.append(
                             '<li id="' + cid + '" class="child_item">' +
                                 '<div class="tile pointable" style="background-image: url(' + childList[i].imgsrc + ');">' +
                                     '<div  style="height:100%">' +
 
-                                        '<div class="fill inside-border tile-menu-border" style="display:none;" id="cbd-' + cid + '"></div>' +
+                                        '<div class="fill inside-border tile-menu-border" id="cbd-' + cid + '"></div>' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="note mask" >' +
-                                    '<span id="cname-' + cid + '">' + childList[i].child_name + '</span>' +
+                                    '<span id="cname-' + cid + '">' + name + '</span>' +
                                 '</div>' +
                             '</li>'
                         );
@@ -48,12 +52,12 @@
                         $("#"+ childList[i].cid).on("click", function(){
                             cid = $(this).attr('id');
                             var brd = $("#cbd-" + cid);
-                            if(brd.is(':visible')) {
+                            if(selectedCIDs.indexOf(cid) >= 0) {
                                 selectedCIDs.splice(selectedCIDs.indexOf(cid),1);
-                                brd.hide();
+                                brd.css("border-color", "#3E8ACC"); // to blue
                             } else {
                                 selectedCIDs.push(cid);
-                                brd.show();
+                                brd.css("border-color", "#f2ae43"); // to orange
                             }
 
                             console.log(selectedCIDs);
@@ -72,6 +76,12 @@
         // Returns width of browser viewport
         $('#div-main').css('margin-left', ($(window).width() % 100)/2);
         loadChildList();
+
+        $("#btnAdd").click(function(){
+            if(selectedCIDs.length == 0 ) alert("Select Children.");
+            else             location.href='/add-activity';
+        })
+        $("#btnBack").click(function(){ window.history.back(); });
     })
 
 </script>
@@ -84,8 +94,8 @@
 		<br>
 	</div>
     <div id="div-head" style="text-align: center;">
-        <i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>
-        <i class="fa fa-plus" onclick="location.href='/add-activity'"></i>
+        <img src="/images/backbtn_blue.png" id="btnBack">
+        <img src="/images/plus_blue.png" id="btnAdd">
         <h3 style="display:inline-block;">Select Child Activities</h3>
     </div>
 

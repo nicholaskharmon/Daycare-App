@@ -2,10 +2,10 @@
 <html>
   <head>
     <title><%= title %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1, minimum-scale=1,user-scalable=no">
     <link rel='stylesheet' type="text/css" href='/stylesheets/index.css' />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1, minimum-scale=1,user-scalable=no">
     <!--<meta name="viewport" content="width=device-width,user-scalable=no">-->
-    <link href="https://www.fontify.me/wf/e6a3c17c14d6295d075e29aa38e455ce" rel="stylesheet" type="text/css">  </head>
+  </head>
   <script type="text/javascript" >
     function check(){
       var email = document.getElementById("email");
@@ -30,9 +30,10 @@
       <div id="div-pwd">
           <input type="password" id="pwd" name="pwd" placeholder="Password">
       </div>
-      <div id="verify" onclick="check();">Login</div>
+      <div id="verify" onclick="check();">Login with Email</div>
+      <div id="repairPWD" onclick="location.href='/recoverpwd';">Forgot Password?</div>
       <div id="signup" onclick="location.href='/signup';">Sign Up</div>
-      <div id="repairPWD"><a href="/recoverpwd">Forgot Password?</a></div>
+      <div id="fbLogin" onclick="location.href='/auth/facebook';">Login with Facebook</div>
     </form>
   </body>
 </html>

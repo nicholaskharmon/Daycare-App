@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Daycare</title>
+
+    <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel='stylesheet' type="text/css" href='/stylesheets/admin_chatting.css' />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/javascripts/jquery-ui-1.12.1.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/javascripts/jquery.backstretch.min.js"></script>
+
+</head>
+<body >
+
+    <!-- Form to notify OnMyWay Event  -->
+    <div id="notify-dialog" title="Information" style="display: none;">
+        <form>
+            <fieldset>
+                <p class="validateTips"><%= nname %> is on Way.</p>
+                <!--<input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
+                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+        </form>
+    </div>
+
+    <div id="div-head" style="text-align: center;">
+        <img id="backBtn" src="/images/backbtn_blue.png" onclick="window.history.back();">
+
+        <!--<div id="rightBtns" >-->
+            <div class="dropdown setting">
+                <button class="btn btn-default dropdown-toggle" type="button" id="btn-setting" data-toggle="dropdown">
+                    <span class="glyphicon glyphicon-tasks"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" id="ul-setting">
+                </ul>
+            </div>
+
+            <div class="dropdown user">
+                <button class="btn btn-default dropdown-toggle" type="button" id="btn-user" data-toggle="dropdown">
+                    <span class="glyphicon glyphicon-user"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" id="ul-user">
+                </ul>
+            </div>
+        <!--</div>-->
+
+        <h2 >Chat</h2>
+        <!--</div>-->
+    </div>
+
+    <div id="div-main" >
+        <ul id="msgs"></ul>
+        <!--<textarea id="msgs"></textarea>-->
+    </div>
+
+    <div id="div-bottom">
+        <div id="phonecall"></div>
+        <div id="addphoto"></div>
+        <div id="send">Send</div>
+        <input type="text" id="msgbox"/>
+    </div>
+
+    <div id="add-tip" style="width:162px;height:139px;display:none">
+        <form id="photoUploadForm" action="/upload-msg-photo" method="post">
+        <label id="file-wraper" for="photo-selector">
+            <input id="photo-selector" name="photo-selector" type="file"  accept="image/*" capture="camera">
+        </label>
+        </form>
+    </div>
+
+    <div id="phone-modal" title="Call" style="display: none;">
+        <form>
+            <fieldset>
+                <div id="div-father">
+                    <h4>Father</h4>
+                    <div style="height:40px;background: url('/images/phone_blue.png') no-repeat center center">
+                        <a href="tel:703-987-6037" id="father-number"></a>
+                    </div>
+                </div>
+                <div id="div-mother">
+                    <h4>Mother</h4>
+                    <div style="height:40px;background: url('/images/phone_blue.png') no-repeat center center">
+                        <a href="tel:703-987-6037" id="mother-number"></a>
+                    </div>
+                </div>
+                <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+        </form>
+    </div>
+
+
+<script type="text/javascript">
+        $.backstretch("/images/bg.png");
+
+        var socket = io.connect("http://192.168.3.148:8080");
+        var nm = '<%=nname%>';
+        var rm = '<%=room%>';
+        var cid = '<%=cid%>';
+        var count = 0;
+        var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
+        /* items : array that contains information of roomName, userName and childID
+         structure: [[roomname, nickname, cid],...]
+         example: [[roomname1, user1_1, cid1],[roomname1, user1_2, cid1],
+         [roomname2, user2_1, cid2],...,[roomname2, user2_4, cid2],
+         [roomname3, user3_1, cid3],...,[roomname3, user3_5, cid3]]
+         * */
+        var items = []; // Array of array [roomname, username, photourl]
+
+        function isoTime2Local(isoTime){ // 13:01:33 -> 1:01 PM
+            var ss = isoTime.split(':'), result = '';
+            if(ss[0]*1 > 13) result = (ss[0]*1-12) + ':' + ss[1];
+            else result = (ss[0]*1-12) + ':' + ss[1];
+
+            if(ss[0]*1 > 12) result += ' PM';
+            else result += ' AM';
+            return result;
+        }
+
+        function isoDate2Local(isodate){ // 1978-01-13 -> Jan 13 1978
+            var ss = isodate.split();
+            result = smonths[ss[1]-1] + ' ' + ss[2] + ' ' + ss[0];
+            return result;
+        }
+
+        function getLocalDate(){ // Jan 13 1978
+            var ss = new Date();
+            result = smonths[ss.getMonth()] + ' ' + ss.getDate() + ' ' + ss.getFullYear();
+            return result;
+        }
+
+        console.log('room is '+rm+'. name is ' + nm);
+        socket.emit('joinroom',{room:rm, nickname:nm, cid:cid});
+//        socket.emit('joinroom',{room:'map', nickname:nm});
+
+        socket.on('new', function (data) {
+            console.log(data.nickname);
+            $('#nickname').val(data.nickname);
+        });
+
+        // when new user enter or user change name, change dropdown menu <Setting>
+        socket.on('userlist', function (data) {
+            socket.emit('get-room-user-list');
+
+            var users = data.users;
+            var shtml = '';
+            console.log(users);
+
+            $('#ul-setting').empty().append('<li class="dropdown-header" id="parentList">Parents</li>');
+
+            $.each(users, function(ind, user){
+                console.log("user:"+user);
+                if(user != nm) {
+                    $.ajax({
+                        url:'/getSureName', type:'post', datatype:'JSON',
+                        data:{nickname: user},
+                        success: function(data){
+                            if(data != undefined) {
+                                shtml = '<li id="p-'+data.uid+'" uid="'+data.uid+'"><a tabindex="-1">' + data.surename + '</a>' +
+                                        '<span class="glyphicon glyphicon-ok chkmark"></span>' +
+                                        '</li>' +
+                                        '<li  class="divider"></li>';
+                                $('#ul-setting').append(shtml);
+
+                                // add event listener
+                                $('#p-'+data.uid).on('click', function(){
+
+                                })
+                            }
+                        }
+                    })
+                }
+            })
+
+            $('#ul-setting').append('<li class="dropdown-header">Timeline</li>');
+
+            var items = ['All','Last Week','1-2 Weeks Ago','2-3 Weeks Ago','3-4 Weeks Ago'];
+            $.each(items, function(key, val){
+                shtml = '<li id="during-'+key+'" val="'+key+'"><a tabindex="-1">'+ val +'</a>' +
+                            '<span class="glyphicon glyphicon-ok chkmark"></span>' +
+                        '</li>' +
+                        '<li  class="divider"></li>';
+                $('#ul-setting').append(shtml);
+
+                $('#during-'+key).on('click', function(){
+
+                    $.ajax({
+                        url:'/select_during', type:'post', datatype:'JSON',
+                        data:{during : $(this).attr("val")},
+                        success: function(rows){
+                            $.each(rows, function(ind, row){
+                                // sender, mdate,mtime,msg,imgsrc
+                                var direction, align;
+                                var msg = row.msg;
+                                var sender = row.sender;
+                                var sd = row.mdate;
+                                var mdate = "";
+                                var surename = "";
+
+                                if(sd != undefined && sd != "") mdate = isoDate2Local(sd);
+
+                                var mtime = row.mtime;
+                                var imgsrc = row.imgsrc;
+
+                                if(msg == undefined) msg = "";
+                                if(mtime == undefined) mtime = "0:00 AM";
+                                else mtime = isoTime2Local(mtime);
+
+                                if(sender != nm) {
+                                    direction = "float:left;";
+                                    align = "text-align:left;";
+                                }
+                                else {
+                                    direction = "float:right;";
+                                    align = "text-align:right;";
+                                }
+
+                                // get surename
+                                $.ajax({ url:'/getSureName', data:{nickname:sender}, datatype:'json',
+                                    type:'post', async : false,
+                                    success:function(data){ console.log("data "+data);surename = data.user_name; }
+                                })
+
+                                var shtml = '<li style="width:100%;">' +
+                                        '<div class="msg" style="max-width:80%;' + direction + '">'+
+                                        '<span>'+msg +'</span><br>';
+                                if(imgsrc != undefined && imgsrc !="")
+                                    shtml += '<img id="photo" style="width:100%" src="'+ imgsrc +'" >';
+
+                                shtml += '</div><br>' +
+                                        '<span class= "sender" style="max-width:80%;' + align + direction + '">' + surename + '</span><br>'+
+                                        '<span class= "stime" style="max-width:80%;' + align + direction + '">' +
+                                        mtime + " " + mdate + '</span>'+
+                                        '</li>';
+                                $('#msgs').append(shtml );
+                                $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
+                            })
+                        }
+                    })
+                })
+            });
+        });
+
+        socket.on('roomuserlist', function (data) {
+//        console.log(data);
+            var rooms = data.rooms, cids = data.cids, users = data.users;
+            items = [];
+
+//        console.log(rooms);
+//        console.log(cids);
+
+            for(var i=0; i<rooms.length; i++){
+                for(var j=0; j<users[i].length; j++){
+                    if(rooms[i]=='Staff') continue;
+                    var item = [];
+                    item.push(rooms[i]);
+                    item.push(users[i][j]);
+                    item.push(cids[i]);
+                    items.push(item);
+                }
+            }
+
+        });
+
+        socket.on('notify', function(data){
+            var nickname = data.nickname;
+            // Error
+            console.log('Get notify');
+            var notify_dialog = $( "#notify-dialog" ).dialog({
+                autoOpen: false,
+                height: 200,
+                width: 300,
+                modal: true,
+                buttons: {
+                    "Close": function(){ notify_dialog.dialog("close");}
+                },
+                close: function() {
+                    notify_form[0].reset();
+                    //food_Fields.removeClass( "ui-state-error" );
+                }
+            });
+
+            var notify_form = notify_dialog.find( "form" ).on( "submit", function( event ) {
+                event.preventDefault();
+            });
+
+        })
+
+        socket.on('broadcast_msg', function (data) {
+            var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
+            var direction, align;
+            var msg = data.msg;
+            var sender = data.sender;
+            var sd = data.mdate;
+            var mdate = "";
+            var surename = "";
+
+            if(sd != undefined && sd != "") mdate = isoDate2Local(sd);
+
+            var mtime = data.mtime;
+            var imgsrc = data.imgsrc;
+
+            if(msg == undefined) msg = "";
+            if(mtime == undefined) mtime = "0:00 AM";
+            else mtime = isoTime2Local(mtime);
+
+            if(sender != nm) {
+                direction = "float:left;";
+                align = "text-align:left;";
+            }
+            else {
+                direction = "float:right;";
+                align = "text-align:right;";
+            }
+
+            // get surename
+            $.ajax({ url:'/getSureName', data:{nickname:sender}, datatype:'json',
+                type:'post', async : false,
+                success:function(data){ surename = data.rows[0].user_name; console.log(surename);}
+            })
+
+            var shtml = '<li style="width:100%;">' +
+                    '<div class="msg" style="max-width:80%;' + direction + '">'+
+                    '<span>'+msg +'</span><br>';
+            if(imgsrc != undefined && imgsrc !="")
+                shtml += '<img id="photo" style="width:100%" src="'+ imgsrc +'" >';
+
+            shtml += '</div><br>' +
+                    '<span class= "sender" style="max-width:80%;' + align + direction + '">' + surename + '</span><br>'+
+                    '<span class= "stime" style="max-width:80%;' + align + direction + '">' +
+                    mtime + " " + mdate + '</span>'+
+                    '</li>';
+            $('#msgs').append(shtml );
+            $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
+        });
+/*
+        socket.on('broadcast_msg', function (data) {
+            var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
+            var direction, align;
+            var msg = data.msg;
+            var sender = data.sender;
+            var sd = data.mdate;
+            var mdate = "";
+            var surename = "";
+
+            if(sd != undefined && sd != "") mdate = isoDate2Local();
+
+            var mtime = data.mtime;
+            var imgsrc = data.imgsrc;
+
+            if(msg == undefined) msg = "";
+            if(mtime == undefined) mtime = "0:00 AM";
+            else mtime = isoTime2Local(mtime);
+
+            if(sender != nm) {
+                direction = "float:left;";
+                align = "text-align:left;";
+            }
+            else {
+                direction = "float:right;";
+                align = "text-align:right;";
+            }
+
+            // get surename
+            $.ajax({ url:'/getSureName', data:{nickname:sender}, datatype:'json',
+                type:'post', async : false,
+                success:function(data){ surename = data.user_name; }
+            })
+
+            var shtml = '<li style="width:100%;">' +
+                    '<div class="msg" style="max-width:80%;' + direction + '">'+
+                    '<span>'+msg +'</span><br>';
+            if(imgsrc != undefined && imgsrc !="")
+                shtml += '<img id="photo" style="width:100%" src="'+ imgsrc +'" >';
+
+            shtml += '</div><br>' +
+                    '<span class= "sender" style="max-width:80%;' + align + direction + '">' + surename + '</span><br>'+
+                    '<span class= "stime" style="max-width:80%;' + align + direction + '">' +
+                    mtime + " " + mdate + '</span>'+
+                    '</li>';
+            $('#msgs').append(shtml );
+            $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
+        });
+*/
+        // comment
+        var phone_dialog = $( "#phone-modal" ).dialog({
+            autoOpen: false,
+            modal: true,
+            close: function() {
+                phone_form[0].reset();
+            }
+        });
+
+        var phone_form = phone_dialog.find( "form" ).on( "submit", function( event ) {
+            event.preventDefault();
+        });
+
+        function initChildList(){
+            var shtml = "";
+            $.ajax({
+                url : "/getChildList",
+                dataType : "JSON",
+                success : function(data){
+                    $.each(data, function(ind, row){
+                        // cid, child_name, imgsrc
+                        var cid = row.cid, cname = row.child_name, imgurl = row.imgsrc;
+                        var ss = cname.split(' ');
+                        var rname = ss[0].charAt(0).toUpperCase() + ss[0].substring(1);
+                        if(ss.length > 1) // get child name as Lenon G. from lenono gay
+                            rname += ' ' + ss[1].charAt(0).toUpperCase()+'.';
+
+                        cname = ss[0].charAt(0).toUpperCase() + ss[0].substring(1);
+                        if(ss.length > 1) // get child name as Lenon G. from lenono gay
+                            cname += ' ' + ss[1].charAt(0).toUpperCase()+ss[1].substring(1);
+
+                        // if current chatting room, show checkmark
+                        var visible = (rname + " Chat" == rm);
+                        var showblock = visible ? 'style="display:block"' :'style="display:none"';
+                        // if current chatting room, make bold
+                        var bold = visible ? 'style="font-weight:bold;"': '';
+                        // if current chatting room, show icon-ok, else icon-envelope
+                        var chksim = visible ? 'glyphicon-ok':'glyphicon-envelope';
+
+                        shtml = '<li id="child-'+ cid +'" '+ bold +' room="'+ rname +'" cid="'+ cid +'">' +
+                                    '<a  tabindex="-1" href="#">'+ cname +'</a>' +
+                                    '<span class="glyphicon '+ chksim +' chkmark" '+showblock+'></span>' +
+                                '</li>' +
+                                '<li  class="divider"></li>';
+                        $('#ul-user').append(shtml);
+
+                        // Add event listener
+                        $('#child-'+cid).on('click', function(){
+                            if ( $(this).find(".chkmark").attr('aria-hidden') != 'true') return;
+                            var vroom = $(this).attr('room');
+                            var vcid =  $(this).attr('cid');
+                            // when child is selected, go to that chatting room
+                            location.href = '/chatting?room='+ vroom +'&nname='+nm+'&cid=' + vcid;
+                        })
+                    })
+                }
+            })
+        }
+
+        $(document).ready(function() {
+            // init userlist
+            initChildList();
+
+            // get father & mother's phone number
+            $.ajax({
+                url:'/get-phone-number/'+cid, type:'get', datatype:'JSON',
+                success:function(data){
+                    console.log(data);
+                    var fnum = data.fatherNumber;
+                    var mnum = data.motherNumber;
+
+                    if(fnum == undefined) fnum = '';
+                    if(mnum == undefined) mnum = '';
+
+                    $('#mother-number').attr("href", "tel:" + mnum);
+                    $('#father-number').attr("href", "tel:" + fnum);
+                }
+            })
+
+            // select photo, upload it
+            $("#photo-selector").change(function(e){
+                var selector = $("#photo-selector");
+
+                if(selector[0].files && selector[0].files[0]){
+                    var data = new FormData();
+                    $.each(selector[0].files, function(i, file) {
+                        data.append('file-' + i, file);
+                    });
+
+                    $.ajax({
+                        url: '/upload-msg-Photo', type: "post",dataType: "JSON",
+                        data: data,
+                        // cache: false,
+                        processData: false,
+                        contentType: false,
+                        success: function(data, textStatus, jqXHR) {
+                            console.log('upload complete');
+                            socket.emit('send_photo', data);
+                        //    alert(data);
+                        }, error: function(jqXHR, textStatus, errorThrown) {}
+                    });
+                }
+            })
+
+            $("#phonecall").click(function(){
+                phone_dialog.dialog("open");
+            })
+
+            $("#addphoto").click(function(){
+                $("#file-wraper").click();
+            })
+
+            //=========  chatting code
+            $("#during").change(function () {
+                if($('#during').val() != ''){
+                    $('#msgs').empty();
+                    count = 0;
+                    socket.emit('select_during', {during: $('#during').val(),room:'Staff', nickname:nm});
+                }
+            });
+
+            $("#msgbox").keyup(function (event) {
+                if (event.which == 13) {
+                    var d = new Date();
+                    var txt = $('#msgbox').val();
+                    socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                    $('#msgbox').val('');
+                }
+            });
+
+            $("#send").click(function () {
+                var d = new Date();
+                var txt = $('#msgbox').val();
+                socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                $('#msgbox').val('');
+            });
+
+            $("#btnsearch").click(function(){
+                $("#during").slideDown(500);
+            })
+
+            $(".weeks").click(function(){
+                if($(this).val() != ''){
+                    $('#msgs').empty();
+                    socket.emit('select_during', {during: $(this).val(),room:rm, nickname:nm});
+                }
+                $("#during").slideUp(300);
+            })
+
+        })
+    </script>
+</body>
+</html>

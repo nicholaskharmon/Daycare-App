@@ -4,14 +4,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 	<title>Sunshine and Sprout Daycare</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel='stylesheet' type="text/css" href='/stylesheets/add_activity.css' />
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+	<script src="/javascripts/jquery-ui-1.12.1.js"></script>
+    <link rel='stylesheet' type="text/css" href='/stylesheets/add_activity.css' />
 </head>
-<script src="/javascripts/jquery-1.11.0.min.js"></script>
-<script src="/javascripts/jquery-ui-1.12.1.js"></script>
 <!--<script src="/socket.io/socket.io.js"></script>-->
 
 <script type="text/javascript">
@@ -19,10 +18,12 @@
     $(document).ready(function() {
         var childList = []; // container of childs informations
         childList = localStorage.getItem('selectedCIDs').split(',');
-        var drinkList = [];
-        var foodList = [];
+        var drinkList = [], drinkNames = ["milk","water","juice","other"];
+        var foodList = [], foodNames = [];
         var names = [], imgpaths = [];
         var activityFlag = 0;
+        var groupchecked = true;
+
         // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food,
         // 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo, 12:Comment
         if(childList.length == 0)
@@ -30,7 +31,7 @@
         loadChildData(childList);
         initFoodTable();
 
-        $('#div-child-list').css('margin-left', ($(window).width() - 255)/2);
+        $('#div-child-list').css('margin-left', ($(window).width() % 85)/2);
 
         var timer = $("#timer"),
                 bottle_timer = $("#bottle-timer"),
@@ -44,17 +45,18 @@
                 potty_Fields = $([]).add(potty_timer).add($("#wet")).add($("#dry")),
                 request_Fields = $([]).add("#diapers").add($("#dry")).add($("#disposable")),
                 mood_Fields = $([]).add(potty_timer).add("#focused").add("#friendly").add("#fussy").add("#happy").add("#hyper").add("#boy").add($("#sick")).add($("#misbeahaving")).add($("#needy"));
+
         var timer_dialog = $( "#timer-dialog" ).dialog({
             autoOpen: false,
-            height: 270,
-            width: 300,
+//            height: 270,
+            width: 235,
             modal: true,
             buttons: {
     //                    "Delete": function(){ deleteNote(nid);},
+                "Save": function(){ saveTime();},
                 Cancel: function() {
                     timer_dialog.dialog( "close" );
-                },
-                "Save and Close": function(){ saveTime();}
+                }
             },
             close: function() {
                 timer_form[0].reset();
@@ -68,15 +70,15 @@
 
         var bottle_dialog = $( "#bottle-dialog" ).dialog({
             autoOpen: false,
-            height: 300,
-            width: 300,
+//            height: 300,
+            width: 275,
             modal: true,
             buttons: {
     //                    "Delete": function(){ deleteNote(nid);},
+                "Save": function(){ saveBottle();},
                 Cancel: function() {
                     bottle_dialog.dialog( "close" );
-                },
-                "Save and Close": function(){ saveBottle();}
+                }
             },
             close: function() {
                 bottle_form[0].reset();
@@ -96,10 +98,10 @@
             modal: true,
             buttons: {
     //                    "Delete": function(){ deleteNote(nid);},
+                "Save": function(){ saveMood();},
                 Cancel: function() {
                     mood_dialog.dialog( "close" );
-                },
-                "Save and Close": function(){ saveMood();}
+                }
             },
             close: function() {
                 mood_form[0].reset();
@@ -114,15 +116,15 @@
         // potty
         var potty_dialog = $( "#potty-dialog" ).dialog({
             autoOpen: false,
-            height: 300,
-            width: 300,
+//            height: 300,
+//            width: 300,
             modal: true,
             buttons: {
     //                    "Delete": function(){ deleteNote(nid);},
+                "Save": function(){ savePotty();},
                 Cancel: function() {
                     potty_dialog.dialog( "close" );
-                },
-                "Save and Close": function(){ savePotty();}
+                }
             },
             close: function() {
                 potty_form[0].reset();
@@ -136,16 +138,13 @@
 
         // request
         var request_dialog = $( "#request-dialog" ).dialog({
-            autoOpen: false,
-            height:300,
-            width: 300,
-            modal: true,
+            autoOpen: false, modal: true,
             buttons: {
     //                    "Delete": function(){ deleteNote(nid);},
+                "Save": function(){ saveRequest();},
                 Cancel: function() {
                     request_dialog.dialog( "close" );
-                },
-                "Save and Close": function(){ saveRequest();}
+                }
             },
             close: function() {
                 request_form[0].reset();
@@ -162,10 +161,10 @@
             autoOpen: false,
             modal: true,
             buttons: {
+                "Save": function(){ saveDrink();},
                 Cancel: function() {
                     drink_dialog.dialog( "close" );
-                },
-                "Save & Close": function(){ saveDrink();}
+                }
             },
             close: function() {
                 drink_form[0].reset();
@@ -181,10 +180,10 @@
             autoOpen: false,
             modal: true,
             buttons: {
+                "Save": function(){ saveComment();},
                 Cancel: function() {
                     comment_dialog.dialog( "close" );
-                },
-                "Save & Close": function(){ saveComment();}
+                }
             },
             close: function() {
                 comment_form[0].reset();
@@ -198,18 +197,16 @@
         // photo
         var photo_dialog = $( "#photo-dialog" ).dialog({
             autoOpen: false,
-    //            height:350,
-            width: 320,
+            width: 300,
             modal: true,
             buttons: {
+                "Save": function(){ savePhoto();},
                 Cancel: function() {
                     photo_dialog.dialog( "close" );
-                },
-                "Save & Close": function(){ savePhoto();}
+                }
             },
             close: function() {
                 photo_form[0].reset();
-    //                photo_Fields.removeClass( "ui-state-error" );
             }
         });
 
@@ -224,10 +221,10 @@
             modal: true,
             buttons: {
     //                    "Delete": function(){ deleteNote(nid);},
+                "Save": function(){ saveFood();},
                 Cancel: function() {
                     food_dialog.dialog( "close" );
-                },
-                "Save and Close": function(){ saveFood();}
+                }
             },
             close: function() {
                 food_form[0].reset();
@@ -244,6 +241,7 @@
             var ndate = new Date();
             return ndate.getFullYear() + '-' + (ndate.getMonth()+1) + '-' + ndate.getDate();
         }
+
         // upload photo
         function savePhoto() {
             if(childList.length == 0){
@@ -253,23 +251,49 @@
 
             // insert note in DB
             var selector = $("#photo-selector");
+            if(selector[0].files[0] == undefined) {
+                alert('Select photo before Save.');
+                return false;
+            }
 
             if(selector[0].files && selector[0].files[0]){
                 var formData = new FormData();
-                var cont = $("#photo-note").val();
-                var btime = ISOtimeformat();
                 var imgpath = selector[0].files[0];
-                formData.append("comment", cont);
-                formData.append("btime", btime);
                 formData.append("photo", imgpath);
 
+                $("#photo-selector").prop("src",'');
+
                 $.ajax({
-                    url: '/new-Photo', data: formData, processData: false,
+                    url: '/new-photo', data: formData, processData: false,
                     contentType: false, type: 'POST',
                     success: function(data){
                         console.log("photo upload success");
                         imgpath = data.imgsrc;
-                        add_action("photo", btime, cont, activityFlag, imgpath);
+                        var cont = $("#photo-note").val();
+                        var btime = ISOtimeformat();
+                        var bdate = currentDate();
+                        var cids = [];
+
+                        if(groupchecked) {
+                            cids.push('0');
+                            groupchecked = false;
+                        }else {
+                            $.each(childList, function (key, value) {
+                                cids.push(value);
+                            });
+                            groupchecked = true;
+                        }
+                        $.each(cids, function(key, value){
+                            $.ajax({
+                                url: '/new-photo-register', processData: false,
+                                contentType: false, type: 'POST',
+                                data: { cid : value, btime : btime, bdate : bdate, cont : cont, url : imgpath },
+                                success: function(data) { console.log(data.state); }
+                            })
+                            var sname = "";
+                            if(cids.length > 1) sname = names[key];
+                            add_action(sname, btime, cont, activityFlag, '/images/camera.png');
+                        })
                     },
                     error: function (xhr, status, error) {
                         console.log("photo upload Failure");
@@ -281,6 +305,10 @@
 
         // Arrive, leave, sleep, wakeup   server:/new-note
         function saveTime() {
+            var surl = ['/images/arrive-home.png',
+                '/images/leave-home.png',
+                '/images/sleep.png',
+                '/images/wakeup.png'];
             timer_Fields.removeClass( "ui-state-error" );
 
             if(childList.length == 0){
@@ -290,9 +318,9 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = timer.val();
+            var btime = localtimeformat(timer.val());
             <!--var author = '<%=uid%>'; -->
-            for(i=0; i<childList.length; i++){
+            for(var i=0; i<childList.length; i++){
                 var cid = childList[i];
 
                 $.ajax({
@@ -306,11 +334,15 @@
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, '', activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                add_action(sname, btime, '', activityFlag, surl[activityFlag-1]);
+//                add_action(names[i], btime, '', activityFlag, imgpaths[i]);
             }
             timer_dialog.dialog( "close" );
         }
-        // Comment server:new-bottle
+        
+		// Comment server:new-bottle
         function saveComment() {
             if(childList.length == 0){
                 alert('No selected cildren. Select child.');
@@ -319,7 +351,7 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = $("#comment-timer").val();
+            var btime = localtimeformat($("#comment-timer").val());
             var cont = $("#comment-note").val();
 
             for(var i=0; i<childList.length; i++){
@@ -334,11 +366,14 @@
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, cont, activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                add_action(sname, btime, cont, activityFlag, '/images/note.png');
             }
             comment_dialog.dialog( "close" );
         }
-        // Bottle server:new-bottle
+        
+		// Bottle server:new-bottle
         function saveBottle() {
             bottle_Fields.removeClass( "ui-state-error" );
 
@@ -349,10 +384,10 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = bottle_timer.val();
+            var btime =localtimeformat( bottle_timer.val());
             var action_content = bottle_num.val();
 
-            for(i=0; i<childList.length; i++){
+            for(var i=0; i<childList.length; i++){
                 var cid = childList[i];
                 $.ajax({
                     url: "/new-bottle", type:"post", dataType: "JSON", // option
@@ -365,11 +400,14 @@
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, action_content + ' oz', activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                add_action(sname, btime, action_content + ' oz', activityFlag, '/images/baby-bottle.png');
             }
             bottle_dialog.dialog( "close" );
         }
-        // Food server:new-bottle
+        
+		// Food server:new-bottle
         function saveFood() {
             if(childList.length == 0){
                 alert('No selected cildren. Select child.');
@@ -378,7 +416,14 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = ISOtimeformat();
+            var btime = localtimeformat(ISOtimeformat());
+            var foods = [];
+            for(var i=0; i<foodList.length;i++){
+                foods.push(foodNames[foodList[i]]);
+            }
+            console.log(foodNames);
+            console.log(foods);
+
             var action_content = foodList.join();
 
             for(var i=0; i<childList.length; i++){
@@ -392,11 +437,14 @@
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                add_action(sname, btime, foods.join(), activityFlag, '/images/food.png');
             }
             food_dialog.dialog( "close" );
         }
-        // Drink server:new-bottle
+        
+		// Drink server:new-bottle
         function saveDrink() {
             drink_Fields.removeClass( "ui-state-error" );
 
@@ -407,13 +455,18 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = drink_timer.val();
+            var btime = localtimeformat(drink_timer.val());
+            var drinks = [];
+
+            for(var i=0; i< drinkList.length; i++){
+                drinks.push(drinkNames[drinkList[i]-1]);
+            }
             var action_content = drinkList.join();
 
             for(i=0; i<childList.length; i++){
                 var cid = childList[i];
                 $.ajax({
-                    url: "/new-bottle", type:"post", dataType: "JSON", // option
+                    url: "/new-bottle", type:"post", dataType: "JSON",
                     data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
                     success: function (data) {
                         // add note in report
@@ -421,11 +474,14 @@
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                add_action(sname, btime, action_content, activityFlag, '/images/drinkcup.png');
             }
             drink_dialog.dialog( "close" );
         }
-        // Mood server:new-bottle
+        
+		// Mood server:new-bottle
         function saveMood() {
             mood_Fields.removeClass( "ui-state-error" );
 
@@ -436,18 +492,55 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = mood_timer.val();
-            var action_content = "";
-            if($("#focused").prop( "checked")) action_content = "1";
-            if($("#friendly").prop( "checked")) action_content = "2";
-            if($("#fussy").prop( "checked")) action_content = "3";
-            if($("#happy").prop( "checked")) action_content = "4";
-            if($("#hyper").prop( "checked")) action_content = "5";
-            if($("#sick").prop( "checked")) action_content = "6";
-            if($("#misbeahaving").prop( "checked")) action_content = "7";
-            if($("#needy").prop( "checked")) action_content = "8";
+            var btime = localtimeformat( mood_timer.val());
+            var action_content = "", ss = "", surl = "";
+            if($("#focused").prop( "checked")) {
+                action_content = "1";
+                ss="Focused";
+                surl = "images/icons/focused.png";
+            }
+            if($("#friendly").prop( "checked")){
+                action_content = "2";
+                ss= "Friendly";
+                surl = "images/icons/friendly.png";
+            }
+            if($("#fussy").prop( "checked")){
+                action_content = "3";
+                ss= "Fussy";
+                surl = "images/icons/fussy.png";
+            }
+            if($("#happy").prop( "checked")){
+                action_content = "4";
+                ss= "Happy";
+                surl = "images/icons/happy.png";
+            }
+            if($("#hyper").prop( "checked")){
+                action_content = "5";
+                ss= "Hyper";
+                surl = "images/icons/hyper.png";
+            }
+            if($("#sick").prop( "checked")) {
+                action_content = "6";
+                ss= "Sick";
+                surl = "images/icons/sick.png";
+            }
+            if($("#misbeahaving").prop( "checked")) {
+                action_content = "7";
+                ss= "Misbehaving";
+                surl = "images/icons/misbehaving.png";
+            }
+            if($("#needy").prop( "checked")) {
+                action_content = "8";
+                ss= "Needy";
+                surl = "images/icons/needy.png";
+            }
+            if($("#tired").prop( "checked")) {
+                action_content = "9";
+                ss= "Tired";
+                surl = "images/icons/tired.png";
+            }
 
-            for(i=0; i<childList.length; i++){
+            for(var i=0; i<childList.length; i++){
                 var cid = childList[i];
                 $.ajax({
                     url: "/new-bottle",
@@ -462,11 +555,14 @@
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                add_action(sname, btime, ss, activityFlag, surl);
             }
             mood_dialog.dialog( "close" );
         }
-        // Potty server:new-bottle
+        
+		// Potty server:new-bottle
         function savePotty() {
             potty_Fields.removeClass( "ui-state-error" );
 
@@ -477,28 +573,41 @@
 
             // insert note in DB
             var rdate = currentDate();
-            var btime = potty_timer.val();
+            var btime = localtimeformat(potty_timer.val());
 
-            var action_content = "";
-            if($("#wet").prop( "checked")) action_content = "1";
-            if($("#dry").prop( "checked")) action_content += ",2";
+            var action_content = [], ss=[], ss2="";
+            if($("#wet").prop( "checked")) {action_content.push("1"); ss.push("Wet");}
+            if($("#dry").prop( "checked")) {action_content.push("2"); ss.push("Dry");}
+
+            if($("#diaper").prop("checked")) {
+                activityFlag = '8'; ss2 = ss.join(' & ') + " Diaper";
+            } else {
+                activityFlag = '13'; ss2 = "Went Potty: " + ss.join(' & ');
+            }
 
             for(i=0; i<childList.length; i++){
                 var cid = childList[i];
                 $.ajax({
                     url: "/new-bottle", type:"post", dataType: "JSON", // option
-                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content.join()},
                     success: function (data) {
                         // add note in report
                         if(data.result == 'success'){}
                     },
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], btime, action_content, activityFlag, imgpaths[i]);
+                var sname = "";
+                if(childList.length > 1) sname = names[i];
+                if(activityFlag == '8'){
+                    add_action(sname, btime, ss2, activityFlag, '/images/icons/diapers.png');
+                }else{
+                    add_action(sname, btime, ss2, activityFlag, '/images/toilet.png');
+                }
             }
             potty_dialog.dialog( "close" );
         }
-        // Request server:new-bottle
+        
+		// Request server:new-bottle
         function saveRequest() {
             var valid = true;
             request_Fields.removeClass( "ui-state-error" );
@@ -507,24 +616,49 @@
                 alert('No selected cildren. Select child.');
                 return false;
             }
-            var requestList = [];
+            var reqList = [];
             // insert note in DB
             var rdate = currentDate();
+            var btime = localtimeformat(ISOtimeformat());
+            var reqs = [];
+            var reqImgs = ['/images/icons/diapers.png',
+                '/images/icons/wipes.png',
+                '/images/icons/bibs.png',
+                '/images/icons/formula.png'];
 
-            if($("#diapers").prop( "checked"))      requestList.push("1");
-            if($("#dry").prop( "checked"))          requestList.push("2");
-            if($("#disposable").prop( "checked"))   requestList.push("3");
-            var action_content = requestList.join();
+            if($("#diapers").prop( "checked")){
+                reqList.push("1");
+                reqs.push("Diapers");
+            }
+            if($("#wipe").prop( "checked")) {
+                reqList.push("2");
+                reqs.push("Wipes");
+            }
+            if($("#disposable").prop( "checked")) {
+                reqList.push("3");
+                reqs.push("Disposable Bibs");
+            }
+            if($("#formula").prop( "checked")){
+                reqList.push("4");
+                reqs.push("Baby Formula");
+            }
+            var action_content = reqList.join();
 
-            for(i=0; i<childList.length; i++){
+            var cnt = childList.length;
+            for(var i=0; i< cnt; i++){
                 var cid = childList[i];
                 $.ajax({
                     url: "/new-bottle", type:"post",dataType: "JSON", // option
-                    data:{cid:cid, rdate:rdate, btime:'00:00:00',action_id:activityFlag, action_content:action_content},
+                    data:{cid:cid, rdate:rdate, btime:btime,action_id:activityFlag, action_content:action_content},
                     success: function (data) {},
                     error: function (xhr, status, error) {	alert("error");	}
                 });
-                add_action(names[i], rdate, action_content, activityFlag, imgpaths[i]);
+
+                var sname = "";
+                if(cnt > 1) sname = names[i];
+                for(var j=0; j < reqs.length; j++){
+                    add_action(sname, btime, reqs[j], activityFlag, reqImgs[reqList[j]-1]);
+                }
             }
             request_dialog.dialog( "close" );
         }
@@ -551,16 +685,46 @@
                             if (icon2==undefined) icon2 = '';
                         }
 
+                        foodNames.push(food1); foodNames.push(food2);
+
                         shtml =  '<tr class="list">';
-                        shtml += '<td class="foodcell" style="background-image:url('+icon1+');" fval="'+ i +'">';
+                        shtml += '<td class="foodcell" style="background-image:url('+icon1+');" id="fcell'+ i +'" fval="'+ i +'">';
                         shtml += food1;
                         shtml += '</td>';
-                        shtml += '<td class="foodcell" style="background-image:url('+icon2+');" fval="'+ (i+1) +'">';
+                        shtml += '<td class="foodcell" style="background-image:url('+icon2+');" id="fcell'+ (i+1) +'" fval="'+ (i+1) +'">';
                         shtml += food2;
                         shtml += '</td>';
                         shtml += '</tr>';
 
                         foodtable.append(shtml);
+
+                        $("#fcell"+ (i+1)).on("click", function(){
+                            //alert('1');
+                            var food = $(this).attr('fval');
+                            if(food == undefined) return;
+                            if (foodList.indexOf(food) < 0){
+                                foodList.push(food);
+                                $(this).css("color", "#f00");
+                            }else{
+                                $(this).css("color", "#000");
+                                foodList.splice(foodList.indexOf(food), 1);
+                            }
+                            console.log(foodList);
+                        })
+
+                        $("#fcell"+ i).on("click", function(){
+                            //alert('1');
+                            var food = $(this).attr('fval');
+                            if(food == undefined) return;
+                            if (foodList.indexOf(food) < 0){
+                                foodList.push(food);
+                                $(this).css("color", "#f00");
+                            }else{
+                                $(this).css("color", "#000");
+                                foodList.splice(foodList.indexOf(food), 1);
+                            }
+                            console.log(foodList);
+                        })
                     }
                 },
                 error:function(xhr, status, error) { alert("error") }
@@ -579,7 +743,9 @@
                     if (childData != undefined) {
                         for (var i = 0; i < childData.length; i++) {
                             var namepart = (childData[i].cname).trim().split(' ');
-                            var name = namepart[0] + ' ' + namepart[1].substr(0,1).toUpperCase() + '.';
+                            var name = namepart[0].substr(0,1).toUpperCase() + namepart[0].substr(1);
+                            if(namepart.length > 1)
+                            name += " " + namepart[1].substr(0,1).toUpperCase() + namepart[1].substr(1);
 
                             names.push(name);
                             imgpaths.push(childData[i].imgsrc);
@@ -614,40 +780,56 @@
             return tstr;
         }
 
+        function localtimeformat(timestr){
+            var ts = timestr.split(":"), hr = ts[0], mm = ts[1];
+            var tstr = "";
+            if(hr >12) tstr = (hr - 12) + ":" + mm + " PM";
+            else  tstr = hr + ":" + mm + " AM";
+
+            return tstr;
+        }
+
         function updateTips( t ) {
             tips.text( t ).addClass( "ui-state-highlight" );
             setTimeout(function() {
                 tips.removeClass( "ui-state-highlight", 1500 );
             }, 500 );
         }
-        // 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
-        function add_action(sname, stime, scont, act_id, simgurl){
-            var cont = "";
-            switch(act_id * 1){
-                case 1: cont = sname + " arrived.";     break;
-                case 2: cont = sname + " leaved.";      break;
-                case 3: cont = sname + " sleeped.";     break;
-                case 4: cont = sname + " waked up.";    break;
-                case 5: cont = sname + " feed " + scont + " of bottle.";    break;
-                case 6: cont = sname + " ate " + scont;             break;
-                case 7: cont = sname + " drinked " + scont;         break;
-                case 8: cont = sname + " diapper&potty " + scont;   break;
-                case 9: cont = sname + " request: " + scont;        break;
-                case 10: cont = sname + " was " + scont;            break;
-                case 11: cont = scont; break;
-                case 12: cont = scont; break;
+        
+		// 1:Arrive, 2:Leave, 3:Sleep, 4:Wakeup, 5:Bottle, 6:Food, 7:Drink, 8:Diapper&Potty, 9:Request, 10:Mood, 11:Photo
+        function add_action(sname, stime, scont, act_id, simgurl) {
+            var cont = "", namepart = "", name = "";
+            if(sname != ''){
+                namepart = (sname).trim().split(' ');
+                name = namepart[0].substr(0,1).toUpperCase() + namepart[0].substr(1);
+                if(namepart.length > 1)
+                    name += " " + namepart[1].substr(0,1).toUpperCase() + ".";
+            }
+            switch (act_id * 1) {
+                case 1: cont = name + " Arrived";  break;
+                case 2: cont = name + " Leaved";   break;
+                case 3: cont = name + " Slept";    break;
+                case 4: cont = name + " Woke up";  break;
+                case 5: cont = name + " Drank " + scont; break;
+                case 6: cont = name + " Ate ";     break;
+                case 7: cont = name + " Drank ";   break;
+                case 8:
+                case 13:
+                    cont = name + " " + scont; break;
+                case 9: cont = name + " Request " + scont;     break;
+                case 10: cont = name + " " + scont;            break;
+                case 11: cont = name + " Photo";            break;
+                case 12: cont = name + "Note";     break;
             }
             var row = '<tr class="list" style="text-align: left">' +
-                    '<td class="cell" style="width:50px;">'+
-                    '<img width="50" height="50" src="' + simgurl + '">' +
+                    '<td class="cell" style="width:50px;">' +
+                    '<img style="max-width:50px; max-height:50px;" src="' + simgurl + '">' +
                     '</td>' +
-                    '<td class="cell">' + cont +'</td>' +
-                    '<td class="cell" width="80px">' + stime + '</td>' +
+                    '<td class="cell">' + cont + ' at ' + stime + '</td>' +
                     '</tr>';
-    //            console.log(row);
+            //            console.log(row);
             $("#summary").append(row);
         }
-
 
         $("#bottle-plus").click(function(){
             var old = parseFloat(bottle_num.val());
@@ -659,18 +841,6 @@
             if(old > 0) bottle_num.val(old - 1);
         });
 
-        $("#foodtable td").click(function(){
-            var food = $(this).attr('fval');
-            if(food == undefined) return;
-            if (foodList.indexOf(food) < 0){
-                foodList.push(food);
-                $(this).css("color", "#f00");
-            }else{
-                $(this).css("color", "#000");
-                foodList.splice(foodList.indexOf(food), 1);
-            }
-        })
-
         $("#drinkTable input").click(function() {
             var drink = $(this).val();
             if ($(this).is(":checked")) {
@@ -680,6 +850,7 @@
             }
             console.log(drinkList);
         })
+		
         $("#photo-selector").change(function(){
             var selector = $("#photo-selector");
             if(selector[0].files && selector[0].files[0]){
@@ -691,6 +862,10 @@
             }
         })
 
+        $('#photo').on("load", function(){
+            $(this).css("margin-top", ($(this).parent().height()- $(this).height())/2);
+        })
+//
         // when press button Arrive
         $("#btn-arrive").click(function(){
             timer.val(ISOtimeformat());
@@ -769,6 +944,7 @@
         // when press button Photo
         $("#btn-photo").click(function(){
             photo_dialog.dialog("open");
+            groupchecked = true;
             activityFlag = "11";
         })
 
@@ -779,16 +955,24 @@
             comment_dialog.dialog("open");
             activityFlag = "12";
         })
+
+        $(".glyphicon-camera").click(function(){
+            $("#wrapper").click();
+        })
+
+        $("#groupcheck").click(function(){
+            groupchecked = !groupchecked;
+        })
     })
 
 </script>
 <body>
 <!-- Form to add Note  -->
 <div id="timer-dialog" title="Add Note" style="display: none;">
-    <p class="validateTips">Timer</p>
+    <p class="validateTips">Time</p>
     <form>
         <fieldset>
-            <input type="time" id="timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="time" id="timer" value="" class="ui-widget-content ui-corner-all">
 
             <!-- Allow form submission with keyboard without duplicating the dialog button -->
             <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
@@ -799,13 +983,13 @@
 <div id="bottle-dialog" title="Add Bottle" style="display: none;">
     <form>
         <fieldset>
-            <input type="time" id="bottle-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="time" id="bottle-timer" value="" class="ui-widget-content ui-corner-all">
             <br>
             <div>
                 <h4>Milk of oz</h4>
                 <input type="text" pattern="[0-9]{2}" id="bottle-num" value="0">
-                <img src="/images/add-circular-button.png" id="bottle-plus">
-                <img src="/images/minus-circular-button.png" id="bottle-minus">
+                <img src="/images/plus2.png" id="bottle-plus" style="margin-left:20px;">
+                <img src="/images/minus2.png" id="bottle-minus" style="margin-left:20px;">
             </div>
             <!-- Allow form submission with keyboard without duplicating the dialog button -->
             <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
@@ -816,10 +1000,10 @@
 <div id="drink-dialog" title="Add Drink" style="display: none;">
     <form>
         <fieldset>
-            <input type="time" id="drink-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="time" id="drink-timer" value="" class="ui-widget-content ui-corner-all">
             <br>
             <div>
-                <h4 style="margin-bottom: 0px">Drinks</h4>
+                <h4 style="margin-bottom: 10px">Drinks</h4>
                 <table style="width:100%; border:0px;background-color:white" id="drinkTable">
                     <tr style="background-color:white;padding-bottom: 0px">
                         <td width="50%" height="25px">
@@ -848,16 +1032,25 @@
 <div id="potty-dialog" title="Add Potty & Diaper" style="display: none;">
     <form>
         <fieldset>
-            <input type="time" id="potty-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
-            <br>
-            <div>
-                <h4>Potty & Diaper</h4>
-                <table style="width:100%; border:0px;background-color:white">
+            <div style=" margin-top:20px;">
+            <input type="time" id="potty-timer" value="" class="ui-widget-content ui-corner-all">
+            </div>
+            <div style=" margin-top:20px;">
+
+                <table style="width:100%; border:0px;background-color:white;">
+                    <tr style="background-color:white; border-bottom:2px solid #dfdfdf">
+                        <td style="width:50%;height:35px;padding-left:15px;">
+                            <label style="font-size: 18px"> <input type="radio" name="kind" id="diaper" value="Diaper" checked>&nbsp;&nbsp;Diaper</label>
+                        </td>
+                        <td style="width:50%;height:35px;padding-left:15px;">
+                            <label style="font-size: 18px"> <input type="radio" name="kind" id="potty" value="Potty">&nbsp;&nbsp;Potty</label>
+                        </td>
+                    </tr>
                     <tr style="background-color:white">
-                        <td width="50%" height="25px">
+                        <td style="width:50%;height:35px;padding-left:15px;padding-top: 10px">
                             <label style="font-size: 18px"> <input type="checkbox" name="potty" id="wet" value="wet" checked>&nbsp;&nbsp;Wet</label>
                         </td>
-                        <td width="50%" height="25px">
+                        <td style="width:50%;height:35px;padding-left:15px;padding-top: 10px">
                             <label style="font-size: 18px"> <input type="checkbox" name="potty" id="dry" value="dry">&nbsp;&nbsp;Dry</label>
                         </td>
                     </tr>
@@ -872,15 +1065,22 @@
 <div id="photo-dialog" title="Add Photo" style="display: none;">
     <form>
         <fieldset style="border:0px;">
-            <!--<input type="time" id="photo-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">-->
-            <!--<br>-->
             <div>
-                <div style="width:260px;height:260px;">
-                    <img id="photo">
+                <div id="div-picture">
+                    <img id="photo" style="border:0px solid;">
                 </div>
                 <div >
-                    <input id="photo-selector" name="photo-selector" type="file"  accept="image/*" capture="camera" style="minheight:20px;">
-                    <textarea id="photo-note" ></textarea>
+                    <div style="margin-top:15px; text-align: center;">
+                        <span class="glyphicon glyphicon-camera" style="font-size:36px;color: #3e8acc;"></span><br>
+                        <label id="wrapper" for="photo-selector" style="display: none;">
+                            <input id="photo-selector" name="photo-selector" type="file" accept="image/*" capture="camera">
+                        </label>
+                        <label><input id="groupcheck" name="groupcheck" type="checkbox" checked>&nbsp;Group Timeline</label>
+                    </div>
+
+                    <div></div>
+                    <div><textarea id="photo-note" style="width:100%;" placeholder="Add Comment Here"></textarea></div>
+
                 </div>
             </div>
             <!-- Allow form submission with keyboard without duplicating the dialog button -->
@@ -893,11 +1093,11 @@
     <form>
         <fieldset style="border:0px;">
             <h4>Time</h4>
-            <input type="time" id="comment-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <input type="time" id="comment-timer" value="" class="ui-widget-content ui-corner-all">
             <br>
             <div>
                 <h4>Comment</h4>
-                <textarea id="comment-note" ></textarea>
+                <textarea id="comment-note" style="width:100%;"></textarea>
             </div>
             <!-- Allow form submission with keyboard without duplicating the dialog button -->
             <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
@@ -921,43 +1121,50 @@
 <div id="mood-dialog" title="Add Mood" style="display: none;">
     <form>
         <fieldset>
-            <label style="font-size: 18px"> Time&nbsp;&nbsp;
-                <input type="time" id="mood-timer" style="width:240px; height:40px;" value="" class="ui-widget-content ui-corner-all">
+            <label style="font-size: 18px; width:100%; margin-top:20px;">
+                <input type="time" id="mood-timer" value="" class="ui-widget-content ui-corner-all">
             </label>
             <br>
-            <div>
-                <h4>Mood</h4>
-                <table style="width:100%; border:0px;background-color:white" id="foodTable">
+            <div style="margin-top:20px;">
+
+                <table style="width:100%; border:0px;background-color:white" id="moodTable">
                     <tr style="background-color:white">
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="focused">&nbsp;&nbsp;Focused</label>
                         </td>
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="friendly">&nbsp;&nbsp;Friendly</label>
                         </td>
                     </tr>
                     <tr style="background-color:white">
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="fussy">&nbsp;&nbsp;Fussy</label>
                         </td>
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="happy" checked>&nbsp;&nbsp;Happy</label>
                         </td>
                     </tr>
                     <tr style="background-color:white">
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="hyper">&nbsp;&nbsp;Hyper</label>
                         </td>
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="sick">&nbsp;&nbsp;Sick</label>
                         </td>
                     </tr>
                     <tr style="background-color:white">
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="misbeahaving">&nbsp;&nbsp;Misbeahaving</label>
                         </td>
-                        <td width="50%" height="25px">
+                        <td width="50%" height="30px">
                             <label style="font-size: 18px"> <input type="radio" name="mood" id="needy">&nbsp;&nbsp;Needy</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="30px">
+                            <label style="font-size: 18px"> <input type="radio" name="mood" id="tired">&nbsp;&nbsp;Tired</label>
+                        </td>
+                        <td width="50%" height="30px">
                         </td>
                     </tr>
                 </table>
@@ -972,21 +1179,26 @@
     <form>
         <fieldset>
             <div>
-                <h4>Request</h4>
+
                 <table style="width:100%; border:0px;background-color:white">
                     <tr style="background-color:white">
-                        <td height="25px">
-                            <label style="font-size: 18px"> <input type="checkbox" id="diapers" checked>&nbsp;&nbsp;Diapers</label>
+                        <td height="25px" colspan="2">
+                            <label style="font-size: 18px"> <input type="checkbox" id="diapers">&nbsp;&nbsp;Diapers</label>
                         </td>
                     </tr>
                     <tr style="background-color:white">
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px"> <input type="checkbox" id="dry" checked>&nbsp;&nbsp;Dry</label>
+                            <label style="font-size: 18px"> <input type="checkbox" id="wipe">&nbsp;&nbsp;Wipe</label>
                         </td>
                     </tr>
                     <tr style="background-color:white">
                         <td width="50%" height="25px">
-                            <label style="font-size: 18px"> <input type="checkbox" id="disposable" checked>&nbsp;&nbsp;Disposable Bibs</label>
+                            <label style="font-size: 18px"> <input type="checkbox" id="disposable">&nbsp;&nbsp;Disposable Bibs</label>
+                        </td>
+                    </tr>
+                    <tr style="background-color:white">
+                        <td width="50%" height="25px">
+                            <label style="font-size: 18px"> <input type="checkbox" id="formula">&nbsp;&nbsp;Formula</label>
                         </td>
                     </tr>
                 </table>
@@ -1005,14 +1217,16 @@
 		<br>
 	</div>
     <div id="div-head" style="text-align: center;">
-        <i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>
+        <img src="/images/backbtn_blue.png" id="btnBack" onclick="window.history.back();">
+        <!--<i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>-->
         <!--<i class="fa fa-plus" onclick="location.href='/add-activity'"></i>-->
         <h3 style="display:inline-block;">Add Activities</h3>
     </div>
 	<div id="div-main">
         <div id="div-photoline">
-            <div id="div-photo">
+            <div id="div-photo" style="height:100%;">
                 <img id="child-photo" src="">
+                <!--<div class="fill inside-border tile-menu-border"></div>-->
             </div>
             <div class="dropdown">
                 <button class="btn btn-link dropdown-toggle" type="button" data-toggle="dropdown" style="display:inline-block">
@@ -1026,75 +1240,63 @@
 		<div id = "div-child-list" >
 			<ul class = "ul-activities" >
                 <li id="btn-arrive" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Arrive
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-leave" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');" >
+                    <button class="tile pointable">
                         Leave
                     </button>
-                    <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                 </li>
                 <li id="btn-sleep" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Sleep
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-wakeup" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         WakeUp
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-bottle" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Bottle
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-food" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Food
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-drink" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Drink
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-potty" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Potty & Diaper
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-request" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Request
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-mood" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Mood
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-photo" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Photo
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
                 <li id="btn-comment" class="child_item">
-                    <button class="tile pointable" style="background-image: url('');">
+                    <button class="tile pointable">
                         Note
-                        <div class="fill inside-border tile-menu-border" style="display:none;"></div>
                     </button>
                 </li>
             </ul>

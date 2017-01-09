@@ -31,16 +31,20 @@
 
                     for(i = 0; i < childList.length; i++){
                         var cid = childList[i].cid;
+                        var namepart = (childList[i].child_name).trim().split(' ');
+                        var name = namepart[0].substr(0,1).toUpperCase() + namepart[0].substr(1);
+                        if(namepart.length > 1)
+                            name += " " + namepart[1].substr(0,1).toUpperCase() + ".";
                         ul_childs.append(
                             '<li id="' + cid + '" class="child_item">' +
                                 '<div class="tile pointable" style="background-image: url(' + childList[i].imgsrc + ');">' +
                                     '<div  style="height:100%">' +
 
-                                        '<div class="fill inside-border tile-menu-border" style="display:none;" id="cbd-' + cid + '"></div>' +
+                                        '<div class="fill inside-border tile-menu-border" id="cbd-' + cid + '"></div>' +
                                     '</div>' +
                                 '</div>' +
                                 '<div class="note mask" >' +
-                                    '<span id="cname-' + cid + '">' + childList[i].child_name + '</span>' +
+                                    '<span id="cname-' + cid + '">' + name + '</span>' +
                                 '</div>' +
                             '</li>'
                         );
@@ -59,6 +63,8 @@
     }
 
     $(document).ready(function() {
+        $("#div-main").css("margin-left", ($(document).width() % 100)/2);
+
         loadChildList();
     })
 
@@ -79,7 +85,7 @@
 
     <div id="div-main">
 		<div id = "div-child-list" >
-			<ul class = "ul-childs" >
+			<ul class = "ul-childs" style="padding-left: 0px;">
 
             </ul>
 		</div>

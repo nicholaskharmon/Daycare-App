@@ -5,6 +5,7 @@
     <link rel='stylesheet' type="text/css" href='/stylesheets/event_setting.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <!--<script src="/socket.io/socket.io.js"></script>-->
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
@@ -18,6 +19,19 @@
     $(document).ready(function() {
         var currentmonth = new Date();
         var cc = new Date();
+        var childname = '';
+
+        $.ajax({
+            url:"/getChildList", type:"get", dataType:"JSON",
+            success : function(data){
+                childname = data[0].child_name;
+                var cc = childname.split(" ");
+                if (cc.length > 1){
+                    childname = cc[0] + " " + cc[1].substr(0,1).toUpperCase()+".";
+                }
+            },
+            error : function(xhr, status, error) { alert("error");}
+        })
 
         // Error
         var error_dialog = $( "#error-dialog" ).dialog({
@@ -187,9 +201,8 @@
             var surl = "/get-event?firstday=" + sfirst + "&lastday="+slast;
 
             $.ajax({
-                url : surl,
-                dataType:"JSON", // option
-                success : function(data) {
+                url : surl, dataType:"JSON",
+                    success : function(data) {
                     for(i=0; i<data.length;i++){
                         var contents = "";
                         var sd = "";
@@ -213,9 +226,7 @@
                         $('#'+sd).attr({'style': 'background-color:#8db4ce;color:white;padding:0px 5px;'})
                     }
                 },
-                error : function(xhr, status, error) {
-                    alert("error");
-                }
+                error : function(xhr, status, error) { alert("error");}
             });
         }
 
@@ -265,17 +276,17 @@
         $("#opt-absent").click(function(){
             $("#emsg").css('color', 'black');
             $("#emsg").html('');
-            $("#ename").val($(this).val());
+            $("#ename").val(childname + " " + $(this).val());
         })
         $("#opt-pickup").click(function(){
             $("#emsg").css('color', 'black');
             $("#emsg").html('');
-            $("#ename").val($(this).val());
+            $("#ename").val(childname + " " + $(this).val());
         })
         $("#opt-dropoff").click(function(){
             $("#emsg").css('color', 'black');
             $("#emsg").html('');
-            $("#ename").val($(this).val());
+            $("#ename").val(childname + " " + $(this).val());
         })
 
     });
@@ -295,17 +306,15 @@
 
     <div id="div-head">
         <div id="div-title">
-            <div id="homebtn" onclick="location.href='/calendar'" > </div>
-            <!--<div id="homebtn" onclick="location.href='/dashboard'" > </div>-->
-            <!--<div id="settingbtn" > </div>-->
+            <i class="fa fa-angle-left" style="font-size:24px; padding-top:25px;margin-left: 10px;color:red;float:left;" onclick="location.href='/calendar'">&nbsp;Back</i>
             <h2 style="text-align:center">Calendar</h2>
         </div>
 
         <div  id="div-calendar" class ="div-calendar">
             <div class="month">
                 <ul>
-                    <li class="prev"><</li>
-                    <li class="next">></li>
+                    <li class="prev"><i class="fa fa-angle-left" style="font-size:24px;color:red;float:left;"></i></li>
+                    <li class="next"><i class="fa fa-angle-right" style="font-size:24px;color:red;float:right;"></i></li>
                     <li id="smonth" style="text-align:center">  </li>
                 </ul>
             </div>
@@ -370,7 +379,7 @@
                     </div>
                 </div>
                 <div width="100%">
-                    <p >&nbsp;Note&nbsp;&nbsp;<span id="nmsg"></span></p>
+                    <p >&nbsp;Reason&nbsp;&nbsp;<span id="nmsg"></span></p>
                     <textarea name="enote" id="enote" rows="3" maxlength="300" style="width:100%"></textarea><br>
                 </div>
             </div>
