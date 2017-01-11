@@ -7,12 +7,12 @@
     <title>Daycare</title>
 
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
     <link rel='stylesheet' type="text/css" href='/stylesheets/timeline.css' />
 
     <script src="/javascripts/jquery-1.11.0.min.js"></script>
-    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+    <script src="/javascripts/bootstrap.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/jquery.backstretch.min.js"></script>
     <script src="/javascripts/jquery-ui-1.12.1.js"></script>
@@ -275,7 +275,7 @@
 
     <div id="div-head">
         <div id="homebtn" onclick="location.href='/dashboard'" >
-            <i class="fa fa-angle-left" style="font-size:24px; padding-top:20px;">&nbsp;Back</i>
+            <img src="/images/backbtn_blue.png" style="margin-top:20px;margin-left:15px;float:left;">
         </div>
         <div id="menu1" style="float:right;margin-right:20px;color:red;">
             <div id="btnsearch">
@@ -310,7 +310,7 @@
     <script type="text/javascript">
         $.backstretch("/images/bg.png");
 
-        var socket = io.connect("http://192.168.3.148:8080");
+        var socket = io.connect("http://192.168.4.148:8080");
         var nm = '<%=nname%>';
         var count = 0;
         var childlist = [];
@@ -319,7 +319,7 @@
         var foodList = [];
         var gcid = -1;
 
-        socket.emit('joinroom',{room:'map', nickname:nm});
+        socket.emit('joinroom',{room:'geoloc', nickname:nm});
         // select photo, upload it
         $("#send").click(function(){
             var selector = $("#photo-selector");

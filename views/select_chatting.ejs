@@ -3,9 +3,11 @@
 <head>
 	<title>Sunshine and Sprout Daycare</title>
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
 	<link rel='stylesheet' type="text/css" href='/stylesheets/select_chatting.css' />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 </head>
 
@@ -20,7 +22,6 @@
 
     <div id="div-head">
         <img id="backBtn" src="/images/backbtn_blue.png" onclick="window.history.back();">
-        <!--<i class="fa fa-angle-left" style="font-size:30px;" onclick="location.href='/dashboard'"></i>-->
         <h2>Select Chat</h2>
     </div>
 
@@ -39,7 +40,7 @@
     var childList = []; // container of childs informations
     var selectedCID = '';
 
-    var socket = io.connect("http://192.168.3.148:8080");
+    var socket = io.connect("http://192.168.4.148:8080");
     var nm = '<%=nname%>';
     var rm = '<%=room%>';
     var count = 0;

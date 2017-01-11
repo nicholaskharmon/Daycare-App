@@ -7,11 +7,13 @@
     <title>Daycare</title>
 
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
+
     <link rel='stylesheet' type="text/css" href='/stylesheets/admin_chatting.css' />
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
     <script src="/javascripts/jquery-ui-1.12.1.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/javascripts/jquery.backstretch.min.js"></script>
@@ -100,7 +102,7 @@
 <script type="text/javascript">
         $.backstretch("/images/bg.png");
 
-        var socket = io.connect("http://192.168.3.148:8080");
+        var socket = io.connect("http://192.168.4.148:8080");
         var nm = '<%=nname%>';
         var rm = '<%=room%>';
         var cid = '<%=cid%>';
@@ -113,11 +115,12 @@
          [roomname3, user3_1, cid3],...,[roomname3, user3_5, cid3]]
          * */
         var items = []; // Array of array [roomname, username, photourl]
+        var selectedUser = [];
 
         function isoTime2Local(isoTime){ // 13:01:33 -> 1:01 PM
             var ss = isoTime.split(':'), result = '';
             if(ss[0]*1 > 13) result = (ss[0]*1-12) + ':' + ss[1];
-            else result = (ss[0]*1-12) + ':' + ss[1];
+            else result = ss[0] + ':' + ss[1];
 
             if(ss[0]*1 > 12) result += ' PM';
             else result += ' AM';
@@ -125,7 +128,7 @@
         }
 
         function isoDate2Local(isodate){ // 1978-01-13 -> Jan 13 1978
-            var ss = isodate.split();
+            var ss = isodate.split('-');
             result = smonths[ss[1]-1] + ' ' + ss[2] + ' ' + ss[0];
             return result;
         }
@@ -138,7 +141,7 @@
 
         console.log('room is '+rm+'. name is ' + nm);
         socket.emit('joinroom',{room:rm, nickname:nm, cid:cid});
-//        socket.emit('joinroom',{room:'map', nickname:nm});
+//        socket.emit('joinroom',{room:'geoloc', nickname:nm});
 
         socket.on('new', function (data) {
             console.log(data.nickname);
@@ -162,6 +165,7 @@
                         url:'/getSureName', type:'post', datatype:'JSON',
                         data:{nickname: user},
                         success: function(data){
+//                            alert(data.surename);
                             if(data != undefined) {
                                 shtml = '<li id="p-'+data.uid+'" uid="'+data.uid+'"><a tabindex="-1">' + data.surename + '</a>' +
                                         '<span class="glyphicon glyphicon-ok chkmark"></span>' +
@@ -171,7 +175,13 @@
 
                                 // add event listener
                                 $('#p-'+data.uid).on('click', function(){
-
+                                    var visible = $(this).children('.chkmark').css('display') == 'block';
+                                    if(visible){
+                                        $(this).children('.chkmark').css('display','none');
+//                                        selectedUser.indexOf();
+                                    }else{
+                                        $(this).children('.chkmark').css('display','block');
+                                    }
                                 })
                             }
                         }
@@ -237,7 +247,7 @@
                                 shtml += '</div><br>' +
                                         '<span class= "sender" style="max-width:80%;' + align + direction + '">' + surename + '</span><br>'+
                                         '<span class= "stime" style="max-width:80%;' + align + direction + '">' +
-                                        mtime + " " + mdate + '</span>'+
+                                        mtime + " " + mdate + '</span><br>'+
                                         '</li>';
                                 $('#msgs').append(shtml );
                                 $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
@@ -249,24 +259,30 @@
         });
 
         socket.on('roomuserlist', function (data) {
-//        console.log(data);
             var rooms = data.rooms, cids = data.cids, users = data.users;
-            items = [];
 
-//        console.log(rooms);
-//        console.log(cids);
+            if(cids==undefined || cids.length == 0) return false;
+            console.log('userlist changed');
+            console.log(rooms);
+            console.log(users);
+//            console.log();
 
-            for(var i=0; i<rooms.length; i++){
-                for(var j=0; j<users[i].length; j++){
-                    if(rooms[i]=='Staff') continue;
-                    var item = [];
-                    item.push(rooms[i]);
-                    item.push(users[i][j]);
-                    item.push(cids[i]);
-                    items.push(item);
-                }
-            }
+            // Clear all checkmark
+            $('#ul-user li .chkmark').css('display','none');
+            $('#ul-user li .chkmark').attr('class','glyphicon glyphicon-envelope chkmark');
 
+            $.each(cids, function(key, val){
+                $('#ul-user').find("li#child-"+val).find(".chkmark").css("display", "block");
+            })
+
+//            var chksim = visible ? 'glyphicon-ok':'glyphicon-envelope';
+
+//            shtml = '<li id="child-'+ cid +'" '+ bold +' room="'+ rname +'" cid="'+ cid +'">' +
+//                    '<a  tabindex="-1" href="#">'+ cname +'</a>' +
+//                    '<span class="glyphicon '+ chksim +' chkmark" '+showblock+'></span>' +
+//                    '</li>' +
+//                    '<li  class="divider"></li>';
+//            $('#ul-user').append(shtml);
         });
 
         socket.on('notify', function(data){
@@ -294,7 +310,6 @@
         })
 
         socket.on('broadcast_msg', function (data) {
-            var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
             var direction, align;
             var msg = data.msg;
             var sender = data.sender;
@@ -321,10 +336,14 @@
             }
 
             // get surename
-            $.ajax({ url:'/getSureName', data:{nickname:sender}, datatype:'json',
-                type:'post', async : false,
-                success:function(data){ surename = data.rows[0].user_name; console.log(surename);}
-            })
+            if(sender != undefined && sender != '')
+                $.ajax({ url:'/getSureName', data:{nickname:sender}, datatype:'json',
+                    type:'post', async : false,
+                    success:function(data){
+                        surename = data[0].user_name; console.log(data.length);
+                    }
+                })
+            else surename = '';
 
             var shtml = '<li style="width:100%;">' +
                     '<div class="msg" style="max-width:80%;' + direction + '">'+
@@ -333,62 +352,14 @@
                 shtml += '<img id="photo" style="width:100%" src="'+ imgsrc +'" >';
 
             shtml += '</div><br>' +
-                    '<span class= "sender" style="max-width:80%;' + align + direction + '">' + surename + '</span><br>'+
-                    '<span class= "stime" style="max-width:80%;' + align + direction + '">' +
+                    '<span class= "sender" style="width:100%;' + align + direction + '">' + surename + '</span>'+
+                    '<span class= "stime" style="width:100%;' + align + direction + '">' +
                     mtime + " " + mdate + '</span>'+
                     '</li>';
             $('#msgs').append(shtml );
             $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
         });
-/*
-        socket.on('broadcast_msg', function (data) {
-            var smonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nob','Dec'];
-            var direction, align;
-            var msg = data.msg;
-            var sender = data.sender;
-            var sd = data.mdate;
-            var mdate = "";
-            var surename = "";
 
-            if(sd != undefined && sd != "") mdate = isoDate2Local();
-
-            var mtime = data.mtime;
-            var imgsrc = data.imgsrc;
-
-            if(msg == undefined) msg = "";
-            if(mtime == undefined) mtime = "0:00 AM";
-            else mtime = isoTime2Local(mtime);
-
-            if(sender != nm) {
-                direction = "float:left;";
-                align = "text-align:left;";
-            }
-            else {
-                direction = "float:right;";
-                align = "text-align:right;";
-            }
-
-            // get surename
-            $.ajax({ url:'/getSureName', data:{nickname:sender}, datatype:'json',
-                type:'post', async : false,
-                success:function(data){ surename = data.user_name; }
-            })
-
-            var shtml = '<li style="width:100%;">' +
-                    '<div class="msg" style="max-width:80%;' + direction + '">'+
-                    '<span>'+msg +'</span><br>';
-            if(imgsrc != undefined && imgsrc !="")
-                shtml += '<img id="photo" style="width:100%" src="'+ imgsrc +'" >';
-
-            shtml += '</div><br>' +
-                    '<span class= "sender" style="max-width:80%;' + align + direction + '">' + surename + '</span><br>'+
-                    '<span class= "stime" style="max-width:80%;' + align + direction + '">' +
-                    mtime + " " + mdate + '</span>'+
-                    '</li>';
-            $('#msgs').append(shtml );
-            $("#msgs").animate({ scrollTop: $(".msg:last").offset().top }, 100);
-        });
-*/
         // comment
         var phone_dialog = $( "#phone-modal" ).dialog({
             autoOpen: false,
@@ -520,9 +491,7 @@
             });
 
             $("#send").click(function () {
-                var d = new Date();
-                var txt = $('#msgbox').val();
-                socket.emit('send_msg', {to: $('#to').val(), msg: txt});
+                socket.emit('send_msg', {to: $('#to').val(), msg: $('#msgbox').val()});
                 $('#msgbox').val('');
             });
 

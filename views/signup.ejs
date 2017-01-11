@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/html">
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' type="text/css" href='/stylesheets/signup.css' />
-      <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
-  </head>
+    <head>
+        <title><%= title %></title>
+        <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+        <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+        <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
+        <link rel='stylesheet' type="text/css" href='/stylesheets/signup.css' />
+
+        <script src="/javascripts/jquery-1.11.0.min.js"></script>
+        <script src="/javascripts/bootstrap.min.js"></script>
+    </head>
   <script type="text/javascript" >
       function check(){
-          var email = document.getElementById("email").value;
-          var username = document.getElementById("username").value;
-          var nickname = document.getElementById("nickname").value;
-          var phonenumber = document.getElementById("phonenumber").value;
-          var pwd1 = document.getElementById("pwd1").value;
-          var pwd2 = document.getElementById("pwd2").value;
+          var email = $("#email").value;
+          var username = $("#username").value;
+          var nickname = $("#nickname").value;
+          var phonenumber = $("#phonenumber").value;
+          var pwd1 = $("#pwd1").value;
+          var pwd2 = $("#pwd2").value;
 //          var gender = document.getElementById("gender").value;
 
           if(email=='') {

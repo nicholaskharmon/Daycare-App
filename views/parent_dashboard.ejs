@@ -2,14 +2,18 @@
 <html>
 <head>
     <title>Sunshine and Sprout Daycare</title>
-    <link rel='stylesheet' type="text/css" href='/stylesheets/parent_dashboard.css' />
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    <link rel='stylesheet' type="text/css" href='/stylesheets/parent_dashboard.css' />
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
+
+    <script src="/javascripts/jquery-1.11.0.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
-<script src="/javascripts/jquery-1.11.0.min.js"></script>
-<script src="/socket.io/socket.io.js"></script>
 
 <script type="text/javascript">
-    var socket = io.connect("http://192.168.3.148:8080");
+    var socket = io.connect("http://192.168.4.148:8080");
 
     var uid = '<%=uid%>';
     var nm = '<%=nname%>';
@@ -20,7 +24,7 @@
     localStorage.setItem('grade', grd);
 
     console.log('nickname='+nm + " grade="+grd);
-//    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+//    socket.emit('joinroom',{room:'geoloc', nickname:nm, grade: grd});
 
 //    socket.on('notify', function (data) {
 //        $('#msg').text(data.msg + " is on way.");

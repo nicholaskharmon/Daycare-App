@@ -3,7 +3,8 @@
 <head>
     <title>Sunshine and Sprout Daycare</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/stylesheets/jquery-ui-1.12.1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel='stylesheet' type="text/css" href='/stylesheets/calendar.css' />
@@ -12,14 +13,14 @@
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
 <script src="/javascripts/jquery-1.11.0.min.js"></script>
 <script src="/javascripts/jquery-ui-1.12.1.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
 
 <script type="text/javascript">
 
-//    var socket = io.connect("http://192.168.3.148:8080");
+//    var socket = io.connect("http://192.168.4.148:8080");
     var nm = '<%=nname%>';
     var grd = '<%=grade%>';
-//    socket.emit('joinroom',{room:'map', nickname:nm, grade: grd});
+//    socket.emit('joinroom',{room:'geoloc', nickname:nm, grade: grd});
 //
 //    socket.on('notify', function (data) {
 //        $('#msg').text(data.msg + " is on way.");
